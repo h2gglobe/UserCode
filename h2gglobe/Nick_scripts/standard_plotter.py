@@ -17,6 +17,7 @@ scale_montecarlo	= False
 set_logy		= False
 dont_stack		= False	
 plot_data		= False
+plot_as_gif		= False
 
 for o in opts[1:]:
   if   o=='-sig':
@@ -33,6 +34,9 @@ for o in opts[1:]:
     args.remove(o)
   elif o=='-data':
     plot_data = True
+    args.remove(o)
+  elif o=='-gif':
+    plot_as_gif = True
     args.remove(o)
   else : sys.exit('No Option Available: %s'%o)
 
@@ -73,8 +77,8 @@ file_names	= {
 		  ,'hist/GGH130_hist.root'	:[7,3427365.075     ]
 		  }
 
-print "Using files/type/weight :"
-for k in file_names.keys(): print k, file_names[k] 
+#print "Using files/type/weight :"
+#for k in file_names.keys(): print k, file_names[k] 
 
 # should have one color and title per Channel
 titles_colors = {
@@ -93,11 +97,6 @@ titles_colors = {
 signal_index = [5,6,7]
 # --------------------------------------------------------------------------
 
-#Build linked files lists:
-for f in file_names: 
-  if not (os.path.isfile(f)):
-   sys.exit("No file found named %s"%f)
-
 linked_files = [[filter(lambda x: (file_names[x])[0]==i,file_names),
 		 i in signal_index] \
 		for i in range(len(file_names))]
@@ -110,10 +109,23 @@ if not include_signal:
     if  lnk[1]: remove_me.append(lnk)
   for rm in remove_me:  linked_files.remove(rm)
 
-print linked_files
+#print linked_files 
+#if not include_signal: file_list = filter(lambda x: not x[1], file_list)
 
 file_list = [[[ROOT.TFile(f) for f in F[0]],F[1]] for F in linked_files]
 file_list = filter(lambda x: len(x[0]) > 0, file_list)
+
+# careful here
+for f in file_names: 
+  if not (os.path.isfile(f)):
+   if include_signal and file_names[f][0] in signal_index:
+    sys.exit("No file found %s"%f)
+   elif not include_signal and file_names[f][0] not in signal_index:
+    print file_names[f][0]
+    sys.exit("No file found %s"%f)
+
+
+
 
 if os.path.isfile(data_name):  	
   data_file = ROOT.TFile(data_name)
@@ -265,7 +277,8 @@ for i in range(len(keys[0][0])):
 	  hist_1.Draw("hist")
 	  hist_rat.Draw('same')
         # ----------------------------------------------------
-	c.SaveAs('plots/'+data_hist.GetName()+'.gif')
+	if plot_as_gif: c.SaveAs('plots/'+data_hist.GetName()+'.gif')
+	else: c.SaveAs('plots/'+data_hist.GetName()+'.pdf')
 
 
 #EOF
