@@ -8,12 +8,7 @@
 #include <TFile.h>
 #include "TCanvas.h"
 
-#include <TH1.h> 
-#include <TH2.h> 
-#include <TProfile.h> 
-
 #include <TClonesArray.h>
-#include <TLorentzRotation.h>
 #include <TLorentzVector.h>
 #include <TVector3.h>
 
@@ -23,49 +18,54 @@
 #include <iostream>
 #include <fstream>
 #include <iomanip>
-#include <algorithm>
 #include <math.h>
 
-// binary numbers (HLT)
 #include <bitset>
 #include <map>
-
-#if defined (__MAKECINT__ )
-#pragma link C++ class std::vector<std::vector<float> >+;
-#pragma link C++ class std::vector<std::vector<int> >+;
-#endif 
 
 class Util;
 
 #include "HistoContainer.h"
+#include "CounterContainer.h"
+#include "SampleContainer.h"
+#include "Cut.h"
+#include "branchdef/Limits.h"
 #include "RooContainer.h"
-#include "Limits.h"
+#include "VertexAnalysis/interface/HggVertexAnalyzer.h"
+#include "VertexAnalysis/interface/PhotonInfo.h"
 
 class LoopAll {
  public :
   TTree          *fChain;   
-  Int_t           fCurrent; 
-
-
+  
 #include "branchdef/branchdef.h"
 #include "branchdef/treedef.h"
+#include "GeneralFunctions_h.h"
+#include "PhotonAnalysis/PhotonAnalysisFunctions_h.h"
 
-  std::vector<HistoContainer*> histoContainer;
+  std::vector<HistoContainer> histoContainer;
+  std::vector<CounterContainer> counterContainer;
+  std::vector<SampleContainer> sampleContainer;
+  std::vector<Cut> cutContainer;
   RooContainer *rooContainer;
 
   LoopAll(TTree *tree=0);
   virtual ~LoopAll();
-  virtual Int_t  Cut(Long64_t entry);
+  //virtual Int_t  Cut(Long64_t entry);
   virtual Int_t    GetEntry(Long64_t entry);
   virtual Long64_t LoadTree(Long64_t entry);
   virtual void   Init(Int_t typerunpass, TTree *tree);
-  virtual void   InitReal(Util* ut, Int_t typerunpass);
+  virtual void   InitReal(Int_t typerunpass);
   virtual void   TermReal(Int_t typerunpass);
-  virtual void   Loop();
+  virtual void   Loop(Double_t a);
   virtual Bool_t Notify();
   virtual void   Show(Long64_t entry = -1);
-  
-  Util *UtilInstance;
+  virtual void   InitHistos();
+  virtual void   BookHisto(int,int,int,int,int,int
+			  ,float,float,float,float
+			  ,char*);
+ 
+  Util *utilInstance;
   Int_t typerun;
   Int_t currentindexfiles;
   
@@ -79,70 +79,33 @@ class LoopAll {
   Int_t makeOutputTree;
   Int_t outputEvents;
 
-#include "GeneralFunctions_h.h"
-#include "PhotonAnalysis/PhotonAnalysisFunctions_h.h"
- 
- void Loop(Util*);
- void setUtilInstance(Util*);
- void myWritePlot(Util*);
- 
- int FillAndReduce(Util*, int);
+  VertexAlgoParameters vtxAlgoParams;	 
+  std::vector<std::string> vtxVarNames;
+
+  void Loop(Int_t);
+  void setUtilInstance(Util*);
+  void myWritePlot();
+  void myWriteFits();
+  void myWriteCounters();
+  
+  int FillAndReduce(int);
+  
+  //void BookHistos();
+  void AddCut(char*,int,int,int,float*,float*);
+  void InitCounters();
+  void AddCounter(int,char*,char*,char*,char*);
+  
+  int ApplyCut(int, float, int);
+  int ApplyCut(std::string, float, int);
+  
+  void FillHist(std::string, float);
+  void FillHist2D(std::string, float, float);
+
+  void FillHist(std::string, int, float); 
+  void FillHist2D(std::string, int, float, float);
+  
+  void FillCounter(std::string, int);
+  void FillCounter(std::string);
 };
 
 #endif
-
-#ifdef LoopAll_cxx
-LoopAll::LoopAll(TTree *tree) {
-  //histoContainer = new HistoContainer();
-    rooContainer   = new RooContainer();
-}
-
-LoopAll::~LoopAll() {
-  if (!fChain) 
-    return;
-  delete fChain->GetCurrentFile();
-}
-
-Int_t LoopAll::GetEntry(Long64_t entry) {
-  // Read contents of entry.
-  if (!fChain) return 0;
-  return fChain->GetEntry(entry);
-}
-
-Long64_t LoopAll::LoadTree(Long64_t entry) {
-
-  // Set the environment to read one entry
-  if (!fChain) return -5;
-  Int_t centry = fChain->LoadTree(entry);
-  if (centry < 0) return centry;
-  if (fChain->IsA() != TChain::Class()) 
-    return centry;
-  TChain *chain = (TChain*)fChain;
-  if (chain->GetTreeNumber() != fCurrent) {
-    fCurrent = chain->GetTreeNumber();
-    Notify();
-  }
-  return centry;
-}
-
-Bool_t LoopAll::Notify() {
-  return kTRUE;
-}
-
-void LoopAll::Show(Long64_t entry) {
-  // Print contents of entry.
-  // If entry is not specified, print current entry
-  if (!fChain) return;
-  fChain->Show(entry);
-}
-
-Int_t LoopAll::Cut(Long64_t entry) {
-  // This function may be called from Loop.
-  // returns  1 if entry is accepted.
-  // returns -1 otherwise.
-  return 1;
-}
-
-
-#endif
-

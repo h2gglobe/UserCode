@@ -28,24 +28,32 @@ class Util {
  
   void LoopAndFillHistos(TString treename="event");
   void WriteHist();  
+  void WriteFits();  
+  void WriteCounters();  
   void SetTypeRun(int, const char* n);
-  void SetOutputNames(const char* n, const char* n2="");
+  //void SetOutputNames(const char* n, const char* n2="");
   void AddFile(std::string,int);
- 
-  std::vector<std::string> files;
-  std::vector<int> datatype;
+  void ReadInput(int t=0);
+  void DefineSamples(const char*,int,int,int,int, long long
+		    ,float,float,float,float,float);
 
+  void CallAddCut(char*,int,int,int,float*,float*);
+  void CallInitHistos();
+  void CallBookHisto(int,int,int,int,int,int
+		    ,float,float,float,float
+		    ,char *);  
+  void CallInitCounters();
+  void CallAddCounter(int,char*,char*,char*,char*);
+
+  std::vector<std::string> files;
+  std::vector<int> itype;
+  //int lumireal[MAXFILES];
   int nfiles;
-  int ntypes;
+  float intlumi;
 
   std::vector<TTree*> Trees;
   std::vector<TFile*> Files;
   std::vector<TTree*> TreesPar;
-
-  //TFile *Files[MAXFILES];
-  //TTree *Trees[MAXFILES];
-
-  //TTree *TreesPar[MAXFILES];
 
   LoopAll * loops;
 
@@ -69,6 +77,9 @@ class Util {
   Int_t        tot_events;
   Int_t        sel_events;
 
+  Int_t        outputParTot_Events, outputParSel_Events, outputParType, outputParVersion, outputParReductions, outputParRed_Events[20];
+  std::vector<std::string>* outputParParameters;
+  std::string* outputParJobMaker;
 };
 #endif
 

@@ -4,6 +4,7 @@
 #include "RooAddPdf.h"
 #include "RooGlobalFunc.h"
 #include <cmath>
+#include <iostream>
 
 using namespace RooFit;
 
@@ -27,7 +28,7 @@ void RooContainer::AddRealVar(const char* name ,float init, float vmin, float vm
 
 void RooContainer::AddGenericPdf(const char* name,const char* formula
 				,std::vector<const char*> & var
-				,double norm ){
+				,double norm_guess ){
 
     RooArgList roo_args;
 
@@ -47,7 +48,7 @@ void RooContainer::AddGenericPdf(const char* name,const char* formula
     RooGenericPdf temp_1(Form("comp_%s",name),name,formula,roo_args);	
     m_gen_.insert(std::pair<const char *, RooGenericPdf>(name,temp_1));
 
-    RooRealVar temp_var(Form("norm_%s",name),name,norm,0.0,10000);
+    RooRealVar temp_var(Form("norm_%s",name),name,norm_guess,0.0,10000);
     m_real_var_.insert(pair<const char*,RooRealVar>(name,temp_var));
 
     RooExtendPdf  temp(name,name,m_gen_[name],m_real_var_[name]);
@@ -122,10 +123,13 @@ void RooContainer::FitToData(const char* name_func, const char * name_var){
 				,Components(*(m_pdf_[name_func].pdfList().at(i)))
 				,LineColor(i+1)
 				,LineStyle(kDashed));
+	m_pdf_[name_func].paramOn(xframe);
       } 
     }
-    else m_exp_[name_func].plotOn(xframe,LineColor(4));
- 
+    else {
+	m_exp_[name_func].plotOn(xframe,LineColor(4));
+	m_exp_[name_func].paramOn(xframe);
+    }
     fit_res_.insert(std::pair<RooPlot*,RooFitResult*>(xframe,fit_result));
     //xframe->Draw();
 }
@@ -188,11 +192,14 @@ void RooContainer::FitToData(const char* name_func, const char * name_var
 			,Components(*(m_pdf_[name_func].pdfList().at(i)))
 			,LineColor(i+1)
 			,LineStyle(kDashed));
+	m_pdf_[name_func].paramOn(xframe);
       }
     }
 
-    else m_exp_[name_func].plotOn(xframe,LineColor(4));
-
+    else {
+	m_exp_[name_func].plotOn(xframe,LineColor(4));
+	m_exp_[name_func].paramOn(xframe);
+    }
     fit_res_.insert(std::pair<RooPlot*,RooFitResult*>(xframe,fit_result));
     //xframe->Draw();
 }

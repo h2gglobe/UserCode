@@ -2,17 +2,14 @@
 #define Tools_h
 
 #include "TRandom.h"
-#include "TLorentzVector.h"
-#include <algorithm>
 
 #define PI 3.141592654
 #define TWOPI 6.283185308
 
-
 //ADDED MJ
 Float_t pho_Et[MAX_PHOTONS];
 
-struct Elec{
+struct PhotonCandidate{
     TLorentzVector *p4;
     TVector3 *calopos;
     bool pixSeed;
@@ -24,12 +21,10 @@ struct Elec{
     double r9;
 };
 
-
 //Added NCKW
-bool ElecP4greater(Elec e1, Elec e2){
+bool PhoP4greater(PhotonCandidate p1, PhotonCandidate p2){
 	
-     return e1.p4->Pt() > e2.p4->Pt();
-
+     return p1.p4->Pt() > p2.p4->Pt();
 
 }
 

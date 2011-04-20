@@ -8,7 +8,7 @@
 
 include Makefile.arch
 
-SrcSuf        = C
+SrcSuf        = cc
 
 #------------------------------------------------------------------------------
 
@@ -22,12 +22,21 @@ LOOPALL = LoopAll
 
 LOOPALLSO = libLoopAll.$(DllSuf)
 
+# integrate VertexAnalysis sub-package
+VTX=VertexAnalysis
+VTXSRC=$(wildcard $(VTX)/src/*.$(SrcSuf))
+VTXOBS=$(patsubst %$(SrcSuf), %$(ObjSuf), $(VTXSRC))
+
 LOOPALLO = LoopAll.$(ObjSuf) \
            Util.$(ObjSuf) \
 	   LoopAllDict.$(ObjSuf) \
 	   dict.$(ObjSuf) \
 	   HistoContainer.o \
-	   RooContainer.o
+	   CounterContainer.o \
+	   SampleContainer.o \
+	   RooContainer.o \
+	   Cut.o \
+           $(VTXOBS)
 
 all: $(LOOPALL)
 
@@ -41,34 +50,42 @@ $(LOOPALL):  $(LOOPALLO)
 	$(LD) $(SOFLAGS) $(LDFLAGS) $(ROOTLIBS)  $(LOOPALLO) $(OutPutOpt) $(LOOPALLSO)
 	@echo "$(LOOPALLSO) done"
 
-LoopAll.$(ObjSuf): CommonParameters.h LoopAll.h Util.h Tools.h LoopAll_cc.h \
-	Limits.h branchdef/treedef.h branchdef/newclonesarray.h \
+LoopAll.$(ObjSuf): CommonParameters.h LoopAll.h Util.h Tools.h \
+	branchdef/Limits.h branchdef/treedef.h branchdef/newclonesarray.h \
 	branchdef/treebranch.h branchdef/setbranchaddress.h branchdef/getentry.h branchdef/getbranch.h branchdef/branchdef.h \
-	PhotonAnalysis/PhotonAnalysisFunctions_h.h PhotonAnalysis/PhotonAnalysisFunctions_cc.h PhotonAnalysis/PhotonAnalysisStats_cc.h \
+	PhotonAnalysis/PhotonAnalysisFunctions_h.h PhotonAnalysis/PhotonAnalysisFunctions_cc.h \
 	GeneralFunctions_cc.h GeneralFunctions_h.h \
 	HistoContainer.cc HistoContainer.h \
-	RooContainer.cc RooContainer.h 
-
+	CounterContainer.cc CounterContainer.h \
+	SampleContainer.cc SampleContainer.h \
+	RooContainer.cc RooContainer.h \
+	Cut.cc Cut.h $(VTXSRC)
 
 mpUtil.$(ObjSuf): CommonParameters.h LoopAll.h Util.h \
-	Limits.h branchdef/treedef.h branchdef/newclonesarray.h \
+	branchdef/Limits.h branchdef/treedef.h branchdef/newclonesarray.h \
 	branchdef/treebranch.h branchdef/setbranchaddress.h branchdef/getentry.h branchdef/getbranch.h branchdef/branchdef.h \
-	PhotonAnalysis/PhotonAnalysisFunctions_h.h \
-	GeneralFunctions_h.h \
-	HistoContainer.h  \
-	RooContainer.h 
-
-LoopAllDict.$(SrcSuf): CommonParameters.h LoopAll.h Util.h \
-	Limits.h branchdef/treedef.h \
 	PhotonAnalysis/PhotonAnalysisFunctions_h.h \
 	GeneralFunctions_h.h \
 	HistoContainer.h \
-	RooContainer.h 
+	CounterContainer.h \
+	SampleContainer.h \
+	RooContainer.h \
+	Cut.h
+
+LoopAllDict.$(SrcSuf): CommonParameters.h LoopAll.h Util.h \
+	branchdef/Limits.h branchdef/treedef.h \
+	PhotonAnalysis/PhotonAnalysisFunctions_h.h \
+	GeneralFunctions_h.h \
+	HistoContainer.h \
+	CounterContainer.h \
+	SampleContainer.h \
+	RooContainer.h \
+	Cut.h
 
 	@echo "Generating dictionary $@..."
 	@rootcint -f $@ -c LoopAll.h Util.h 
 	@rootcint -f dict.cpp -c -p LinkDef.h 
 
 .$(SrcSuf).$(ObjSuf):
-	$(CXX) $(CXXFLAGS) -g -c $<
+	$(CXX) $(CXXFLAGS) -g -c $< -o $@
 

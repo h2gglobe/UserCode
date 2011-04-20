@@ -10,7 +10,6 @@
 #include "RooExtendPdf.h"
 #include "RooAddPdf.h"
 #include "RooFitResult.h"
-#include "TRandom3.h"
 
 #include <map>
 #include <vector>
@@ -23,12 +22,12 @@ class RooContainer {
    RooContainer(){}
    ~RooContainer(){};
 
-   double rand_n();
    
    void AddRealVar(const char*,float,float);
    void AddRealVar(const char*,float,float,float);
    void AddGenericPdf(const char*,const char*,
-		      std::vector<const char*> &, double norm=10);
+		      std::vector<const char*> &, 
+		      double norm_guess=10);
    void ComposePdf(const char* , const char *
 			     ,std::vector<const char*> &);
 
