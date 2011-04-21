@@ -9,7 +9,7 @@ import array
 
 # Local python imports
 from datBlocks import *
-from makeFilelist import *
+#from makeFilelist import *
 
 class configProducer:
 

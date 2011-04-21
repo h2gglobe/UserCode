@@ -1,0 +1,9 @@
+output=Data2011_reduced.root
+Fil=Run2011_29Mar.root typ=1
+
+->
+filestoreduce.dat
+add the files to be reduced and their types
+->
+
+
