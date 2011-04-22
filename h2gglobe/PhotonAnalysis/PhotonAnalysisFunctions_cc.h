@@ -3,7 +3,7 @@
 void LoopAll::TermRealPhotonAnalysis(int typerun) 
 {
    if (typerun==3){	
-//      rooContainer->FitToData("exp","mass");
+      rooContainer->FitToData("exp","mass");
    }
 
 }
