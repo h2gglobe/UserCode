@@ -204,7 +204,7 @@ void RooContainer::FitToData(const char* name_func, const char * name_var
     //xframe->Draw();
 }
 
-void RooContainer::SetRealVar(const char * name, float x){
+void RooContainer::SetRealVar(const char * name, float x, float w){
 
   
   std::map<const char*, RooRealVar>::const_iterator it_var  = m_real_var_.find(name);
@@ -214,7 +214,7 @@ void RooContainer::SetRealVar(const char * name, float x){
 
     if (x > min_x && x < max_x){
       m_real_var_[name] = x;
-      data_[name]->add(RooArgSet(m_real_var_[name]));
+      data_[name]->add(RooArgSet(m_real_var_[name]),w);
     }
 
 }

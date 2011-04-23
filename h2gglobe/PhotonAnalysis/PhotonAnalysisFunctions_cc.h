@@ -241,7 +241,11 @@ void LoopAll::myStatPhotonAnalysis(Util * ut, int jentry) {
   if(PADEBUG) 
     cout << "myStat START"<<endl;
   counters[0]++;
-     
+
+  //int sampleVal = ut->type2HistVal[ut->datatype[ut->current]];
+  //float weight =sampleContainer[sampleVal].computeWeight; 
+  float weight = 1.;
+
   std::vector<PhotonCandidate> preselected_photons;  
 
   TVector3 *calopos;	
@@ -323,7 +327,7 @@ void LoopAll::myStatPhotonAnalysis(Util * ut, int jentry) {
                 	       && (nleading.ecalIso < (2.0 + 0.006*nleading.p4->Pt()))
                 	       && (nleading.hcalIso < (2.0 + 0.0025*nleading.p4->Pt()))
 	        )
-		rooContainer->SetRealVar("mass",mass);
+		rooContainer->SetRealVar("mass",mass,weight);
                }
 	}
     }

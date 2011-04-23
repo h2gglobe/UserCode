@@ -32,7 +32,7 @@ class RooContainer {
 			     ,std::vector<const char*> &);
 
    void CreateDataSet(const char*);
-   void SetRealVar(const char * name, float x);
+   void SetRealVar(const char * name, float x, float w=1.);
    
    void FitToData(const char*,const char*);
    void FitToData(const char*,const char *
