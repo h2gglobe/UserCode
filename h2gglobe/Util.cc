@@ -190,15 +190,15 @@ void Util::DefineSamples(
       loops->sampleContainer[sample_is_defined].computeWeight(intlumi);
     } else {
       loops->sampleContainer.push_back(SampleContainer());
-      loops->sampleContainer.front().ntot = ntot;
-      loops->sampleContainer.front().nred = nred;
-      loops->sampleContainer.front().histoplotit = histoplotit;
-      loops->sampleContainer.front().filesshortnam = filesshortnam;
-      loops->sampleContainer.front().lumi = lumi;
-      loops->sampleContainer.front().xsec = xsec;
-      loops->sampleContainer.front().kfactor = kfactor;
-      loops->sampleContainer.front().scale = scale;
-      loops->sampleContainer.front().computeWeight(intlumi);
+      loops->sampleContainer.back().ntot = ntot;
+      loops->sampleContainer.back().nred = nred;
+      loops->sampleContainer.back().histoplotit = histoplotit;
+      loops->sampleContainer.back().filesshortnam = filesshortnam;
+      loops->sampleContainer.back().lumi = lumi;
+      loops->sampleContainer.back().xsec = xsec;
+      loops->sampleContainer.back().kfactor = kfactor;
+      loops->sampleContainer.back().scale = scale;
+      loops->sampleContainer.back().computeWeight(intlumi);
     }
   
 }
