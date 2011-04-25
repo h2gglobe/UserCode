@@ -1,4 +1,4 @@
-#define LDEBUG 0 
+#define LDEBUG 0
 
 #include "LoopAll.h"
 
@@ -41,7 +41,6 @@ LoopAll::~LoopAll() {
   delete fChain->GetCurrentFile();
 }
           
-
 
 Int_t LoopAll::GetEntry(Long64_t entry) {
   // Read contents of entry.
@@ -95,10 +94,12 @@ void LoopAll::Loop(Double_t a) {
 
 void LoopAll::InitHistos(){
 
-  for(int ind=0; ind<sampleContainer.size(); ind++) {
-    SampleContainer thisSample = (SampleContainer) sampleContainer.at(ind);
+  int ind=0;
+  for(std::vector<SampleContainer>::const_iterator it = sampleContainer.begin()
+     ; it!=sampleContainer.end()
+     ; it++, ind++){
     HistoContainer temp(ind);
-    temp.total_scale = thisSample.weight*thisSample.scale*thisSample.kfactor;
+    temp.setScale(it->weight*it->scale*it->kfactor);
     histoContainer.push_back(temp);
   }
 
@@ -132,7 +133,7 @@ void LoopAll::TermReal(Int_t typerunpass) {
   typerun=typerunpass;
 
   TermRealPhotonAnalysis(typerun);
-  
+
   if (utilInstance->makeOutputTree){ 
     utilInstance->outputFile->cd();
     utilInstance->outputParReductions++;
@@ -410,11 +411,13 @@ void LoopAll::myWriteCounters() {
 int LoopAll::FillAndReduce(int jentry) {
 
   int hasoutputfile = 0;
+  int cur_type = utilInstance->current_type;
+
   if(utilInstance->typerun == 1) {
     hasoutputfile = 1;
     if(LDEBUG) 
       cout<<"call myReduce"<<endl;
-    myGetEntryPhotonRedAnalysis(utilInstance, jentry);
+    myGetEntryPhotonRedAnalysis(utilInstance, jentry,cur_type);
     myReducePhotonAnalysis(utilInstance, jentry);
     if(LDEBUG) 
       cout<<"called myReduce"<<endl;
@@ -422,25 +425,36 @@ int LoopAll::FillAndReduce(int jentry) {
     hasoutputfile = 0;
     if(LDEBUG) 
       cout<<"call myFillHist -- really?"<<endl;
-    myFillHistPhotonAnalysis(utilInstance, jentry);
-    if(LDEBUG) 
+    if (myPhotonAnalysisRunSelection(cur_type)){
+      myFillHistPhotonAnalysis(utilInstance, jentry);
+      if(LDEBUG) 
       cout<<"called myFillHist"<<endl;
+    }
   } else if (utilInstance->typerun == 2) {
     hasoutputfile = 0;
     if(LDEBUG) 
       cout<<"call myFillHistRed"<<endl;
-    myGetEntryPhotonRedAnalysis(utilInstance, jentry);
-    myFillHistPhotonAnalysisRed(utilInstance, jentry);
-    if(LDEBUG) 
-      cout<<"called myFillHistRed"<<endl;
+
+    myGetEntryPhotonRedAnalysis(utilInstance, jentry,cur_type);
+
+    if (myPhotonAnalysisRunSelection(cur_type)){
+      myFillHistPhotonAnalysisRed(utilInstance, jentry);
+      if(LDEBUG) 
+        cout<<"called myFillHistRed"<<endl;
+    }
+
   } else if (utilInstance->typerun == 3) {
     hasoutputfile = 0;
     if(LDEBUG) 
-      cout<<"call myFillHistRed"<<endl;
-    myGetEntryPhotonRedAnalysis(utilInstance, jentry);
-    myStatPhotonAnalysis(utilInstance, jentry);
-    if(LDEBUG) 
-      cout<<"called myFillHistStat"<<endl;
+      cout<<"call myFillHistStat"<<endl;
+
+    myGetEntryPhotonRedAnalysis(utilInstance, jentry,cur_type);
+
+    if (myPhotonAnalysisRunSelection(cur_type)){
+      myStatPhotonAnalysis(utilInstance, jentry);
+      if(LDEBUG) 
+        cout<<"called myFillHistStat"<<endl;
+    }
   }
 
   

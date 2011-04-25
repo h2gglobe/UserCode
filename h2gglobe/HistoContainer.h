@@ -28,6 +28,7 @@ class HistoContainer {
  
   int getHistVal();
   void setHistVal(int);
+  void setScale(float);
   std::string ModifiedName(char*, int);
   float total_scale;
 

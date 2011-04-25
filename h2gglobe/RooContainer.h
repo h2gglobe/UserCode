@@ -34,9 +34,9 @@ class RooContainer {
    void CreateDataSet(const char*);
    void SetRealVar(const char * name, float x, float w=1.);
    
-   void FitToData(const char*,const char*);
+   void FitToData(const char*,const char*,int bins=-1);
    void FitToData(const char*,const char *
-	         ,double, double, double, double);
+	         ,double, double, double, double,int bins=-1);
    void Save();
    
   private:

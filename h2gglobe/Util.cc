@@ -189,16 +189,18 @@ void Util::DefineSamples(
       loops->sampleContainer[sample_is_defined].nred += nred;
       loops->sampleContainer[sample_is_defined].computeWeight(intlumi);
     } else {
-      loops->sampleContainer.push_back(SampleContainer());
-      loops->sampleContainer.back().ntot = ntot;
-      loops->sampleContainer.back().nred = nred;
-      loops->sampleContainer.back().histoplotit = histoplotit;
-      loops->sampleContainer.back().filesshortnam = filesshortnam;
-      loops->sampleContainer.back().lumi = lumi;
-      loops->sampleContainer.back().xsec = xsec;
-      loops->sampleContainer.back().kfactor = kfactor;
-      loops->sampleContainer.back().scale = scale;
-      loops->sampleContainer.back().computeWeight(intlumi);
+      SampleContainer sc;
+      sc.itype = type;
+      sc.ntot = ntot;
+      sc.nred = nred;
+      sc.histoplotit = histoplotit;
+      sc.filesshortnam = filesshortnam;
+      sc.lumi = lumi;
+      sc.xsec = xsec;
+      sc.kfactor = kfactor;
+      sc.scale = scale;
+      sc.computeWeight(intlumi);
+      loops->sampleContainer.push_back(sc);
     }
   
 }
@@ -240,6 +242,7 @@ void Util::LoopAndFillHistos(TString treename) {
  
     this->current = i;
     cout<<"LoopAndFillHistos: opening " << i << " " << files[i]<<endl;
+    current_type   = itype[current];
 
     *it_file = TFile::Open((*it).c_str());
     //Files[i] = TFile::Open(files[i]);

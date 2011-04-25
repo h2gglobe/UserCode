@@ -88,7 +88,7 @@ void RooContainer::CreateDataSet(const char *name){
 
 }
 
-void RooContainer::FitToData(const char* name_func, const char * name_var){
+void RooContainer::FitToData(const char* name_func, const char * name_var, int bins){
 
     bool use_composed_pdf = false;
     std::cout << "RooContainer::FitToData -- Fitting function " 
@@ -112,7 +112,9 @@ void RooContainer::FitToData(const char* name_func, const char * name_var){
     float x_max = m_var_max_[name_var];
  
     RooPlot *xframe = m_real_var_[name_var].frame(x_min,x_max);
-    data_[name_var]->plotOn(xframe);
+
+    if (bins > 0)  data_[name_var]->plotOn(xframe,Binning(bins));
+    else  data_[name_var]->plotOn(xframe);
 
     if (use_composed_pdf){
       m_pdf_[name_func].plotOn(xframe,LineColor(4));
@@ -135,7 +137,7 @@ void RooContainer::FitToData(const char* name_func, const char * name_var){
 }
 
 void RooContainer::FitToData(const char* name_func, const char * name_var
-			    ,double x1, double x2, double x3, double x4){
+			    ,double x1, double x2, double x3, double x4, int bins){
 
     
     float x_min = m_var_min_[name_var];
@@ -181,7 +183,9 @@ void RooContainer::FitToData(const char* name_func, const char * name_var
     }
 
     RooPlot *xframe = m_real_var_[name_var].frame(x_min,x_max);
-    data_[name_var]->plotOn(xframe);
+
+    if (bins > 0)  data_[name_var]->plotOn(xframe,Binning(bins));
+    else  data_[name_var]->plotOn(xframe);
 
     if (use_composed_pdf){
       m_pdf_[name_func].plotOn(xframe,LineColor(4));

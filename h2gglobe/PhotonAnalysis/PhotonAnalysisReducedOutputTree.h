@@ -1,4 +1,8 @@
 void LoopAll::PhotonAnalysisReducedOutputTree() {
+
+  utilInstance->outputTree->Branch("lumis", &lumis, "lumis/I");
+  utilInstance->outputTree->Branch("run", &run, "run/I");
+
   utilInstance->outputTree->Branch("pho_n", &pho_n, "pho_n/I");
   utilInstance->outputTree->Branch("pho_p4", "TClonesArray", &pho_p4, 32000, 0);
 

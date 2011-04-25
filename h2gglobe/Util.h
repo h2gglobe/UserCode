@@ -25,6 +25,7 @@ class Util {
  public:
 
   Util();
+
  
   void LoopAndFillHistos(TString treename="event");
   void WriteHist();  
@@ -74,6 +75,7 @@ class Util {
   map<int,int> type2HistVal;
 
   Int_t        current; //current file
+  Int_t        current_type; //type of current file
   Int_t        tot_events;
   Int_t        sel_events;
 
