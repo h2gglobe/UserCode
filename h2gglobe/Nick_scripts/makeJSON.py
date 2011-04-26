@@ -4,6 +4,10 @@ outfile=open("goodRuns_cpp.txt",'w')
 
 print "Parsing JSON.py"
 counts = 0
+
+#sort the JSON into run order
+#----------------------------
+
 for p in JSON:
  if counts == 0: 
   outfile.write("if(   ( run==%d && (\n"%int(p))

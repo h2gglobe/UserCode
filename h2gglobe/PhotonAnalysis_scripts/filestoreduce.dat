@@ -1,7 +1,7 @@
 output=Data2011_reduced.root
-Fil=Run2011_29Mar.root typ=1
-
+typ=1 DcDir=/store/user/mjarvis/h2g39X_v3/GJet20
 ->
+Fil=Run2011_29Mar.root typ=1
 filestoreduce.dat
 add the files to be reduced and their types
 ->

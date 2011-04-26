@@ -41,10 +41,11 @@ bool LoopAll::myPhotonAnalysisRunSelection(int cur_type){
   
   if (cur_type != 0)    return true;
 
+  //if (run < 160404) { return true; cout << "Found A Run lt 160404" << endl;}
+
   bool passes_run_selection = false; 
 
   // Put here the Run Selection you want in the Data
-
   if (  ( run==163238 && (
  	(lumis > 1 && lumis < 15)
    	)
@@ -415,15 +416,17 @@ void LoopAll::myFillHistPhotonAnalysisRed(Util * ut, int jentry) {
     calopos  = (TVector3 *) pho_calopos->At(i);
     float pt  = p4->Pt(); 
     float eta = fabs(calopos->Eta());
-    //PreSelection
+
+    //Photon Selection
      if ( 
        (! pho_haspixseed[i])
        && pt > 30. 
-       && pho_hoe[i] <  0.1
-       && pho_trksumpthollowconedr03[i] < 2*(3.5 + 0.001*pt)
-       && pho_ecalsumetconedr03[i] < 2*(4.2 + 0.006*pt)
-       && pho_hcalsumetconedr03[i] < 2*(2.2 + 0.0025*pt)
-       &&((eta < 1.4442) || ((eta > 1.566) && (eta < 2.5))) 
+       && pho_hoe[i] <  0.02
+       && pho_trksumpthollowconedr04[i] < (1.5 + 0.001*pt)
+       && pho_ecalsumetconedr04[i] < (2.0 + 0.006*pt)
+       && pho_hcalsumetconedr04[i] < (2.0 + 0.0025*pt)
+       && (   ((eta < 1.4442) && pho_sieie[i] < 0.01)
+	   || ((eta > 1.566) && (eta < 2.5) && pho_sieie[i] < 0.028))
        ) {
          PhotonCandidate candidate;
          candidate.p4 		= p4;
@@ -441,7 +444,8 @@ void LoopAll::myFillHistPhotonAnalysisRed(Util * ut, int jentry) {
 
   //Event Selection
   int n_preselected_pho = preselected_photons.size();
-  //FillHist("h_n_sel",n_preselected_pho);
+
+  FillHist("n_sel",0,n_preselected_pho);
 
   // Sort Photons into Pt Order
   std::sort(preselected_photons.begin()
@@ -450,14 +454,13 @@ void LoopAll::myFillHistPhotonAnalysisRed(Util * ut, int jentry) {
  
 // Regular Event Selection begins here
   float best_mass = 0.;
-  float best_pt = -1;
-  int category = -1;
+  float best_pt   = -1;
+  int   category  = -1;
   float min_r9;
   float max_eta;
 
   if (n_preselected_pho > 1 ){
      PhotonCandidate leading, nleading;
-
 
      leading  = preselected_photons[0];
      nleading = preselected_photons[1];
@@ -465,6 +468,7 @@ void LoopAll::myFillHistPhotonAnalysisRed(Util * ut, int jentry) {
 
   	 if (leading.p4->Pt() > 40.){
          
+         //cout<< leading.p4->Pt()<< "  " << nleading.p4->Pt()<<endl;
 
          // Determine the Category of the event
          // -> Which histogram is filled
@@ -478,50 +482,22 @@ void LoopAll::myFillHistPhotonAnalysisRed(Util * ut, int jentry) {
 	 if (min_r9 > 0.93 && max_eta > 1.566 && max_eta < 2.5) category = 4;
 
          // -------------------------------------------------------
-         TLorentzVector Higgs = (*(preselected_photons[0].p4))
-                                 +(*(preselected_photons[1].p4));
+         TLorentzVector Higgs = (*(leading.p4))
+                                 +(*(nleading.p4));
            float mass = Higgs.M();
            float h_pt = Higgs.Pt();
+
              if (mass > 100. && mass < 150.){
              //Good event, passes preselection and acceptance cuts
 
-             int pass_selection[2];
-             int pass_isolation[2];
-             int in_iso_gap[2];
-    
-            //Now do selection on leading photon
-             pass_selection[0] = leading.hoe < 0.02
-                	       && (((leading.sieie < 0.01)  && (fabs(leading.calopos->Eta()) < 1.4442)) 
-                		  || (( leading.sieie < 0.028)
-                   	       && ((fabs(leading.calopos->Eta()) < 2.5) && (fabs(leading.calopos->Eta()) > 1.566))) );
-             pass_isolation[0] =  leading.trkIso < (1.5 + 0.001*leading.p4->Pt())		
-                	        && leading.ecalIso < (2.0 + 0.006*leading.p4->Pt())
-                                && leading.hcalIso < (2.0 + 0.0025*leading.p4->Pt());
-	 
-             //Selection on next to leading photon
-             pass_selection[1] = nleading.hoe < 0.02
-                	       && (((nleading.sieie < 0.01)  && (fabs(nleading.calopos->Eta()) < 1.4442)) 
-                		  || (( nleading.sieie < 0.028)
-                  	       && ((fabs(nleading.calopos->Eta()) < 2.5) && (fabs(nleading.calopos->Eta()) > 1.566))) );
-             pass_isolation[1] =  nleading.trkIso < (1.5 + 0.001*nleading.p4->Pt())
-                	        && (nleading.ecalIso < (2.0 + 0.006*nleading.p4->Pt()))
-                	        && (nleading.hcalIso < (2.0 + 0.0025*nleading.p4->Pt()));
-
-              
-	      if (pass_selection[0] && pass_isolation[0]){
-               if (pass_selection[1] && pass_isolation[1]){
-		 FillHist("pho_pt",category,leading.p4->Pt());
-		 FillHist("pho_pt",category,nleading.p4->Pt());
-                 best_mass = mass;
- 		 best_pt   = h_pt;
-               }
-	     }
+	     FillHist("pho_pt",category,nleading.p4->Pt());
+             best_mass = mass;
+ 	     best_pt   = h_pt;
 
            }
      }
    }
 
-  
   FillHist("mass",0, best_mass);
   FillHist("pt",0, best_pt);
   if (category > -1){
@@ -539,10 +515,11 @@ void LoopAll::myStatPhotonAnalysis(Util * ut, int jentry) {
     cout << "myStat START"<<endl;
   counters[0]++;
 
-  //int sampleVal = ut->type2HistVal[ut->datatype[ut->current]];
-  //float weight =sampleContainer[sampleVal].computeWeight; 
-  float weight = 1.;
+  float weight = ut->current_sample->event_weight;
+  //cout << "Current Type   = " << ut->current_sample->itype << endl;
+  //cout << "Current weight = " << weight << endl;
 
+  
   std::vector<PhotonCandidate> preselected_photons;  
 
   TVector3 *calopos;	
@@ -600,7 +577,7 @@ void LoopAll::myStatPhotonAnalysis(Util * ut, int jentry) {
          TLorentzVector Higgs = (*(preselected_photons[0].p4))
                                  +(*(preselected_photons[1].p4));
            float mass = Higgs.M();
-             if (mass > 50. && mass < 200.){
+             if (mass > 50. && mass < 150.){
              //Good event, passes preselection and acceptance cuts
 
              int pass_selection[2];
@@ -612,16 +589,16 @@ void LoopAll::myStatPhotonAnalysis(Util * ut, int jentry) {
                 	       && (((leading.sieie < 0.01)  && (fabs(leading.calopos->Eta()) < 1.4442)) 
                 		  || (( leading.sieie < 0.028)
                    	       && ((fabs(leading.calopos->Eta()) < 2.5) && (fabs(leading.calopos->Eta()) > 1.566))) )
-             //		       && leading.trkIso < (1.5 + 0.001*leading.p4->Pt())		
-//                	       && leading.ecalIso < (2.0 + 0.006*leading.p4->Pt())
+             		       && leading.trkIso < (1.5 + 0.001*leading.p4->Pt())		
+                	       && leading.ecalIso < (2.0 + 0.006*leading.p4->Pt())
                                && leading.hcalIso < (2.0 + 0.0025*leading.p4->Pt())
 	 			
              		       && nleading.hoe < 0.02
                 	       && (((nleading.sieie < 0.01)  && (fabs(nleading.calopos->Eta()) < 1.4442)) 
                 		  || (( nleading.sieie < 0.028)
                   	       && ((fabs(nleading.calopos->Eta()) < 2.5) && (fabs(nleading.calopos->Eta()) > 1.566))) )
-            // 		       && nleading.trkIso < (1.5 + 0.001*nleading.p4->Pt())
-  //              	       && (nleading.ecalIso < (2.0 + 0.006*nleading.p4->Pt()))
+             		       && nleading.trkIso < (1.5 + 0.001*nleading.p4->Pt())
+                	       && (nleading.ecalIso < (2.0 + 0.006*nleading.p4->Pt()))
                 	       && (nleading.hcalIso < (2.0 + 0.0025*nleading.p4->Pt()))
 	        )
 		rooContainer->SetRealVar("mass",mass,weight);

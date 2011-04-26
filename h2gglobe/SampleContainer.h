@@ -12,6 +12,7 @@ class SampleContainer {
   void computeWeight(float);
      
   float weight;
+  float event_weight;
   int itype;
   int ind;
   int histoplotit;

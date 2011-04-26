@@ -23,8 +23,10 @@ SampleContainer::SampleContainer() {
 void SampleContainer::computeWeight(float intL) {
   if(itype==0) { //this is data
     weight = 1; 
+    event_weight = 1;
   } else {
     weight = intL/(ntot/xsec);
+    event_weight = weight*scale*kfactor;
   }
 }
  

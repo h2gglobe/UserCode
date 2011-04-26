@@ -184,6 +184,7 @@ void Util::DefineSamples(
       }
     }
 
+
     if (sample_is_defined != -1) {
       loops->sampleContainer[sample_is_defined].ntot += ntot;
       loops->sampleContainer[sample_is_defined].nred += nred;
@@ -243,6 +244,23 @@ void Util::LoopAndFillHistos(TString treename) {
     this->current = i;
     cout<<"LoopAndFillHistos: opening " << i << " " << files[i]<<endl;
     current_type   = itype[current];
+
+    // -------------------------------------------------------------------
+    // Set the current sample to whichever sample this file is part of,
+    // For now this means to go looking for it, there must be a better way
+    // like a map that links file indecies to sample indecies
+
+    //look in map for type as a key already
+    int sample_index=0;
+    for (unsigned int sind=0; sind<loops->sampleContainer.size(); sind++) {
+      if (current_type == loops->sampleContainer[sind].itype) {
+	sample_index = sind;
+	break;
+      }
+    }
+    current_sample = &(loops->sampleContainer[sample_index]);
+    // -------------------------------------------------------------------
+
 
     *it_file = TFile::Open((*it).c_str());
     //Files[i] = TFile::Open(files[i]);
