@@ -2,7 +2,7 @@ import commands,sys
 
 def makeDcFiles(dir):
 
-   dcache_prepend = 'dcap://gfe02.grid.hep.ph.ic.ac.uk:22128//pnfs/hep.ph.ic.ac.uk/'
+   dcache_prepend = 'dcap://gfe02.grid.hep.ph.ic.ac.uk:22128//pnfs/hep.ph.ic.ac.uk/data/cms'
    dir = str(dir)
    return_files = []
 

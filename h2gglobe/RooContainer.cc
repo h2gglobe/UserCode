@@ -91,6 +91,7 @@ void RooContainer::CreateDataSet(const char *name){
 void RooContainer::FitToData(const char* name_func, const char * name_var, int bins){
 
     bool use_composed_pdf = false;
+    double chi_square;
     std::cout << "RooContainer::FitToData -- Fitting function " 
 	      << name_func 
 	      << " To data " 
@@ -126,12 +127,17 @@ void RooContainer::FitToData(const char* name_func, const char * name_var, int b
 				,LineColor(i+1)
 				,LineStyle(kDashed));
 	m_pdf_[name_func].paramOn(xframe);
+//	chi_square = xframe->chiSquare(m_pdf_[name_func],data_[name_var],3); 
       } 
     }
     else {
 	m_exp_[name_func].plotOn(xframe,LineColor(4));
 	m_exp_[name_func].paramOn(xframe);
+//	chi_square = xframe->chiSquare(m_exp_[name_func],data_[name_var],3); 
     }
+//    cout << "Chi-Square of fit "<<name_func<<" to data set "
+//				<<name_var << chi_square
+//				<<endl;
     fit_res_.insert(std::pair<RooPlot*,RooFitResult*>(xframe,fit_result));
     //xframe->Draw();
 }
@@ -144,6 +150,7 @@ void RooContainer::FitToData(const char* name_func, const char * name_var
     float x_max = m_var_max_[name_var];
 
     bool use_composed_pdf = false;
+    double chi_square;
     std::cout << "RooContainer::FitToData -- Fitting function " 
 	      << name_func 
 	      << " To data " 
@@ -197,6 +204,7 @@ void RooContainer::FitToData(const char* name_func, const char * name_var
 			,LineColor(i+1)
 			,LineStyle(kDashed));
 	m_pdf_[name_func].paramOn(xframe);
+//	nFloatPars = 
       }
     }
 
@@ -204,6 +212,11 @@ void RooContainer::FitToData(const char* name_func, const char * name_var
 	m_exp_[name_func].plotOn(xframe,LineColor(4));
 	m_exp_[name_func].paramOn(xframe);
     }
+//    double chi_square = xframe->chiSquare(3); 
+ //   cout << "Chi-Square of fit "<<name_func<<" to data set "
+//				<<name_var << chi_square
+//				<<endl;
+
     fit_res_.insert(std::pair<RooPlot*,RooFitResult*>(xframe,fit_result));
     //xframe->Draw();
 }
@@ -212,7 +225,9 @@ void RooContainer::SetRealVar(const char * name, float x, float w){
 
   
   std::map<const char*, RooRealVar>::const_iterator it_var  = m_real_var_.find(name);
-
+  if (it_var == m_real_var_.end()) 
+    std::cout << "Warning, No DataSet named "<< name << std::endl;
+  else{
     float min_x = m_var_min_[name];
     float max_x = m_var_max_[name];
 
@@ -220,7 +235,7 @@ void RooContainer::SetRealVar(const char * name, float x, float w){
       m_real_var_[name] = x;
       data_[name]->add(RooArgSet(m_real_var_[name]),w);
     }
-
+  }
 }
 
 void RooContainer::Save(){

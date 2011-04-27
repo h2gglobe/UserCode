@@ -3,8 +3,7 @@
 void LoopAll::TermRealPhotonAnalysis(int typerun) 
 {
    if (typerun==3){	
-      rooContainer->FitToData("exp","mass_exp",90,105,145,200);
-      rooContainer->FitToData("pol","mass_pol",90,105,145,200);
+      rooContainer->FitToData("exp_ca","mass",25);
    }
 
 }
@@ -20,35 +19,39 @@ void LoopAll::InitRealPhotonAnalysis(int typerun) {
   
   if (typerun == 3) {  
      //RooFitting type
-     rooContainer->AddRealVar("mass_exp",90.,200.);
-     rooContainer->AddRealVar("mass_pol",90.,200.);
-
+     rooContainer->AddRealVar("mass",90.,200.);
      rooContainer->AddRealVar("mu",-0.04,-1.,-0.001);
-     rooContainer->AddRealVar("p0",1.,-5.,5.);
-     rooContainer->AddRealVar("p1",1.,-5.,5.);
+     rooContainer->AddRealVar("g",1.,0.01,4.);
+     rooContainer->AddRealVar("m",120.,100.,150.);
 
      // -------------------------------------//
      std::vector<const char*> pars(2,"t");	 
-     pars[0] = "mass_exp";
+     pars[0] = "mass";
      pars[1] = "mu";
      // -------------------------------------//
 
      // -------------------------------------//
      std::vector<const char*> pars2(3,"t");	 
-     pars2[0] = "mass_pol";
-     pars2[1] = "p0";
-     pars2[2] = "p1";
+     pars2[0] = "mass";
+     pars2[1] = "g";
+     pars2[2] = "m";
      // -------------------------------------//
 
      rooContainer->AddGenericPdf("exp",
 	"exp((@0)*(@1))",pars,10);
 
-     rooContainer->AddGenericPdf("pol",
-	"1+@0*@1+@0*@0*@2",pars2,10);
+     rooContainer->AddGenericPdf("ca",
+	"@1/((@0-@2)*(@0-@2) + @1*@1)",pars2,1.);
 
-     rooContainer->CreateDataSet("mass_exp");
-     rooContainer->CreateDataSet("mass_pol");
+     // -------------------------------------//
+     std::vector<const char*> pdfs(2,"t");
+     pdfs[0] = "exp";
+     pdfs[1] = "ca";
+     // -------------------------------------//
+     rooContainer->ComposePdf("exp_ca","exp+ca",pdfs);
+     rooContainer->CreateDataSet("mass");
   }
+
   if(PADEBUG) 
     cout << "InitRealPhotonAnalysis END"<<endl;
 
@@ -618,8 +621,7 @@ void LoopAll::myStatPhotonAnalysis(Util * ut, int jentry) {
                 	       && (nleading.ecalIso < (2.0 + 0.006*nleading.p4->Pt()))
                 	       && (nleading.hcalIso < (2.0 + 0.0025*nleading.p4->Pt()))
 	        ){
-		rooContainer->SetRealVar("mass_exp",mass,weight);
-		rooContainer->SetRealVar("mass_pol",mass,weight);
+		rooContainer->SetRealVar("mass",mass,weight);
 		}
 
                }

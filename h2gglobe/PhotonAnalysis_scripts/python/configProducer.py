@@ -315,7 +315,7 @@ class configProducer:
 	 if dca_directory != '':
            dc_files = makeDcFiles(dca_directory)
            for file_s in dc_files:
-             self.conf_.files.append((str(directory+'/'+file_s),fi_type))
+             self.conf_.files.append((file_s,fi_type))
 
          if os.path.isdir(directory): 
            di_files = os.listdir(directory)

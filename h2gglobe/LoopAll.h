@@ -27,9 +27,9 @@ class Util;
 
 #include "HistoContainer.h"
 #include "CounterContainer.h"
-#include "SampleContainer.h"
 #include "Cut.h"
 #include "branchdef/Limits.h"
+#include "SampleContainer.h"
 #include "RooContainer.h"
 #include "VertexAnalysis/interface/HggVertexAnalyzer.h"
 #include "VertexAnalysis/interface/PhotonInfo.h"
@@ -47,6 +47,7 @@ class LoopAll {
   std::vector<CounterContainer> counterContainer;
   std::vector<SampleContainer> sampleContainer;
   std::vector<Cut> cutContainer;
+
   RooContainer *rooContainer;
 
   LoopAll(TTree *tree=0);
