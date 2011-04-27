@@ -258,7 +258,7 @@ void Util::LoopAndFillHistos(TString treename) {
 	break;
       }
     }
-    current_sample = &(loops->sampleContainer[sample_index]);
+    current_sample = sample_index;
     // -------------------------------------------------------------------
 
 

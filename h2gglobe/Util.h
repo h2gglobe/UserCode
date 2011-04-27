@@ -2,7 +2,6 @@
 #define Util_h
 
 #include "CommonParameters.h"
-#include "SampleContainer.h"
 #include <TROOT.h>
 #include <TChain.h>
 #include <TFile.h>
@@ -76,7 +75,7 @@ class Util {
 
   Int_t        current; //current file
   Int_t        current_type;   //type of current file
-  SampleContainer *current_sample; //pointer to sample of current file
+  Int_t        current_sample; //index of sample of current file
 
   Int_t        tot_events;
   Int_t        sel_events;

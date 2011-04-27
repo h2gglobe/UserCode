@@ -3,7 +3,8 @@
 void LoopAll::TermRealPhotonAnalysis(int typerun) 
 {
    if (typerun==3){	
-      rooContainer->FitToData("exp","mass",10);
+      rooContainer->FitToData("exp","mass_exp",90,105,145,200);
+      rooContainer->FitToData("pol","mass_pol",90,105,145,200);
    }
 
 }
@@ -19,18 +20,34 @@ void LoopAll::InitRealPhotonAnalysis(int typerun) {
   
   if (typerun == 3) {  
      //RooFitting type
-     rooContainer->AddRealVar("mass",100.,150.);
+     rooContainer->AddRealVar("mass_exp",90.,200.);
+     rooContainer->AddRealVar("mass_pol",90.,200.);
+
      rooContainer->AddRealVar("mu",-0.04,-1.,-0.001);
+     rooContainer->AddRealVar("p0",1.,-5.,5.);
+     rooContainer->AddRealVar("p1",1.,-5.,5.);
 
      // -------------------------------------//
      std::vector<const char*> pars(2,"t");	 
-     pars[0] = "mass";
+     pars[0] = "mass_exp";
      pars[1] = "mu";
      // -------------------------------------//
+
+     // -------------------------------------//
+     std::vector<const char*> pars2(3,"t");	 
+     pars2[0] = "mass_pol";
+     pars2[1] = "p0";
+     pars2[2] = "p1";
+     // -------------------------------------//
+
      rooContainer->AddGenericPdf("exp",
 	"exp((@0)*(@1))",pars,10);
 
-     rooContainer->CreateDataSet("mass");
+     rooContainer->AddGenericPdf("pol",
+	"1+@0*@1+@0*@0*@2",pars2,10);
+
+     rooContainer->CreateDataSet("mass_exp");
+     rooContainer->CreateDataSet("mass_pol");
   }
   if(PADEBUG) 
     cout << "InitRealPhotonAnalysis END"<<endl;
@@ -515,7 +532,7 @@ void LoopAll::myStatPhotonAnalysis(Util * ut, int jentry) {
     cout << "myStat START"<<endl;
   counters[0]++;
 
-  float weight = ut->current_sample->event_weight;
+  float weight = sampleContainer[ut->current_sample].event_weight;
   //cout << "Current Type   = " << ut->current_sample->itype << endl;
   //cout << "Current weight = " << weight << endl;
 
@@ -577,7 +594,7 @@ void LoopAll::myStatPhotonAnalysis(Util * ut, int jentry) {
          TLorentzVector Higgs = (*(preselected_photons[0].p4))
                                  +(*(preselected_photons[1].p4));
            float mass = Higgs.M();
-             if (mass > 50. && mass < 150.){
+             if (mass > 50. && mass < 200.){
              //Good event, passes preselection and acceptance cuts
 
              int pass_selection[2];
@@ -600,8 +617,11 @@ void LoopAll::myStatPhotonAnalysis(Util * ut, int jentry) {
              		       && nleading.trkIso < (1.5 + 0.001*nleading.p4->Pt())
                 	       && (nleading.ecalIso < (2.0 + 0.006*nleading.p4->Pt()))
                 	       && (nleading.hcalIso < (2.0 + 0.0025*nleading.p4->Pt()))
-	        )
-		rooContainer->SetRealVar("mass",mass,weight);
+	        ){
+		rooContainer->SetRealVar("mass_exp",mass,weight);
+		rooContainer->SetRealVar("mass_pol",mass,weight);
+		}
+
                }
 	}
     }
