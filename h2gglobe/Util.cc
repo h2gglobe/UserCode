@@ -117,7 +117,7 @@ void Util::SetTypeRun(int t, const char* name) {
     outputTreePar->Branch("type", &outputParType, "type/I");
     outputTreePar->Branch("version", &outputParVersion, "version/I");
     outputTreePar->Branch("parameters", "std::vector<string>", &outputParParameters);
-    outputTreePar->Branch("job_maker", &outputParJobMaker, "job_maker/C");
+    outputTreePar->Branch("jobmaker", &outputParJobMaker, "jobmaker/C");
     //outputTreePar->Branch("job_maker", "std::string", &outputParJobMaker);
     outputTreePar->Branch("reductions", &outputParReductions, "reductions/I");
     outputTreePar->Branch("red_events", &outputParRed_Events, "red_events[reductions]/I");

@@ -242,7 +242,7 @@ void LoopAll::Loop(Int_t a) {
 	utilInstance->TreesPar[a]->SetBranchAddress("type", &type);
 	utilInstance->TreesPar[a]->SetBranchAddress("version", &version);
 	utilInstance->TreesPar[a]->SetBranchAddress("parameters", &parameters);
-	utilInstance->TreesPar[a]->SetBranchAddress("job_maker", &job_maker);
+	utilInstance->TreesPar[a]->SetBranchAddress("jobmaker", &job_maker);
 	if (utilInstance->TreesPar[a]->FindBranch("reductions")) {
 	  utilInstance->TreesPar[a]->SetBranchAddress("reductions", &reductions);
 	  utilInstance->TreesPar[a]->SetBranchAddress("red_events", &red_events);

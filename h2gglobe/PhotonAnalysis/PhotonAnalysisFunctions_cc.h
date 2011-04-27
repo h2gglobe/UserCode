@@ -376,7 +376,16 @@ void LoopAll::myGetEntryPhotonRedAnalysis(Util *ut, int jentry, int cur_type){
   b_pho_hcalsumetconedr04->GetEntry(jentry); 
   b_pho_trksumptsolidconedr03->GetEntry(jentry); 
   b_pho_trksumpthollowconedr04->GetEntry(jentry); 
-  b_pho_haspixseed->GetEntry(jentry); 
+  b_pho_haspixseed->GetEntry(jentry);
+
+  if (cur_type>0){
+
+    b_gen_n->GetEntry(jentry);
+    b_gen_p4->GetEntry(jentry);
+    b_gen_pdgid->GetEntry(jentry);
+    b_gen_status->GetEntry(jentry);
+    b_gen_mother->GetEntry(jentry);
+  } 
   
 
 }
@@ -694,6 +703,7 @@ void LoopAll::myGetBranchPhotonAnalysis() {
   b_gen_p4 = fChain->GetBranch("gp_p4");
   b_gen_status = fChain->GetBranch("gp_status");
   b_gen_pdgid = fChain->GetBranch("gp_pdgid");
+  b_gen_mother = fChain->GetBranch("gp_mother");
 }
 
 
@@ -721,6 +731,7 @@ void LoopAll::mySetBranchAddressRedPhotonAnalysis() {
   fChain->SetBranchAddress("gp_p4", &gen_p4, &b_gen_p4);
   fChain->SetBranchAddress("gp_status", &gen_status, &b_gen_status);
   fChain->SetBranchAddress("gp_pdgid", &gen_pdgid, &b_gen_pdgid);
+  fChain->SetBranchAddress("gp_mother", &gen_mother, &b_gen_mother);
 }
 
 

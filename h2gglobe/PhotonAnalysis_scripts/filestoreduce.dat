@@ -1,5 +1,5 @@
-output=Data2011_reduced.root
-typ=1 DcDir=/store/user/mjarvis/h2g39X_v3/GJet20
+output=test_dyee.root
+typ=1 DcDir=/store/user/mjarvis/h2g_V05_00/Spring11-PU_S1_START311_V1G1/DYToEE_M20/
 
 ->
 Fil=Run2011_29Mar.root typ=1
