@@ -1,25 +1,20 @@
 import ROOT
-#from readJSON import ReadJSON
-import sys
-name = sys.argv[1]
+from python.configProducer import *
 
-ROOT.gSystem.Load("libRooFit.so");
+ROOT.gROOT.SetStyle('Plain')
+ROOT.gSystem.Load("libRooFit.so")
 ROOT.gSystem.Load("libPhysics.so");
 ROOT.gSystem.Load("libCore.so");
 ROOT.gSystem.Load("../libLoopAll.so");
 
-#jsonFile = "fileList.JSON"
-#json = ReadJSON(jsonFile)
 
 ROOT.gBenchmark.Start("Analysis");
-ut = ROOT.Util();
+from ROOT import Util
 
-ut.SetTypeRun(2, 'hist/'+(name.split('/'))[-1]+'_hist.root');
-ut.AddFile(name+'.root',1);
-  
+ut = Util();
+cfg = configProducer(ut,"inputfiles.dat",2)
 ut.LoopAndFillHistos();
-ROOT.gBenchmark.Show("Analysis");
-
 ut.WriteHist();  
+ut.WriteCounters();  
 
-
+ROOT.gBenchmark.Show("Analysis");
