@@ -1,0 +1,20 @@
+intL=94 histfile=MC.root output=shifo.root
+
+typ=1    ind=1 draw=1  Nam=QCD     Fil=/vols/cms02/mjarvis/Higgs/h2gglobe/Martyn_scripts/output/QCD40.root     tot=21301935   red=43107   lum=1.e10 xsec=39096.   kfac=1.0  scal=1.
+typ=2    ind=2 draw=1  Nam=GJet    Fil=/vols/cms02/mjarvis/Higgs/h2gglobe/Martyn_scripts/output/GJet20.root    tot=1182075   red=43107   lum=1.e10  xsec=493.44   kfac=1.0  scal=1.
+typ=3    ind=3 draw=1  Nam=Dyee20  Fil=/vols/cms02/mjarvis/Higgs/h2gglobe/Martyn_scripts/output/DYEEM20.root   tot=2127607   red=43107   lum=1.e10  xsec=1300.   kfac=1.0  scal=1.
+typ=4    ind=4 draw=1  Nam=Dyee10  Fil=/vols/cms02/mjarvis/Higgs/h2gglobe/Martyn_scripts/output/DYEEM1020.root tot=1933000   red=43107   lum=1.e10  xsec=2659.   kfac=1.0  scal=1.
+typ=5    ind=5 draw=1  Nam=Box10   Fil=/vols/cms02/mjarvis/Higgs/h2gglobe/Martyn_scripts/output/Box_10.root    tot=797975   red=43107   lum=1.e10   xsec=358.2   kfac=1.0  scal=1.
+typ=6    ind=6 draw=1  Nam=Box25   Fil=/vols/cms02/mjarvis/Higgs/h2gglobe/Martyn_scripts/output/Box_25.root    tot=777725   red=43107   lum=1.e10   xsec=12.37   kfac=1.0  scal=1.
+typ=7    ind=7 draw=1  Nam=Born10  Fil=/vols/cms02/mjarvis/Higgs/h2gglobe/Martyn_scripts/output/Born_10.root   tot=522865   red=43107   lum=1.e10   xsec=236.4   kfac=1.0  scal=1.
+typ=8    ind=8 draw=1  Nam=Born25  Fil=/vols/cms02/mjarvis/Higgs/h2gglobe/Martyn_scripts/output/Born_25.root   tot=537445   red=43107   lum=1.e10   xsec=22.37   kfac=1.0  scal=1.
+
+->
+
+inputfiles.dat
+Comments Here
+add the files, with types you would like to include in the Analysis
+->
+
+
+
