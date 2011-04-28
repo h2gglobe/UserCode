@@ -455,7 +455,8 @@ void LoopAll::myFillHistPhotonAnalysisRed(Util * ut, int jentry) {
        && pho_ecalsumetconedr04[i] < (2.0 + 0.006*pt)
        && pho_hcalsumetconedr04[i] < (2.0 + 0.0025*pt)
        && (   ((eta < 1.4442) && pho_sieie[i] < 0.01)
-	   || ((eta > 1.566) && (eta < 2.5) && pho_sieie[i] < 0.028))
+	   || ((eta > 1.566) && (eta < 2.5) && pho_sieie[i] < 0.028)
+	  )
        ) {
          PhotonCandidate candidate;
          candidate.p4 		= p4;
@@ -495,10 +496,30 @@ void LoopAll::myFillHistPhotonAnalysisRed(Util * ut, int jentry) {
      nleading = preselected_photons[1];
 
 
-  	 if (leading.p4->Pt() > 40.){
-         
-         //cout<< leading.p4->Pt()<< "  " << nleading.p4->Pt()<<endl;
+  	 if (leading.p4->Pt() > 40.)  {
+           
+         /*
+          double eta1 = fabs(leading.calopos->Eta());
+          double eta2 = fabs(nleading.calopos->Eta());
 
+         if ((
+  	        leading.hoe     <  0.02
+  	     && leading.trkIso  < (1.5 + 0.001*leading.p4->Pt())
+  	     && leading.ecalIso < (2.0 + 0.006*leading.p4->Pt())
+  	     && leading.hcalIso < (2.0 + 0.0025*leading.p4->Pt())
+  	     && (   ((eta1 < 1.4442) && leading.sieie < 0.01)
+		   || ((eta1 > 1.566) && (eta1 < 2.5) && leading.sieie < 0.028))
+	    ) && (
+  	        nleading.hoe     <  0.02
+  	     && nleading.trkIso  < (1.5 + 0.001*nleading.p4->Pt())
+  	     && nleading.ecalIso < (2.0 + 0.006*nleading.p4->Pt())
+  	     && nleading.hcalIso < (2.0 + 0.0025*nleading.p4->Pt())
+  	     && (   ((eta2 < 1.4442) && nleading.sieie < 0.01)
+		   || ((eta2 > 1.566) && (eta2 < 2.5) && nleading.sieie < 0.028))
+            )){ 
+
+	 */
+         //cout << "Eta 1 " << eta1 << "Eta 2 " << eta2 <<endl;
          // Determine the Category of the event
          // -> Which histogram is filled
          min_r9  = min(leading.r9
@@ -517,13 +538,19 @@ void LoopAll::myFillHistPhotonAnalysisRed(Util * ut, int jentry) {
            float h_pt = Higgs.Pt();
 
              if (mass > 100. && mass < 150.){
-             //Good event, passes preselection and acceptance cuts
+               //Good event, passes preselection and acceptance cuts
+	   //    cout <<category<<endl;
+            //   cout << min_r9<< " " <<max_eta<<endl;
 
-	     FillHist("pho_pt",category,nleading.p4->Pt());
-             best_mass = mass;
- 	     best_pt   = h_pt;
+	       FillHist("pho_pt",category,leading.p4->Pt());
+	       FillHist("pho_pt",category,nleading.p4->Pt());
+               best_mass = mass;
+ 	       best_pt   = h_pt;
+		
+               //cout << "run: " << run << " lumi: "<< lumis << endl;
 
            }
+	//}// close loop for selection AFTER choosing lead and sub-lead
      }
    }
 

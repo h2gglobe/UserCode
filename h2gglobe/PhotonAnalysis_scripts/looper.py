@@ -12,11 +12,9 @@ ROOT.gBenchmark.Start("Analysis");
 from ROOT import Util
 
 ut = Util();
-#cfg = configProducer(ut,"inputfiles_mc.dat",2)
-"""  
+cfg = configProducer(ut,"inputfiles.dat",2)
 ut.LoopAndFillHistos();
 ut.WriteHist();  
 ut.WriteCounters();  
 
 ROOT.gBenchmark.Show("Analysis");
-"""

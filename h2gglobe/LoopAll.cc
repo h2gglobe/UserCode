@@ -98,7 +98,7 @@ void LoopAll::InitHistos(){
   for(std::vector<SampleContainer>::const_iterator it = sampleContainer.begin()
      ; it!=sampleContainer.end()
      ; it++, ind++){
-    HistoContainer temp(ind);
+    HistoContainer temp(ind,it->filesshortnam);
     temp.setScale(it->weight*it->scale*it->kfactor);
     histoContainer.push_back(temp);
   }

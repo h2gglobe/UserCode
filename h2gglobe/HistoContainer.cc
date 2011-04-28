@@ -7,8 +7,9 @@
 
 HistoContainer::HistoContainer() {}
 
-HistoContainer::HistoContainer(int setTo) {
+HistoContainer::HistoContainer(int setTo, std::string setName) {
   setHistVal(setTo);
+  setHistNam(setName);
 }
 
 HistoContainer::~HistoContainer() 
@@ -18,6 +19,10 @@ void HistoContainer::setHistVal(int setTo) {
   histVal = setTo;
 }
 
+void HistoContainer::setHistNam(std::string setName) {
+  histNam = setName;
+}
+
 int HistoContainer::getHistVal() {
   return histVal;
 }
@@ -25,9 +30,11 @@ int HistoContainer::getHistVal() {
 void HistoContainer::setScale(float scale){
   total_scale = scale;
 }
+
 std::string HistoContainer::ModifiedName(char* name, int i) {
   char* modName= new char[500];
-  sprintf(modName, "%s_cat%d_%d", name, i, histVal);
+//  sprintf(modName, "%s_cat%d_%d", name, i, histVal);
+  sprintf(modName,"%s_cat%d_%s",name,i,histNam.c_str());
   std::string output(modName);
   return output;
 }
