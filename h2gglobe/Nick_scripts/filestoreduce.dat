@@ -1,7 +1,10 @@
-output=test_dyee.root
-typ=1 DcDir=/store/user/mjarvis/h2g_V05_00/Spring11-PU_S1_START311_V1G1/DYToEE_M20/
+output=/vols/cms02/h2g/ntuples/data_V06/Data_2011.root
+
+typ=0 DcDir=/store/user/nckw/HGG/h2g_V06/paoloReRecoWithLaserV5ESFixed_v1
+typ=0 DcDir=/store/user/nckw/HGG/h2g_V06/paoloReRecoWithLaserV5_v2
 
 ->
+typ=0 DcDir=/store/user/nckw/HGG/h2g_V06/paoloReRecoWithLaserV5_v1
 Fil=Run2011_29Mar.root typ=1
 filestoreduce.dat
 add the files to be reduced and their types

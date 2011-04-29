@@ -1,5 +1,6 @@
 void LoopAll::PhotonAnalysisReducedOutputTree() {
 
+  utilInstance->outputTree->Branch("event", &event, "event/I");
   utilInstance->outputTree->Branch("lumis", &lumis, "lumis/I");
   utilInstance->outputTree->Branch("run", &run, "run/I");
 

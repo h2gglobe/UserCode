@@ -85,9 +85,15 @@ void HistoContainer::Fill(std::string name, int category, float value, float wei
 
   //std::string modName = ModifiedName(name);
   std::map<std::string, std::vector<TH1F> >::iterator it = h1.find(std::string(name));
- 
+  
+  float low,high;
+
   if (it != h1.end()) {
-    (it->second)[category].Fill(value, total_scale*weight);
+    low  = (it->second)[category].GetBinLowEdge(1);
+    high = (it->second)[category].GetBinLowEdge((it->second)[category].GetNbinsX()+1);
+ 
+    if (value < high && value > low)
+     (it->second)[category].Fill(value, total_scale*weight);
     return;
   }
 }

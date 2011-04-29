@@ -66,289 +66,7 @@ bool LoopAll::myPhotonAnalysisRunSelection(int cur_type){
   bool passes_run_selection = false; 
 
   // Put here the Run Selection you want in the Data
-  if (  ( run==163238 && (
- 	(lumis > 1 && lumis < 15)
-   	)
-  	)
-   || ( run==162811 && (
- 	(lumis > 1 && lumis < 340)
-   	)
-  	)
-   || ( run==162826 && (
- 	(lumis > 1 && lumis < 24)
-   	)
-  	)
-   || ( run==161233 && (
- 	(lumis > 33 && lumis < 49)
-   	)
-  	)
-   || ( run==163234 && (
- 	(lumis > 1 && lumis < 66)
-   	)
-  	)
-   || ( run==161119 && (
- 	(lumis > 1 && lumis < 1)
-  	|| (lumis > 7 && lumis < 58)
-  	|| (lumis > 69 && lumis < 108)
-  	|| (lumis > 115 && lumis < 141)
-  	|| (lumis > 145 && lumis < 173)
-  	|| (lumis > 179 && lumis < 210)
-   	)
-  	)
-   || ( run==161016 && (
- 	(lumis > 2 && lumis < 300)
-   	)
-  	)
-   || ( run==163046 && (
- 	(lumis > 1 && lumis < 238)
-   	)
-  	)
-   || ( run==163252 && (
- 	(lumis > 60 && lumis < 137)
-   	)
-  	)
-   || ( run==160939 && (
- 	(lumis > 1 && lumis < 123)
-   	)
-  	)
-   || ( run==160938 && (
- 	(lumis > 1 && lumis < 117)
-   	)
-  	)
-   || ( run==161103 && (
- 	(lumis > 2 && lumis < 100)
-   	)
-  	)
-   || ( run==163069 && (
- 	(lumis > 73 && lumis < 633)
-   	)
-  	)
-   || ( run==161310 && (
- 	(lumis > 39 && lumis < 116)
-   	)
-  	)
-   || ( run==161311 && (
- 	(lumis > 1 && lumis < 554)
-  	|| (lumis > 559 && lumis < 678)
-   	)
-  	)
-   || ( run==161217 && (
- 	(lumis > 37 && lumis < 753)
-   	)
-  	)
-   || ( run==160937 && (
- 	(lumis > 1 && lumis < 191)
-   	)
-  	)
-   || ( run==160936 && (
- 	(lumis > 1 && lumis < 25)
-   	)
-  	)
-   || ( run==160935 && (
- 	(lumis > 33 && lumis < 162)
-  	|| (lumis > 165 && lumis < 238)
-   	)
-  	)
-   || ( run==163235 && (
- 	(lumis > 1 && lumis < 461)
-   	)
-  	)
-   || ( run==161106 && (
- 	(lumis > 2 && lumis < 26)
-   	)
-  	)
-   || ( run==163237 && (
- 	(lumis > 1 && lumis < 213)
-   	)
-  	)
-   || ( run==163233 && (
- 	(lumis > 1 && lumis < 283)
-   	)
-  	)
-   || ( run==162822 && (
- 	(lumis > 73 && lumis < 307)
-   	)
-  	)
-   || ( run==160955 && (
- 	(lumis > 1 && lumis < 130)
-  	|| (lumis > 133 && lumis < 138)
-  	|| (lumis > 140 && lumis < 151)
-  	|| (lumis > 153 && lumis < 154)
-  	|| (lumis > 156 && lumis < 172)
-  	|| (lumis > 175 && lumis < 201)
-  	|| (lumis > 204 && lumis < 206)
-   	)
-  	)
-   || ( run==163270 && (
- 	(lumis > 1 && lumis < 928)
-   	)
-  	)
-   || ( run==160957 && (
- 	(lumis > 1 && lumis < 953)
-   	)
-  	)
-   || ( run==160956 && (
- 	(lumis > 2 && lumis < 65)
-   	)
-  	)
-   || ( run==160872 && (
- 	(lumis > 1 && lumis < 9)
-  	|| (lumis > 25 && lumis < 35)
-  	|| (lumis > 38 && lumis < 55)
-   	)
-  	)
-   || ( run==160873 && (
- 	(lumis > 1 && lumis < 147)
-   	)
-  	)
-   || ( run==160871 && (
- 	(lumis > 68 && lumis < 208)
-   	)
-  	)
-   || ( run==160998 && (
- 	(lumis > 2 && lumis < 252)
-   	)
-  	)
-   || ( run==162803 && (
- 	(lumis > 60 && lumis < 139)
-   	)
-  	)
-   || ( run==162828 && (
- 	(lumis > 1 && lumis < 85)
-   	)
-  	)
-   || ( run==163078 && (
- 	(lumis > 1 && lumis < 23)
-   	)
-  	)
-   || ( run==162808 && (
- 	(lumis > 1 && lumis < 51)
-   	)
-  	)
-   || ( run==163232 && (
- 	(lumis > 110 && lumis < 149)
-   	)
-  	)
-   || ( run==162827 && (
- 	(lumis > 1 && lumis < 123)
-   	)
-  	)
-   || ( run==161107 && (
- 	(lumis > 2 && lumis < 29)
-   	)
-  	)
-   || ( run==162825 && (
- 	(lumis > 1 && lumis < 184)
-   	)
-  	)
-   || ( run==161312 && (
- 	(lumis > 1 && lumis < 826)
-  	|| (lumis > 835 && lumis < 1027)
-   	)
-  	)
-   || ( run==162909 && (
- 	(lumis > 54 && lumis < 290)
-   	)
-  	)
-   || ( run==161020 && (
- 	(lumis > 1 && lumis < 22)
-   	)
-  	)
-   || ( run==160578 && (
- 	(lumis > 6 && lumis < 53)
-  	|| (lumis > 274 && lumis < 400)
-   	)
-  	)
-   || ( run==161008 && (
- 	(lumis > 1 && lumis < 274)
-   	)
-  	)
-   || ( run==162929 && (
- 	(lumis > 1 && lumis < 295)
-   	)
-  	)
-   || ( run==162926 && (
- 	(lumis > 1 && lumis < 700)
-   	)
-  	)
-   || ( run==162924 && (
- 	(lumis > 69 && lumis < 130)
-   	)
-  	)
-   || ( run==162925 && (
- 	(lumis > 1 && lumis < 296)
-   	)
-  	)
-   || ( run==160577 && (
- 	(lumis > 254 && lumis < 306)
-   	)
-  	)
-   || ( run==160874 && (
- 	(lumis > 1 && lumis < 51)
-  	|| (lumis > 97 && lumis < 113)
-   	)
-  	)
-   || ( run==163072 && (
- 	(lumis > 1 && lumis < 32)
-   	)
-  	)
-   || ( run==161116 && (
- 	(lumis > 2 && lumis < 11)
-   	)
-  	)
-   || ( run==161117 && (
- 	(lumis > 2 && lumis < 24)
-   	)
-  	)
-   || ( run==161113 && (
- 	(lumis > 2 && lumis < 24)
-   	)
-  	)
-   || ( run==163071 && (
- 	(lumis > 1 && lumis < 176)
-   	)
-  	)
-   || ( run==161222 && (
- 	(lumis > 1 && lumis < 97)
-   	)
-  	)
-   || ( run==161223 && (
- 	(lumis > 1 && lumis < 375)
-   	)
-  	)
-   || ( run==161156 && (
- 	(lumis > 1 && lumis < 14)
-   	)
-  	)
-   || ( run==161176 && (
- 	(lumis > 1 && lumis < 31)
-   	)
-  	)
-   || ( run==160431 && (
- 	(lumis > 19 && lumis < 218)
-   	)
-  	)
-   || ( run==163269 && (
- 	(lumis > 59 && lumis < 206)
-   	)
-  	)
-   || ( run==163261 && (
- 	(lumis > 1 && lumis < 126)
-   	)
-  	)
-   || ( run==160942 && (
- 	(lumis > 1 && lumis < 12)
-   	)
-  	)
-   || ( run==160943 && (
- 	(lumis > 1 && lumis < 54)
-   	)
-  	)
-   || ( run==160940 && (
- 	(lumis > 1 && lumis < 79)
-   	)
-  	)
-  ){ passes_run_selection = true; }
+  passes_run_selection = true; 
 
   // -----------------------------------------------
 
@@ -360,6 +78,7 @@ bool LoopAll::myPhotonAnalysisRunSelection(int cur_type){
 void LoopAll::myGetEntryPhotonRedAnalysis(Util *ut, int jentry, int cur_type){
 
   if (cur_type ==0){
+    b_event->GetEntry(jentry);
     b_lumis->GetEntry(jentry);
     b_run->GetEntry(jentry);
   }
@@ -498,10 +217,9 @@ void LoopAll::myFillHistPhotonAnalysisRed(Util * ut, int jentry) {
 
   	 if (leading.p4->Pt() > 40.)  {
            
-         /*
           double eta1 = fabs(leading.calopos->Eta());
           double eta2 = fabs(nleading.calopos->Eta());
-
+/*
          if ((
   	        leading.hoe     <  0.02
   	     && leading.trkIso  < (1.5 + 0.001*leading.p4->Pt())
@@ -517,8 +235,7 @@ void LoopAll::myFillHistPhotonAnalysisRed(Util * ut, int jentry) {
   	     && (   ((eta2 < 1.4442) && nleading.sieie < 0.01)
 		   || ((eta2 > 1.566) && (eta2 < 2.5) && nleading.sieie < 0.028))
             )){ 
-
-	 */
+*/
          //cout << "Eta 1 " << eta1 << "Eta 2 " << eta2 <<endl;
          // Determine the Category of the event
          // -> Which histogram is filled
@@ -546,11 +263,11 @@ void LoopAll::myFillHistPhotonAnalysisRed(Util * ut, int jentry) {
 	       FillHist("pho_pt",category,nleading.p4->Pt());
                best_mass = mass;
  	       best_pt   = h_pt;
-		
-               //cout << "run: " << run << " lumi: "<< lumis << endl;
+		//DEBUG as MARCO's FORMAT
+               //cout << "data run event lumis " << run << " "<<  event << " " << lumis << " Mass " << mass << endl;
 
            }
-	//}// close loop for selection AFTER choosing lead and sub-lead
+//	}// close loop for selection AFTER choosing lead and sub-lead
      }
    }
 
@@ -708,6 +425,7 @@ void LoopAll::myReducePhotonAnalysis(Util * ut, int jentry) {
 
 
 void LoopAll::myGetBranchPhotonAnalysis() {
+  b_event = fChain->GetBranch("event");
   b_lumis = fChain->GetBranch("lumis");
   b_run = fChain->GetBranch("run");
   b_pho_n = fChain->GetBranch("pho_n");
@@ -736,6 +454,7 @@ void LoopAll::myGetBranchPhotonAnalysis() {
 
 void LoopAll::mySetBranchAddressRedPhotonAnalysis() {
   
+  fChain->SetBranchAddress("event", &event, &b_event);
   fChain->SetBranchAddress("lumis", &lumis, &b_lumis);
   fChain->SetBranchAddress("run", &run, &b_run);
   fChain->SetBranchAddress("pho_n", &pho_n, &b_pho_n);
