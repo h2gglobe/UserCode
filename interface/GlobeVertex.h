@@ -44,7 +44,7 @@ class GlobeVertex {
   Float_t vtx_ndof[MAX_VERTICES];
 
   Int_t vtx_ntks[MAX_VERTICES];
-  std::vector<std::vector<unsigned short> >* vtx_tkind;
+  std::vector<std::vector<short> >* vtx_tkind;
   std::vector<std::vector<float> >* vtx_tkweight;
 
  private:

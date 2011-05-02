@@ -15,7 +15,7 @@ GlobeVertex::GlobeVertex(const edm::ParameterSet& iConfig, const char* n): nome(
   debug_level = iConfig.getParameter<int>("Debug_Level");
   // get cut thresholds
   gCUT = new GlobeCuts(iConfig); 
-  vtx_tkind = new std::vector<std::vector<unsigned short> >;
+  vtx_tkind = new std::vector<std::vector<short> >;
   vtx_tkweight = new std::vector<std::vector<float> >;
 
 }
@@ -68,7 +68,7 @@ void GlobeVertex::defineBranch(TTree* tree) {
   tree->Branch(a1, &vtx_ntks, a2);
 
   sprintf(a1, "vtx_%s_tkind", nome); 
-  tree->Branch(a1, "std::vector<std::vector<unsigned short> >", &vtx_tkind);
+  tree->Branch(a1, "std::vector<std::vector<short> >", &vtx_tkind);
   
   sprintf(a1, "vtx_%s_tkweight", nome); 
   tree->Branch(a1, "std::vector<std::vector<float> >", &vtx_tkweight);
@@ -143,7 +143,7 @@ bool GlobeVertex::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetu
     ((TVector3 *)vtx_vectorp3->At(vtx_n))->SetXYZ(vecsumP3.x(), vecsumP3.y(), vecsumP3.z());
     
     
-    if (strcmp(nome, "std") == 0) { 
+    if (strcmp(nome, "pix") != 0) { 
       vtx_ntks[vtx_n] = vtx->tracksSize();
       
       if (debug_level > 9)
@@ -151,11 +151,12 @@ bool GlobeVertex::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetu
       
       std::vector<reco::TrackBaseRef>::const_iterator tk;
       
-      std::vector<unsigned short> temp;
+      std::vector<short> temp;
       std::vector<float> temp_float;
       
       for(tk=vtx->tracks_begin();tk!=vtx->tracks_end();++tk) {
-        int index = -1;
+        int index = 0;
+	bool ismatched = false; 
         for(reco::TrackCollection::size_type j = 0; j<tkH->size(); ++j) {
           reco::TrackRef track(tkH, j);
           if(gCUT->cut(*track))continue; 
@@ -163,11 +164,12 @@ bool GlobeVertex::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetu
             //std::cout << "MWL: " << k << " " << index << " " << vtx->trackWeight(track) << std::endl;
             temp.push_back(index);
             temp_float.push_back(vtx->trackWeight(track));
+	    ismatched = true;
             break;
           }
           index++;
         }
-        if(index == -1) {
+        if( ! ismatched ) {
           temp.push_back(-9999);
           temp_float.push_back(-9999);
         }
@@ -177,7 +179,7 @@ bool GlobeVertex::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetu
       vtx_tkweight->push_back(temp_float);
     } else { //end "std"
       vtx_ntks[vtx_n] = 0;
-      vtx_tkind->push_back(std::vector<unsigned short>(0));
+      vtx_tkind->push_back(std::vector<short>(0));
       vtx_tkweight->push_back(std::vector<float>(0));
     }
     
