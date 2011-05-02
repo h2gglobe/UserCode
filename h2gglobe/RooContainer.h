@@ -1,7 +1,13 @@
 #ifndef ROOCONTAINER
 #define ROOCONTAINER
 
+// ROOT includes
+#include "TROOT.h"
+#include "TCanvas.h"
+#include "TH1F.h"
+
 // RooFit includes
+#include "RooDataHist.h"
 #include "RooDataSet.h"
 #include "RooRealVar.h"
 #include "RooPlot.h"
@@ -10,14 +16,19 @@
 #include "RooExtendPdf.h"
 #include "RooAddPdf.h"
 #include "RooFitResult.h"
+#include "RooArgSet.h"
+#include "RooArgList.h"
+#include "RooAddPdf.h"
+#include "RooGlobalFunc.h"
 
 // RooStats includes
 #include "RooWorkspace.h"
 
+// standard includes
+#include <cmath>
+#include <iostream>
 #include <map>
 #include <vector>
-// For now only conatins expnentials and real vars and datasets.
-// Abstract to addPdf soon
 
 class RooContainer {
 
@@ -34,11 +45,11 @@ class RooContainer {
    void ComposePdf(std::string, std::string
 			     ,std::vector<std::string> &);
 
-   void CreateDataSet(std::string);
+   void CreateDataSet(std::string,int nbins=-1);
    
-   void FitToData(std::string,std::string,int bins=-1);
+   void FitToData(std::string,std::string);
    void FitToData(std::string,std::string 
-	         ,double, double, double, double,int bins=-1);
+	         ,double, double, double, double);
    void SetRealVar(std::string, int, float, float w=1.);
    void Save();
    
@@ -52,12 +63,12 @@ class RooContainer {
    void composePdf(std::string , std::string 
 			     ,std::vector<std::string> &);
 
-   void createDataSet(std::string);
+   void createDataSet(std::string,int);
    
-   void fitToData(std::string,std::string,int bins=-1);
+   void fitToData(std::string,std::string);
    void fitToData(std::string,std::string
-	         ,double, double, double, double,int bins=-1);
-   void writeRooDataHist(std::string, RooDataSet *);
+	         ,double, double, double, double);
+   void writeRooDataHist(std::string, TH1F *);
    void writeRooPlot(RooPlot *);
    int ncat;
    std::string getcatName(std::string, int);   
@@ -66,11 +77,13 @@ class RooContainer {
    std::map<std::string, RooExtendPdf> m_exp_;
    std::map<std::string, RooGenericPdf> m_gen_;
    std::map<std::string, RooAddPdf> m_pdf_;
+   std::map<std::string,TH1F> m_th1f_;
 
    std::map<std::string, float> m_var_min_;
    std::map<std::string, float> m_var_max_;
 
    std::map<std::string,RooDataSet*> data_; 
+   std::map<std::string,int> bins_;
    std::map<RooPlot*,RooFitResult*> fit_res_;
 
    RooWorkspace ws;

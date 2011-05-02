@@ -20,6 +20,9 @@ void LoopAll::InitRealPhotonAnalysis(int typerun) {
   }
   
   if (typerun == 3) {  
+     // initialize the RooContainer with number of categories
+
+     rooContainer = new RooContainer(5);
 
      //RooFitting type
      rooContainer->AddRealVar("Signal_mass",90.,200.);
@@ -81,9 +84,9 @@ void LoopAll::InitRealPhotonAnalysis(int typerun) {
 			     ,pdfs);
      // -------------------------------------//
      // Create The DataSets
-     rooContainer->CreateDataSet("Data_mass");
-     rooContainer->CreateDataSet("Signal_mass");
-     rooContainer->CreateDataSet("Background_mass");
+     rooContainer->CreateDataSet("Data_mass",25);
+     rooContainer->CreateDataSet("Signal_mass",25);
+     rooContainer->CreateDataSet("Background_mass",25);
   }
 
   if(PADEBUG) 

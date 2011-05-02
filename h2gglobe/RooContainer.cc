@@ -1,18 +1,4 @@
-//ROOT includes
-#include "TROOT.h"
-#include "TCanvas.h"
-
-//RooFit includes
-#include "RooDataHist.h"
 #include "RooContainer.h"
-#include "RooArgSet.h"
-#include "RooArgList.h"
-#include "RooAddPdf.h"
-#include "RooGlobalFunc.h"
-
-//standard includes
-#include <cmath>
-#include <iostream>
 
 using namespace RooFit;
 
@@ -57,22 +43,22 @@ void RooContainer::ComposePdf(std::string name, std::string  composition
   }
 }
 
-void RooContainer::CreateDataSet(std::string name){
+void RooContainer::CreateDataSet(std::string name,int nbins){
   for (int cat=0;cat<ncat;cat++){
-    createDataSet(getcatName(name,cat));
+    createDataSet(getcatName(name,cat),nbins);
   }
 }
 
-void RooContainer::FitToData(std::string name_func, std::string  name_var, int bins){
+void RooContainer::FitToData(std::string name_func, std::string  name_var){
   for (int cat=0;cat<ncat;cat++){
-    fitToData(getcatName(name_func,cat),getcatName(name_var,cat),bins);
+    fitToData(getcatName(name_func,cat),getcatName(name_var,cat));
   }
 }
 void RooContainer::FitToData(std::string name_func, std::string  name_var
-			    ,double x1, double x2, double x3, double x4, int bins){
+			    ,double x1, double x2, double x3, double x4){
   for (int cat=0;cat<ncat;cat++){
     fitToData(getcatName(name_func,cat),getcatName(name_var,cat)
-	     ,x1,x2,x3,x4,bins);
+	     ,x1,x2,x3,x4);
   }
 }
 
@@ -91,11 +77,11 @@ void RooContainer::Save(){
        //it->second->Write();
   }
   
-  std::map<std::string,RooDataSet*>::iterator it_d = data_.begin();
-  std::map<std::string,RooDataSet*>::iterator it_e = data_.end();
+  std::map<std::string,TH1F>::iterator it_d = m_th1f_.begin();
+  std::map<std::string,TH1F>::iterator it_e = m_th1f_.end();
 
   for(;it_d != it_e; it_d++){
-     writeRooDataHist((*it_d).first,it_d->second);
+     writeRooDataHist((*it_d).first,&(it_d->second));
   }
   ws.SetName("cms-hgg-workspace");
   ws.Write();
@@ -115,6 +101,7 @@ void RooContainer::SetRealVar(std::string var_name, int cat, float x, float w){
       if (x > min_x && x < max_x){
         m_real_var_[name] = x;
         data_[name]->add(RooArgSet(m_real_var_[name]),w);
+        m_th1f_[name].Fill(x,w);
       }
     }
   }
@@ -199,23 +186,40 @@ void RooContainer::composePdf(std::string name, std::string  composition
 }
 
 
-void RooContainer::createDataSet(std::string name){
+void RooContainer::createDataSet(std::string name,int nbins){
 
     std::map<std::string,RooRealVar>::const_iterator test=m_real_var_.find(name);
     if (test != m_real_var_.end()){ 
-      data_[name] = new RooDataSet(name.c_str(),name.c_str(),RooArgSet(m_real_var_[name]) );
+
+
+      data_[name]  = new RooDataSet(name.c_str(),name.c_str(),RooArgSet(m_real_var_[name]) );
+      bins_[name] = nbins;
+
+      float xmin = m_var_min_[name];
+      float xmax = m_var_max_[name];
+
+      if (nbins >0) {
+	m_th1f_[name] = TH1F(Form("th1f-%s",name.c_str()),Form("th1f-%s",name.c_str()),nbins,xmin,xmax);
+        m_real_var_[name].setBins(nbins);
+      }
+      else {
+	m_th1f_[name] = TH1F(Form("th1f-%s",name.c_str()),Form("th1f-%s",name.c_str()),(int)(xmax-xmin),xmin,xmax);
+        m_real_var_[name].setBins((int)(xmax-xmin));
+      }
+
       cout << "RooContainer::CreateDataSet -- Created RooDataSet from " << name << endl;
+      cout << "RooContainer::CreateDataSet -- Created TH1F from " << name << endl;
     } 
+
     else {
       std::cout << "WARNING -- RooContainer::CreateDataSet -- No RealVar found Named "
                 << name
 		<< " Expect a segmentation fault!!! -- WARNING"
 		<< std::endl;
     }	
-
 }
 
-void RooContainer::fitToData(std::string name_func, std::string  name_var, int bins){
+void RooContainer::fitToData(std::string name_func, std::string  name_var){
 
     bool use_composed_pdf = false;
     double chi_square;
@@ -236,6 +240,7 @@ void RooContainer::fitToData(std::string name_func, std::string  name_var, int b
       fit_result = m_exp_[name_func].fitTo(*(data_[name_var]));
     }
 
+    int bins = bins_[name_var];
     float x_min = m_var_min_[name_var];
     float x_max = m_var_max_[name_var];
  
@@ -266,9 +271,10 @@ void RooContainer::fitToData(std::string name_func, std::string  name_var, int b
 }
 
 void RooContainer::fitToData(std::string name_func, std::string  name_var
-			    ,double x1, double x2, double x3, double x4, int bins){
+			    ,double x1, double x2, double x3, double x4){
 
     
+    int bins = bins_[name_var];
     float x_min = m_var_min_[name_var];
     float x_max = m_var_max_[name_var];
 
@@ -341,10 +347,12 @@ void RooContainer::fitToData(std::string name_func, std::string  name_var
 }
 
 
-void RooContainer::writeRooDataHist(std::string name, RooDataSet* data){
-  RooDataHist tmp(Form("hist_%s",name.c_str()),name.c_str(),RooArgList(m_real_var_[name]),*data);
+void RooContainer::writeRooDataHist(std::string name, TH1F* hist){
+
+  RooDataHist tmp(Form("roohist-%s",name.c_str()),name.c_str(),RooArgList(m_real_var_[name]),hist);
+
   ws.import(tmp);
-  //tmp.Write();
+  hist->Write();
 }
 
 
