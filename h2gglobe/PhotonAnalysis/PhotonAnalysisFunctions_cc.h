@@ -1,9 +1,11 @@
-#define PADEBUG 0 
+#define PADEBUG 0
 
 void LoopAll::TermRealPhotonAnalysis(int typerun) 
 {
    if (typerun==3){	
-      rooContainer->FitToData("exp_ca","mass",25);
+      rooContainer->FitToData("cms-data_model","Data_mass");
+      rooContainer->FitToData("bw"	      ,"Signal_mass");
+      rooContainer->FitToData("exp"	      ,"Background_mass");
    }
 
 }
@@ -18,38 +20,70 @@ void LoopAll::InitRealPhotonAnalysis(int typerun) {
   }
   
   if (typerun == 3) {  
+
      //RooFitting type
-     rooContainer->AddRealVar("mass",90.,200.);
-     rooContainer->AddRealVar("mu",-0.04,-1.,-0.001);
-     rooContainer->AddRealVar("g",1.,0.01,4.);
-     rooContainer->AddRealVar("m",120.,100.,150.);
+     rooContainer->AddRealVar("Signal_mass",90.,200.);
+     rooContainer->AddRealVar("Background_mass",90.,200.);
+     rooContainer->AddRealVar("Data_mass",90.,200.);
 
+     // Signal Parameters
+     rooContainer->AddRealVar("width",1.,0.1,3.);
+     rooContainer->AddRealVar("mean",130.,100.,150.);
+
+     // Background Parameters
+     rooContainer->AddRealVar("alpha",-0.04,-1.,-0.001);
+
+     // All parameters for the Data
+     rooContainer->AddRealVar("d_width",1.,0.1,3.);
+     rooContainer->AddRealVar("d_mean",130.,100.,150.);
+     rooContainer->AddRealVar("d_alpha",-0.04,-1.,-0.001);
+
+     // Set Up The Signal Pdfs
      // -------------------------------------//
-     std::vector<const char*> pars(2,"t");	 
-     pars[0] = "mass";
-     pars[1] = "mu";
+     std::vector<std::string> sig_pars(3,"p");	 
+     sig_pars[0] = "Signal_mass";
+     sig_pars[1] = "width";
+     sig_pars[2] = "mean";
+     rooContainer->AddGenericPdf("bw"
+	,"1./((@0-@2)*(@0-@2)+@1*@1)"
+	,sig_pars,10.);
      // -------------------------------------//
 
-     // -------------------------------------//
-     std::vector<const char*> pars2(3,"t");	 
-     pars2[0] = "mass";
-     pars2[1] = "g";
-     pars2[2] = "m";
+     // Set Up The Background Pdfs
+     std::vector<std::string> bkg_pars(2,"p");	 
+     bkg_pars[0] = "Background_mass";
+     bkg_pars[1] = "alpha";
+     rooContainer->AddGenericPdf("exp"
+	,"exp((@0)*(@1))",bkg_pars,10);
      // -------------------------------------//
 
-     rooContainer->AddGenericPdf("exp",
-	"exp((@0)*(@1))",pars,10);
-
-     rooContainer->AddGenericPdf("ca",
-	"@1/((@0-@2)*(@0-@2) + @1*@1)",pars2,1.);
-
+     // A Model For The Data
      // -------------------------------------//
-     std::vector<const char*> pdfs(2,"t");
-     pdfs[0] = "exp";
-     pdfs[1] = "ca";
+     std::vector<std::string> data_sig(3,"p");
+     data_sig[0] = "Data_mass";
+     data_sig[1] = "d_width";
+     data_sig[2] = "d_mean";
+     std::vector<std::string> data_bkg(2,"p");
+     data_bkg[0] = "Data_mass";
+     data_bkg[1] = "d_alpha";
+     rooContainer->AddGenericPdf("data_bw"
+	,"1./((@0-@2)*(@0-@2)+@1*@1)"
+	,data_sig,1.);
+     rooContainer->AddGenericPdf("data_exp"
+	,"exp((@0)*(@1))",data_bkg,10);
      // -------------------------------------//
-     rooContainer->ComposePdf("exp_ca","exp+ca",pdfs);
-     rooContainer->CreateDataSet("mass");
+     // Combine the Data pdfs
+     std::vector<std::string> pdfs(2,"t");
+     pdfs[0] = "data_exp";
+     pdfs[1] = "data_bw";
+     rooContainer->ComposePdf("cms-data_model"
+			     ,"data_bkg+data_gaus"
+			     ,pdfs);
+     // -------------------------------------//
+     // Create The DataSets
+     rooContainer->CreateDataSet("Data_mass");
+     rooContainer->CreateDataSet("Signal_mass");
+     rooContainer->CreateDataSet("Background_mass");
   }
 
   if(PADEBUG) 
@@ -152,13 +186,11 @@ void LoopAll::myFillHistPhotonAnalysisRed(Util * ut, int jentry) {
     cout << "myFillHistRed START"<<endl;
 
   counters[0]++;
-
-// From Here is the Standard Dec Review Selection/ gen Level studies
-//  cout << "Run/Lumi in JSON" << endl;
   std::vector<PhotonCandidate> preselected_photons;  
 
   TVector3 *calopos;	
   TLorentzVector *p4;
+
   for (int i=0; i<pho_n; i++) {
     p4 = (TLorentzVector *) pho_p4->At(i);
     calopos  = (TVector3 *) pho_calopos->At(i);
@@ -217,28 +249,6 @@ void LoopAll::myFillHistPhotonAnalysisRed(Util * ut, int jentry) {
 
   	 if (leading.p4->Pt() > 40.)  {
            
-          double eta1 = fabs(leading.calopos->Eta());
-          double eta2 = fabs(nleading.calopos->Eta());
-/*
-         if ((
-  	        leading.hoe     <  0.02
-  	     && leading.trkIso  < (1.5 + 0.001*leading.p4->Pt())
-  	     && leading.ecalIso < (2.0 + 0.006*leading.p4->Pt())
-  	     && leading.hcalIso < (2.0 + 0.0025*leading.p4->Pt())
-  	     && (   ((eta1 < 1.4442) && leading.sieie < 0.01)
-		   || ((eta1 > 1.566) && (eta1 < 2.5) && leading.sieie < 0.028))
-	    ) && (
-  	        nleading.hoe     <  0.02
-  	     && nleading.trkIso  < (1.5 + 0.001*nleading.p4->Pt())
-  	     && nleading.ecalIso < (2.0 + 0.006*nleading.p4->Pt())
-  	     && nleading.hcalIso < (2.0 + 0.0025*nleading.p4->Pt())
-  	     && (   ((eta2 < 1.4442) && nleading.sieie < 0.01)
-		   || ((eta2 > 1.566) && (eta2 < 2.5) && nleading.sieie < 0.028))
-            )){ 
-*/
-         //cout << "Eta 1 " << eta1 << "Eta 2 " << eta2 <<endl;
-         // Determine the Category of the event
-         // -> Which histogram is filled
          min_r9  = min(leading.r9
 		      ,nleading.r9);
 	 max_eta = max(fabs(leading.calopos->Eta())
@@ -255,19 +265,13 @@ void LoopAll::myFillHistPhotonAnalysisRed(Util * ut, int jentry) {
            float h_pt = Higgs.Pt();
 
              if (mass > 100. && mass < 150.){
-               //Good event, passes preselection and acceptance cuts
-	   //    cout <<category<<endl;
-            //   cout << min_r9<< " " <<max_eta<<endl;
 
 	       FillHist("pho_pt",category,leading.p4->Pt());
 	       FillHist("pho_pt",category,nleading.p4->Pt());
                best_mass = mass;
  	       best_pt   = h_pt;
-		//DEBUG as MARCO's FORMAT
-               //cout << "data run event lumis " << run << " "<<  event << " " << lumis << " Mass " << mass << endl;
 
-           }
-//	}// close loop for selection AFTER choosing lead and sub-lead
+            }
      }
    }
 
@@ -289,28 +293,30 @@ void LoopAll::myStatPhotonAnalysis(Util * ut, int jentry) {
   counters[0]++;
 
   float weight = sampleContainer[ut->current_sample].event_weight;
-  //cout << "Current Type   = " << ut->current_sample->itype << endl;
-  //cout << "Current weight = " << weight << endl;
+  int cur_type = ut->current_type;
 
-  
   std::vector<PhotonCandidate> preselected_photons;  
 
   TVector3 *calopos;	
   TLorentzVector *p4;
+
   for (int i=0; i<pho_n; i++) {
     p4 = (TLorentzVector *) pho_p4->At(i);
     calopos  = (TVector3 *) pho_calopos->At(i);
     float pt  = p4->Pt(); 
     float eta = fabs(calopos->Eta());
-    //PreSelection
+
+    //Photon Selection
      if ( 
        (! pho_haspixseed[i])
        && pt > 30. 
-       && pho_hoe[i] <  0.1
-       && pho_trksumptsolidconedr03[i] < 2*(3.5 + 0.001*pt)
-       && pho_ecalsumetconedr03[i] < 2*(4.2 + 0.006*pt)
-       && pho_hcalsumetconedr03[i] < 2*(2.2 + 0.0025*pt)
-       &&((eta < 1.4442) || ((eta > 1.566) && (eta < 2.5))) 
+       && pho_hoe[i] <  0.02
+       && pho_trksumpthollowconedr04[i] < (1.5 + 0.001*pt)
+       && pho_ecalsumetconedr04[i] < (2.0 + 0.006*pt)
+       && pho_hcalsumetconedr04[i] < (2.0 + 0.0025*pt)
+       && (   ((eta < 1.4442) && pho_sieie[i] < 0.01)
+	   || ((eta > 1.566) && (eta < 2.5) && pho_sieie[i] < 0.028)
+	  )
        ) {
          PhotonCandidate candidate;
          candidate.p4 		= p4;
@@ -321,65 +327,63 @@ void LoopAll::myStatPhotonAnalysis(Util * ut, int jentry) {
          candidate.hcalIso 	= pho_hcalsumetconedr04[i];
          candidate.sieie 	= pho_sieie[i];
          candidate.hoe 		= pho_hoe[i];
+         candidate.r9 		= pho_r9[i];
          preselected_photons.push_back(candidate);
        }
   }
 
   //Event Selection
   int n_preselected_pho = preselected_photons.size();
-
-  if (n_preselected_pho > 1 ){
-
-     // Sort Photons into Pt Order
-     std::sort(preselected_photons.begin()
+  // Sort Photons into Pt Order
+  std::sort(preselected_photons.begin()
            ,preselected_photons.end()
            ,PhoP4greater); 
  
-    // Regular Event Selection begins here
+// Regular Event Selection begins here
+  float best_mass = 0.;
+  float best_pt   = -1;
+  int   category  = -1;
+  float min_r9;
+  float max_eta;
 
+  if (n_preselected_pho > 1 ){
      PhotonCandidate leading, nleading;
 
      leading  = preselected_photons[0];
      nleading = preselected_photons[1];
 
 
-  	 if (leading.p4->Pt() > 40.){
-         
+     if (leading.p4->Pt() > 40.)  {
+
+         min_r9  = min(leading.r9
+		      ,nleading.r9);
+	 max_eta = max(fabs(leading.calopos->Eta())
+			   ,fabs(nleading.calopos->Eta()));
+	 if (min_r9 < 0.93 && max_eta < 1.4442 ) category = 1;
+	 if (min_r9 > 0.93 && max_eta < 1.4442 ) category = 2;
+	 if (min_r9 < 0.93 && max_eta > 1.566 && max_eta < 2.5) category = 3;
+	 if (min_r9 > 0.93 && max_eta > 1.566 && max_eta < 2.5) category = 4;
 
          // -------------------------------------------------------
-         TLorentzVector Higgs = (*(preselected_photons[0].p4))
-                                 +(*(preselected_photons[1].p4));
+         TLorentzVector Higgs = (*(leading.p4))
+                                 +(*(nleading.p4));
            float mass = Higgs.M();
-             if (mass > 50. && mass < 200.){
-             //Good event, passes preselection and acceptance cuts
+           
+  	   if (cur_type ==0){        // Data
+	     rooContainer->SetRealVar("Data_mass",0,mass,weight);
+	     rooContainer->SetRealVar("Data_mass",category,mass,weight);
+           } else if (cur_type < 0){ // Signal
+	     rooContainer->SetRealVar("Signal_mass",0,mass,weight);
+	     rooContainer->SetRealVar("Signal_mass",category,mass,weight);
+	
+	   } else if (cur_type > 0){ // Background
+	     rooContainer->SetRealVar("Background_mass",0,mass,weight);
+	     rooContainer->SetRealVar("Background_mass",category,mass,weight);
+	   }
 
-             int pass_selection[2];
-             int pass_isolation[2];
-             int in_iso_gap[2];
-    
-            //Now do selection on photons
-             if(		 leading.hoe < 0.02
-                	       && (((leading.sieie < 0.01)  && (fabs(leading.calopos->Eta()) < 1.4442)) 
-                		  || (( leading.sieie < 0.028)
-                   	       && ((fabs(leading.calopos->Eta()) < 2.5) && (fabs(leading.calopos->Eta()) > 1.566))) )
-             		       && leading.trkIso < (1.5 + 0.001*leading.p4->Pt())		
-                	       && leading.ecalIso < (2.0 + 0.006*leading.p4->Pt())
-                               && leading.hcalIso < (2.0 + 0.0025*leading.p4->Pt())
-	 			
-             		       && nleading.hoe < 0.02
-                	       && (((nleading.sieie < 0.01)  && (fabs(nleading.calopos->Eta()) < 1.4442)) 
-                		  || (( nleading.sieie < 0.028)
-                  	       && ((fabs(nleading.calopos->Eta()) < 2.5) && (fabs(nleading.calopos->Eta()) > 1.566))) )
-             		       && nleading.trkIso < (1.5 + 0.001*nleading.p4->Pt())
-                	       && (nleading.ecalIso < (2.0 + 0.006*nleading.p4->Pt()))
-                	       && (nleading.hcalIso < (2.0 + 0.0025*nleading.p4->Pt()))
-	        ){
-		rooContainer->SetRealVar("mass",mass,weight);
-		}
+     }
+   }
 
-               }
-	}
-    }
 }
 
 

@@ -30,7 +30,7 @@ using namespace std;
 
 LoopAll::LoopAll(TTree *tree) {
   
-  rooContainer = new RooContainer();
+  rooContainer = new RooContainer(5);
 
 }
 
