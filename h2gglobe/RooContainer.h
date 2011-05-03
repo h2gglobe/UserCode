@@ -45,12 +45,15 @@ class RooContainer {
    void ComposePdf(std::string, std::string
 			     ,std::vector<std::string> &);
 
-   void CreateDataSet(std::string,int nbins=-1);
-   
+   void CreateDataSet(std::string,int nbins=-1); 
+   void MakeSystematics(std::string,std::string);
+
    void FitToData(std::string,std::string);
    void FitToData(std::string,std::string 
-	         ,double, double, double, double);
-   void SetRealVar(std::string, int, float, float w=1.);
+	         ,double,double,double,double);
+   void InputDataPoint(std::string,int,float,float w=1.);
+   void InputSystematicSet(std::string,std::string,int
+		,std::vector<float>,float w=1.);
    void Save();
    
   private:
@@ -64,14 +67,20 @@ class RooContainer {
 			     ,std::vector<std::string> &);
 
    void createDataSet(std::string,int);
+   void makeSystematics(std::string,std::string);
    
    void fitToData(std::string,std::string);
    void fitToData(std::string,std::string
-	         ,double, double, double, double);
+	         ,double,double,double,double);
    void writeRooDataHist(std::string, TH1F *);
    void writeRooPlot(RooPlot *);
    int ncat;
-   std::string getcatName(std::string, int);   
+   int nsigmas;
+
+   std::string getcatName(std::string,int);   
+   std::string getsysName(std::string,std::string);   
+   std::string getsysindexName(std::string,std::string
+			 ,int,int);
 
    std::map<std::string, RooRealVar> m_real_var_;
    std::map<std::string, RooExtendPdf> m_exp_;
@@ -82,8 +91,19 @@ class RooContainer {
    std::map<std::string, float> m_var_min_;
    std::map<std::string, float> m_var_max_;
 
-   std::map<std::string,RooDataSet*> data_; 
+   std::map<std::string,RooDataSet> data_; 
+
+   std::map<std::string,std::vector<RooRealVar*> > m_vars_up_; 
+   std::map<std::string,std::vector<RooRealVar*> > m_vars_dn_;
+
+   std::map<std::string,std::vector<RooDataSet*> > data_up_; 
+   std::map<std::string,std::vector<RooDataSet*> > data_dn_;
+
+   std::map<std::string,std::vector<TH1F*> > m_th1f_up_; 
+   std::map<std::string,std::vector<TH1F*> > m_th1f_dn_;
+ 
    std::map<std::string,int> bins_;
+   std::map<std::string,float> inits_;
    std::map<RooPlot*,RooFitResult*> fit_res_;
 
    RooWorkspace ws;

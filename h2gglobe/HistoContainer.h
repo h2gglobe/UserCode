@@ -4,6 +4,8 @@
 #include <TH1F.h>
 #include <TH2F.h>
 #include <TProfile.h>
+#include <RooDataHist.h>
+#include <RooRealVar.h>
 #include <map>
 #include <string>
 
@@ -34,6 +36,7 @@ class HistoContainer {
   float total_scale;
 
  private:
+  void writeRooDataHist(TH1F*);
   int histVal;
   std::string histNam;
   std::map<std::string, std::vector<TH1F> > h1;

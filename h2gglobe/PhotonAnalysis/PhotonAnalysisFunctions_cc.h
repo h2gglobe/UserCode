@@ -6,18 +6,6 @@ void LoopAll::TermRealPhotonAnalysis(int typerun)
       rooContainer->FitToData("cms-data_model","Data_mass");
       rooContainer->FitToData("bw"	      ,"Signal_mass");
       rooContainer->FitToData("exp"	      ,"Background_mass");
-
-      for (int sys=1;sys<31;sys++){
-		
-       rooContainer->FitToData(	Form("bw_es_up%d_sig",sys)      ,Form("Signal_mass_es_up%d_sig",sys));
-	
-      }
-      for (int sys=-30;sys<0;sys++){
-		
-       rooContainer->FitToData(	Form("bw_es_dn%d_sig",sys)      ,Form("Signal_mass_es_dn%d_sig",sys));
-	
-      }
-
    }
 
 }
@@ -99,36 +87,9 @@ void LoopAll::InitRealPhotonAnalysis(int typerun) {
      rooContainer->CreateDataSet("Data_mass",25);
      rooContainer->CreateDataSet("Signal_mass",25);
      rooContainer->CreateDataSet("Background_mass",25);
-	
-     // Systematic Errors
-     for (int sys=0;sys<31;sys++){
-       rooContainer->AddRealVar(Form("Signal_mass_es_up%d_sig",sys),90.,200.);
-       rooContainer->AddRealVar(Form("width_es_up%d_sig",sys),1.,0.1,3.);
-       rooContainer->AddRealVar(Form("mean_es_up%d_sig",sys),130.,100.,150.);
-       std::vector<std::string> sig_pars(3,"p");	 
-       sig_pars[0] = Form("Signal_mass_es_up%d_sig",sys);
-       sig_pars[1] = Form("width_es_up%d_sig",sys);
-       sig_pars[2] = Form("mean_es_up%d_sig",sys);
-       rooContainer->AddGenericPdf(Form("bw_es_up%d_sig",sys)
-	  ,"1./((@0-@2)*(@0-@2)+@1*@1)"
-	  ,sig_pars,10.);
-       rooContainer->CreateDataSet(Form("Signal_mass_es_up%d_sig",sys),25);
-      }
-     // Systematic Errors
-     for (int sys=-1;sys>-31;sys--){
-       rooContainer->AddRealVar(Form("Signal_mass_es_dn%d_sig",sys),90.,200.);
-       rooContainer->AddRealVar(Form("width_es_dn%d_sig",sys),1.,0.1,3.);
-       rooContainer->AddRealVar(Form("mean_es_dn%d_sig",sys),130.,100.,150.);
-       std::vector<std::string> sig_pars(3,"p");	 
-       sig_pars[0] = Form("Signal_mass_es_dn%d_sig",sys);
-       sig_pars[1] = Form("width_es_dn%d_sig",sys);
-       sig_pars[2] = Form("mean_es_dn%d_sig",sys);
-       rooContainer->AddGenericPdf(Form("bw_es_dn%d_sig",sys)
-	  ,"1./((@0-@2)*(@0-@2)+@1*@1)"
-	  ,sig_pars,10.);
-       rooContainer->CreateDataSet(Form("Signal_mass_es_dn%d_sig",sys),25);
-      }
 
+     // Systematic Errors
+     rooContainer->MakeSystematics("Data_mass","e-scale");
   }
 
   if(PADEBUG) 
@@ -140,7 +101,6 @@ bool LoopAll::myPhotonAnalysisRunSelection(int cur_type){
   
   if (cur_type != 0)    return true;
 
-  //if (run < 160404) { return true; cout << "Found A Run lt 160404" << endl;}
 
   bool passes_run_selection = false; 
 
@@ -410,52 +370,44 @@ void LoopAll::myStatPhotonAnalysis(Util * ut, int jentry) {
 	 if (min_r9 > 0.93 && max_eta > 1.566 && max_eta < 2.5) category = 4;
 
          // -------------------------------------------------------
-	 // Energy Scale Error
-	 float sys_error = 0.05;
 	
          TLorentzVector Higgs = (*(leading.p4))
                                  +(*(nleading.p4));
            float mass = Higgs.M();
-	   
-
-  	   if (cur_type ==0){        // Data
-	     rooContainer->SetRealVar("Data_mass",0,mass,weight);
-	     rooContainer->SetRealVar("Data_mass",category,mass,weight);
 
 	   // Want to Reacalculate the Mass to account for ES - uncertainty
+	   // Energy Scale Error 1-sigma
+	   float sys_error = 0.05;
+
+	   std::vector<float> mass_errors;
+           for (int sys=1;sys<31;sys++){
+	        float incr = (float)sys/10;
+		TLorentzVector lead_err = (1.-incr*sys_error)*(*leading.p4);
+		TLorentzVector nlead_err = (1.-incr*sys_error)*(*nleading.p4);
+                mass_errors.push_back((lead_err+nlead_err).M());
+   	   }
+           for (int sys=1;sys<31;sys++){
+	        float incr = (float)sys/10;
+		TLorentzVector lead_err = (1.+incr*sys_error)*(*leading.p4);
+		TLorentzVector nlead_err = (1.+incr*sys_error)*(*nleading.p4);
+                mass_errors.push_back((lead_err+nlead_err).M());
+   	   }
+            
+
+  	   if (cur_type ==0){        // Data
+	     rooContainer->InputDataPoint("Data_mass",0,mass);
+	     rooContainer->InputDataPoint("Data_mass",category,mass);
+
+             rooContainer->InputSystematicSet("Data_mass","e-scale",0,mass_errors);
+             rooContainer->InputSystematicSet("Data_mass","e-scale",category,mass_errors);
+
            } else if (cur_type < 0){ // Signal
+	     rooContainer->InputDataPoint("Signal_mass",0,mass,weight);
+	     rooContainer->InputDataPoint("Signal_mass",category,mass,weight);
 
-	     rooContainer->SetRealVar("Signal_mass",0,mass,weight);
-	     rooContainer->SetRealVar("Signal_mass",category,mass,weight);
-             for (int sys=1;sys<31;sys++){
-
-	       TLorentzVector plead_up  = *(leading.p4);
-	       TLorentzVector pslead_up = *(nleading.p4);
-
-	       plead_up.SetE(plead_up.Energy()*(1+((float)sys/10)*(sys_error)));
-	       pslead_up.SetE(pslead_up.Energy()*(1+((float)sys/10)*(sys_error)));
-
-	       float mass_up = (plead_up+pslead_up).M();
-	       rooContainer->SetRealVar(Form("Signal_mass_es_up%d_sig",sys),0,mass_up,weight);
-	       rooContainer->SetRealVar(Form("Signal_mass_es_up%d_sig",sys),category,mass_up,weight);
-	     }
-	     for (int sys=-1;sys>-31;sys--){
-
-	       TLorentzVector plead_dn  = *(leading.p4);
-	       TLorentzVector pslead_dn = *(nleading.p4);
-
-
-	       plead_dn.SetE(plead_dn.Energy()*(1-((float)sys/10)*(sys_error)));
-	       pslead_dn.SetE(pslead_dn.Energy()*(1-((float)sys/10)*(sys_error)));
-		
-	       float mass_dn = (plead_dn+pslead_dn).M();
-
-	       rooContainer->SetRealVar(Form("Signal_mass_es_dn%d_sig",sys),0,mass_dn,weight);
-	       rooContainer->SetRealVar(Form("Signal_mass_es_dn%d_sig",sys),category,mass_dn,weight);
-	     }
 	   } else if (cur_type > 0){ // Background
-	     rooContainer->SetRealVar("Background_mass",0,mass,weight);
-	     rooContainer->SetRealVar("Background_mass",category,mass,weight);
+	     rooContainer->InputDataPoint("Background_mass",0,mass,weight);
+	     rooContainer->InputDataPoint("Background_mass",category,mass,weight);
 	   }
 
      }

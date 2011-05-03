@@ -1,7 +1,7 @@
 intL=36 histfile=Stats.root output=shifo.root
 
 
-typ=0    ind=10 draw=1  Nam=DATA       Fil=/vols/cms02/h2g/Data2011_reduced.root   tot=109848    red=43107   lum=1.0e+10  xsec=0.022        kfac=1.0  scal=1. 
+typ=0    ind=10 draw=1  Nam=DATA       Fil=/home/nick/Imperial/cms/ntuples/hgg/data/Data_2011.root   tot=109848    red=43107   lum=1.0e+10  xsec=0.022        kfac=1.0  scal=1. 
 
 ->
 typ=1    ind=1 draw=1  Nam=QCD     Fil=/vols/cms02/mjarvis/Higgs/h2gglobe/Martyn_scripts/output/QCD40.root     tot=21301935   red=43107   lum=1.e10 xsec=39096.   kfac=1.0  scal=1.

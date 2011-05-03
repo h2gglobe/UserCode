@@ -118,11 +118,11 @@ void HistoContainer::Fill2D(std::string name, int category, float valuex, float 
   }
 }
 
+
 void HistoContainer::Save() {
   std::map<std::string, std::vector<TH1F> >::iterator it;
   for (it = h1.begin(); it != h1.end(); ++it) {
     for (unsigned int i=0; i<(it->second).size(); i++) {
-      //(it->second)[i].Scale(total_scale);
       (it->second)[i].Write();
     }
   }
