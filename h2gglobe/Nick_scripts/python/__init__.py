@@ -1,1 +1,1 @@
-__all__=["configProducer","datBlocks"]
+__all__=["configProducer","datBlocks","makeFileList"]
