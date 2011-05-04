@@ -4,10 +4,10 @@ void LoopAll::TermRealPhotonAnalysis(int typerun)
 {
    if (typerun==3){	
       rooContainer->FitToData("cms-data_model","Data_mass");
-      rooContainer->FitToData("bw"	      ,"Signal_mass");
-      rooContainer->FitToData("exp"	      ,"Background_mass");
-      rooContainer->FitToSystematicSet("bw","Signal_mass","e-scale");
-      rooContainer->FitToSystematicSet("exp","Background_mass","e-scale");
+      //rooContainer->FitToData("bw"	      ,"Signal_mass");
+      //rooContainer->FitToData("exp"	      ,"Background_mass");
+      //rooContainer->FitToSystematicSet("bw","Signal_mass","e-scale");
+      //rooContainer->FitToSystematicSet("exp","Background_mass","e-scale");
    }
 
 }
@@ -51,7 +51,7 @@ void LoopAll::InitRealPhotonAnalysis(int typerun) {
      sig_pars[2] = "mean";
      rooContainer->AddGenericPdf("bw"
 	,"1./((@0-@2)*(@0-@2)+@1*@1)"
-	,sig_pars,10.);
+	,sig_pars,0,10.);
      // -------------------------------------//
 
      // Set Up The Background Pdfs
@@ -59,23 +59,23 @@ void LoopAll::InitRealPhotonAnalysis(int typerun) {
      bkg_pars[0] = "Background_mass";
      bkg_pars[1] = "alpha";
      rooContainer->AddGenericPdf("exp"
-	,"exp((@0)*(@1))",bkg_pars,10);
+	,"exp((@0)*(@1))",bkg_pars,0,10);
      // -------------------------------------//
 
      // A Model For The Data
      // -------------------------------------//
      std::vector<std::string> data_sig(3,"p");
      data_sig[0] = "Data_mass";
-     data_sig[1] = "d_width";
-     data_sig[2] = "d_mean";
+     data_sig[1] = "d_mean";
+     data_sig[2] = "d_width";
      std::vector<std::string> data_bkg(2,"p");
      data_bkg[0] = "Data_mass";
      data_bkg[1] = "d_alpha";
      rooContainer->AddGenericPdf("data_bw"
 	,"1./((@0-@2)*(@0-@2)+@1*@1)"
-	,data_sig,1.);
+	,data_sig,2,1.);
      rooContainer->AddGenericPdf("data_exp"
-	,"exp((@0)*(@1))",data_bkg,10);
+	,"exp((@0)*(@1))",data_bkg,1,10);
      // -------------------------------------//
      // Combine the Data pdfs
      std::vector<std::string> pdfs(2,"t");

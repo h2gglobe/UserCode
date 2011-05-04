@@ -11,8 +11,11 @@
 #include "RooDataSet.h"
 #include "RooRealVar.h"
 #include "RooPlot.h"
-#include "RooExponential.h"
 #include "RooGenericPdf.h"
+#include "RooExponential.h"
+#include "RooGaussian.h"
+#include "RooBreitWigner.h"
+#include "RooCBShape.h"
 #include "RooExtendPdf.h"
 #include "RooAddPdf.h"
 #include "RooFitResult.h"
@@ -41,6 +44,7 @@ class RooContainer {
    void AddRealVar(std::string,float,float,float);
    void AddGenericPdf(std::string,std::string,
 		      std::vector<std::string> &, 
+		      int form,
 		      double norm_guess=10);
    void ComposePdf(std::string, std::string
 			     ,std::vector<std::string> &);
@@ -63,7 +67,8 @@ class RooContainer {
    void addRealVar(std::string,float,float);
    void addRealVar(std::string,float,float,float);
    void addGenericPdf(std::string,std::string,
-		      std::vector<std::string> &, 
+		      std::vector<std::string> &,
+		      int form, 
 		      double norm_guess=10);
    void composePdf(std::string , std::string 
 			     ,std::vector<std::string> &);
@@ -85,10 +90,11 @@ class RooContainer {
    std::string getsysName(std::string,std::string);   
    std::string getsysindexName(std::string,std::string
 			 ,int,int);
+   
+   std::vector<RooAbsPdf*> v_gen_;
 
    std::map<std::string, RooRealVar> m_real_var_;
    std::map<std::string, RooExtendPdf> m_exp_;
-   std::map<std::string, RooGenericPdf> m_gen_;
    std::map<std::string, RooAddPdf> m_pdf_;
    std::map<std::string,TH1F> m_th1f_;
 

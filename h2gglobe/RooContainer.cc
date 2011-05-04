@@ -24,7 +24,7 @@ void RooContainer::AddRealVar(std::string name,float init, float vmin, float vma
 }
 
 void RooContainer::AddGenericPdf(std::string name,std::string formula
-				,std::vector<std::string> & var
+				,std::vector<std::string> & var, int form
 				,double norm_guess ){
   for (int cat=0;cat<ncat;cat++){
     std::vector<std::string> cat_var;
@@ -33,7 +33,7 @@ void RooContainer::AddGenericPdf(std::string name,std::string formula
 	;++it){
       cat_var.push_back(getcatName(*it,cat));
     }  
-    addGenericPdf(getcatName(name,cat),formula,cat_var,norm_guess);
+    addGenericPdf(getcatName(name,cat),formula,cat_var,form,norm_guess);
   }
 }
 
@@ -258,32 +258,90 @@ void RooContainer::addRealVar(std::string name ,float init, float vmin, float vm
 }
 
 void RooContainer::addGenericPdf(std::string name,std::string formula
-				,std::vector<std::string> & var
+				,std::vector<std::string> & var, int form
 				,double norm_guess ){
 
-    RooArgList roo_args;
-    for (std::vector<std::string>::iterator it_var = var.begin()
-	;it_var != var.end()
-	;it_var++
-	){
-	  std::cout << "RooContainer::AddGenericPdf -- Adding Parameter " 
-		    << *it_var << std::endl;
-	  roo_args.add(m_real_var_[*it_var]);
+    RooAbsPdf *temp_1;
+
+    if (form==0){
+       RooArgList roo_args;
+      for (std::vector<std::string>::iterator it_var = var.begin()
+	   ;it_var != var.end()
+	   ;it_var++
+	   ){
+	     std::cout << "RooContainer::AddGenericPdf -- Adding Parameter " 
+		       << *it_var << std::endl;
+	     roo_args.add(m_real_var_[*it_var]);
+  	   }
+
+      std::cout << "RooContainer::AddGenericPdf -- Added all variables" 
+	        << std::endl;
+      temp_1 = new RooGenericPdf(Form("comp_%s",name.c_str()),name.c_str(),formula.c_str(),roo_args);	
+      v_gen_.push_back(temp_1);
+
+    } else if (form == 1) { //RooExponential  - x,slope
+	if (var.size() == 2){
+	  temp_1 = new RooExponential(Form("comp_%s",name.c_str()),name.c_str(),m_real_var_[var[0]],m_real_var_[var[1]]);
+          v_gen_.push_back(temp_1);
+	} else {
+		
+          std::cout << "WARNING -- RooContainer::AddGenericPdf -- Need 2 arguments for RooExponential, was given: "
+		    << var.size() << " -- WARNING"
+	            << std::endl;
+	  return;
 	}
+    } else if (form == 2) { //RooGaussian - x,mean,sigma
+	if (var.size() == 3){
+	  temp_1 = new RooGaussian(Form("comp_%s",name.c_str()),name.c_str(),m_real_var_[var[0]],m_real_var_[var[1]],m_real_var_[var[2]]);
+          v_gen_.push_back(temp_1);
+	} else {
+		
+          std::cout << "WARNING -- RooContainer::AddGenericPdf -- Need 3 arguments for RooGaussian, was given: "
+		    << var.size() << " -- WARNING"
+	            << std::endl;
+	  return;
+	}
+    } else if (form == 3) { //RooBreitWigner - x,centre,width
+	if (var.size() == 3){
+	  temp_1 = new RooBreitWigner(Form("comp_%s",name.c_str()),name.c_str(),m_real_var_[var[0]],m_real_var_[var[1]],m_real_var_[var[2]]);
+          v_gen_.push_back(temp_1);
+	} else {
+		
+          std::cout << "WARNING -- RooContainer::AddGenericPdf -- Need 3 arguments for RooBreitWigner, was given: "
+		    << var.size() << " -- WARNING"
+	            << std::endl;
+	  return;
+	}
+    } else if (form == 4) { //RooCBShape - x,centre,sigma,slope,n
+	if (var.size() == 5){
+	  temp_1 = new RooCBShape(Form("comp_%s",name.c_str()),name.c_str(),m_real_var_[var[0]],m_real_var_[var[1]],m_real_var_[var[2]]
+				 ,m_real_var_[var[3]],m_real_var_[var[4]]);
+          v_gen_.push_back(temp_1);
+	} else {
+		
+          std::cout << "WARNING -- RooContainer::AddGenericPdf -- Need 5 arguments for RooCBShape, was given: "
+		    << var.size() << " -- WARNING"
+	            << std::endl;
+	  return;
+	}
+    }
 
-    std::cout << "RooContainer::AddGenericPdf -- Added all variables" 
-	      << std::endl;
-    RooGenericPdf temp_1(Form("comp_%s",name.c_str()),name.c_str(),formula.c_str(),roo_args);	
-    m_gen_.insert(std::pair<std::string , RooGenericPdf>(name,temp_1));
 
+    else {
+	
+       std::cout << "WARNING -- RooContainer::AddGenericPdf -- No Mode << form "
+		 << "Understood -- WARNING"
+	         << std::endl;
+    }
+		       
     RooRealVar temp_var(Form("norm_%s",name.c_str()),name.c_str(),norm_guess,0.0,10000);
     m_real_var_.insert(pair<std::string,RooRealVar>(name,temp_var));
 
-    RooExtendPdf  temp(name.c_str(),name.c_str(),m_gen_[name],m_real_var_[name]);
+    RooExtendPdf temp(name.c_str(),name.c_str(),*temp_1,m_real_var_[name]);
+    m_exp_.insert(pair<std::string,RooExtendPdf>(name,temp));
 
     std::cout << "RooContainer::AddGenericPdf -- Made extended PDF " 
-	      << name << std::endl;			       
-    m_exp_.insert(pair<std::string,RooExtendPdf>(name,temp));
+	        << name << std::endl;	
 }
 
 void RooContainer::composePdf(std::string name, std::string  composition
