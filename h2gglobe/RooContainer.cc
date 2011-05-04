@@ -1,3 +1,10 @@
+/* RooContainer.cc  
+   Original Author - Nicholas Wardle - Imperial College
+   Container for RooFit classes. -> Primarily create Data-sets for binned - unbinned input into Statistics package.
+   Also performs unbinned likelihood fits.
+*/
+   
+
 #include "RooContainer.h"
 
 using namespace RooFit;
@@ -45,7 +52,18 @@ void RooContainer::ComposePdf(std::string name, std::string  composition
 
 void RooContainer::CreateDataSet(std::string name,int nbins){
   for (int cat=0;cat<ncat;cat++){
-    createDataSet(getcatName(name,cat),nbins);
+    std::string cat_name = getcatName(name,cat);
+    createDataSet(cat_name,cat_name,nbins);
+    
+    float xmin = m_var_min_[cat_name];
+    float xmax = m_var_max_[cat_name];
+
+    if (nbins >0) {
+        m_real_var_[cat_name].setBins(nbins);
+      }
+      else {
+        m_real_var_[cat_name].setBins((int)(xmax-xmin));
+      }
   }
 }
 
@@ -56,14 +74,42 @@ void RooContainer::MakeSystematics(std::string s_name, std::string sys_name){
 }
 void RooContainer::FitToData(std::string name_func, std::string  name_var){
   for (int cat=0;cat<ncat;cat++){
-    fitToData(getcatName(name_func,cat),getcatName(name_var,cat));
+    fitToData(getcatName(name_func,cat),getcatName(name_var,cat),getcatName(name_var,cat));
   }
 }
 void RooContainer::FitToData(std::string name_func, std::string  name_var
 			    ,double x1, double x2, double x3, double x4){
   for (int cat=0;cat<ncat;cat++){
-    fitToData(getcatName(name_func,cat),getcatName(name_var,cat)
+    fitToData(getcatName(name_func,cat),getcatName(name_var,cat),getcatName(name_var,cat)
 	     ,x1,x2,x3,x4);
+  }
+}
+
+void RooContainer::FitToSystematicSet(std::string name_func,std::string name_var
+	     ,std::string sys_name
+	     ,double x1,double x2,double x3,double x4){
+  // Assuming here that dont care about previous fits to the other data-sets
+  for (int cat=0;cat<ncat;cat++) {
+    fitToSystematicSet(getcatName(name_func,cat),getcatName(name_var,cat)
+		      ,sys_name,x1,x2,x3,x4);
+  }    
+}
+
+void RooContainer::fitToSystematicSet(std::string name_func,std::string name_var
+	     ,std::string sys_name
+	     ,double x1,double x2,double x3,double x4){
+
+  if (x1 < -990. && x2 < -990.  && x3 < -990. && x4 < -990.){
+      for (int sys=1;sys<=nsigmas;sys++){
+	fitToData(name_func,getsysindexName(name_var,sys_name,sys,-1),name_var);
+	fitToData(name_func,getsysindexName(name_var,sys_name,sys,1),name_var);
+      }
+  }
+  else {     
+      for (int sys=1;sys<=nsigmas;sys++){
+	fitToData(name_func,getsysindexName(name_var,sys_name,sys,-1),name_var);
+	fitToData(name_func,getsysindexName(name_var,sys_name,sys,1),name_var);
+      }
   }
 }
 
@@ -118,6 +164,7 @@ void RooContainer::InputDataPoint(std::string var_name, int cat, float x, float 
   }
 }
 
+
 void RooContainer::InputSystematicSet(std::string s_name, std::string sys_name,int cat
 		  ,std::vector<float> x, float w){
 
@@ -132,15 +179,16 @@ void RooContainer::InputSystematicSet(std::string s_name, std::string sys_name,i
     std::string cat_name = getcatName(s_name,cat);
     std::string name = getsysName(cat_name,sys_name);
 
-    std::map<std::string, std::vector<RooRealVar*> >::const_iterator it_var  = m_vars_up_.find(name);
+    std::map<std::string,RooRealVar>::iterator it_var  = m_real_var_.find(cat_name);
 
-    if (it_var == m_vars_up_.end()) 
-      std::cout << "WARNING -- RooContainer::InpusSystematicSet -- No DataSet named "<< name << std::endl;
+    if (it_var == m_real_var_.end()) 
+      std::cout << "WARNING -- RooContainer::InpusSystematicSet -- No DataSet named "<< cat_name << std::endl;
   
     else {
 
-      std::vector<RooRealVar*>::iterator vars_set_up = m_vars_up_[name].begin();
-      std::vector<RooRealVar*>::iterator vars_set_dn = m_vars_dn_[name].begin();
+      //std::vector<RooRealVar*>::iterator vars_set_up = m_vars_up_[name].begin();
+      //std::vector<RooRealVar*>::iterator vars_set_dn = m_vars_dn_[name].begin();
+
       std::vector<RooDataSet*>::iterator data_set_up = data_up_[name].begin();
       std::vector<RooDataSet*>::iterator data_set_dn = data_dn_[name].begin();
       std::vector<TH1F*>::iterator th1f_set_up = m_th1f_up_[name].begin();
@@ -153,22 +201,22 @@ void RooContainer::InputSystematicSet(std::string s_name, std::string sys_name,i
 
       // Loop over the first nsigmas elements as the -1 -> dn sys
       for (;data_set_dn != data_dn_[name].end()
-	   ;data_set_dn++,vars_set_dn++,th1f_set_dn++,val++){
+	   ;data_set_dn++,th1f_set_dn++,val++){
 
         if (*val > min_x && *val < max_x){
-          *(*vars_set_dn) = *val;
-           (*data_set_dn)->add(RooArgSet(**vars_set_dn),w);
+           it_var->second = *val;
+           (*data_set_dn)->add(RooArgSet(it_var->second),w);
            (*th1f_set_dn)->Fill(*val,w);
         }
       }
 
       // Loop over the second nsigmas elements as the +1 -> up sys
       for (;data_set_up != data_up_[name].end()
-	   ;data_set_up++,vars_set_up++,th1f_set_up++,val++){
+	   ;data_set_up++,th1f_set_up++,val++){
 
         if (*val > min_x && *val < max_x){
-          *(*vars_set_up) = *val;
-           (*data_set_up)->add(RooArgSet(**vars_set_up),w);
+           it_var->second = *val;
+           (*data_set_up)->add(RooArgSet(it_var->second),w);
            (*th1f_set_up)->Fill(*val,w);
         }
       }
@@ -262,28 +310,27 @@ void RooContainer::composePdf(std::string name, std::string  composition
 }
 
 
-void RooContainer::createDataSet(std::string name,int nbins){
+void RooContainer::createDataSet(std::string name,std::string data_name,int nbins){
 
     std::map<std::string,RooRealVar>::const_iterator test=m_real_var_.find(name);
     if (test != m_real_var_.end()){ 
 
-      RooDataSet data_tmp(name.c_str(),name.c_str(),RooArgSet(m_real_var_[name]) );
-      data_.insert(std::pair<std::string,RooDataSet>(name,data_tmp));
+      RooDataSet data_tmp(data_name.c_str(),data_name.c_str(),RooArgSet(m_real_var_[name]) );
+      data_.insert(std::pair<std::string,RooDataSet>(data_name,data_tmp));
       bins_[name] = nbins;
 
       float xmin = m_var_min_[name];
       float xmax = m_var_max_[name];
 
       if (nbins >0) {
-	m_th1f_[name] = TH1F(Form("th1f-%s",name.c_str()),Form("th1f-%s",name.c_str()),nbins,xmin,xmax);
-        m_real_var_[name].setBins(nbins);
+	m_th1f_[data_name] = TH1F(Form("th1f-%s",data_name.c_str()),Form("th1f-%s",data_name.c_str()),nbins,xmin,xmax);
       }
       else {
-	m_th1f_[name] = TH1F(Form("th1f-%s",name.c_str()),Form("th1f-%s",name.c_str()),(int)(xmax-xmin),xmin,xmax);
-        m_real_var_[name].setBins((int)(xmax-xmin));
+	m_th1f_[data_name] = TH1F(Form("th1f-%s",data_name.c_str()),Form("th1f-%s",data_name.c_str()),(int)(xmax-xmin),xmin,xmax);
       }
 
-      cout << "RooContainer::CreateDataSet -- Created RooDataSet from " << name << endl;
+      cout << "RooContainer::CreateDataSet -- Created RooDataSet from " << name 
+	   << " with name " << data_name <<endl;
       cout << "RooContainer::CreateDataSet -- Created TH1F from " << name << endl;
     } 
 
@@ -295,7 +342,9 @@ void RooContainer::createDataSet(std::string name,int nbins){
     }	
 }
 
-void RooContainer::fitToData(std::string name_func, std::string  name_var){
+
+
+void RooContainer::fitToData(std::string name_func, std::string  name_data, std::string name_var){
 
     bool use_composed_pdf = false;
     double chi_square;
@@ -305,15 +354,29 @@ void RooContainer::fitToData(std::string name_func, std::string  name_var){
 	      << name_var
 	      << std::endl; 
 
+    std::map<std::string,RooDataSet>::iterator it_data = data_.find(name_data);
+    if (it_data == data_.end()){
+      std::cout << "WARNING -- RooContainer::FitToData -- No DataSet Found Named "
+ 	 	<< name_var << std::endl;
+      return;
+    }
+
     RooFitResult *fit_result; // -> Save this to the Workspace?
     // Look in the composed pdf before checking the standards
-    std::map<std::string ,RooAddPdf>::const_iterator it_pdf_ = m_pdf_.find(name_func);
-    if (it_pdf_ != m_pdf_.end()){
-      fit_result = m_pdf_[name_func].fitTo((data_[name_var]));
+    std::map<std::string ,RooAddPdf>::iterator it_pdf = m_pdf_.find(name_func);
+    std::map<std::string ,RooExtendPdf>::iterator it_exp = m_exp_.find(name_func);
+
+    if (it_pdf != m_pdf_.end()){
+      fit_result = (it_pdf->second).fitTo((it_data->second));
       use_composed_pdf = true;
     }
+
     else {
-      fit_result = m_exp_[name_func].fitTo((data_[name_var]));
+      if (it_exp != m_exp_.end())
+        fit_result = (it_exp->second).fitTo((it_data->second));
+      else
+	std::cout << "WARNING -- RooContainer::FitToData -- No Pdf Found Named "
+	 	  << name_func << std::endl;
     }
 
     int bins = bins_[name_var];
@@ -322,31 +385,31 @@ void RooContainer::fitToData(std::string name_func, std::string  name_var){
  
     RooPlot *xframe = m_real_var_[name_var].frame(x_min,x_max);
 
-    if (bins > 0)  data_[name_var].plotOn(xframe,Binning(bins));
-    else  data_[name_var].plotOn(xframe);
+    if (bins > 0)  (it_data->second).plotOn(xframe,Binning(bins));
+    else  (it_data->second).plotOn(xframe);
 
     if (use_composed_pdf){
-      m_pdf_[name_func].plotOn(xframe,LineColor(4));
-      int npdfs = m_pdf_[name_func].pdfList().getSize();
+      (it_pdf->second).plotOn(xframe,LineColor(4));
+      int npdfs = (it_pdf->second).pdfList().getSize();
     
       for (int i=0;i<npdfs;i++){
-	m_pdf_[name_func].plotOn(xframe
-				,Components(*(m_pdf_[name_func].pdfList().at(i)))
+	(it_pdf->second).plotOn(xframe
+				,Components(*((it_pdf->second).pdfList().at(i)))
 				,LineColor(i+1)
 				,LineStyle(kDashed));
-	m_pdf_[name_func].paramOn(xframe);
+	(it_pdf->second).paramOn(xframe);
       } 
     }
     else {
-	m_exp_[name_func].plotOn(xframe,LineColor(4));
-	m_exp_[name_func].paramOn(xframe);
+	(it_exp->second).plotOn(xframe,LineColor(4));
+	(it_exp->second).paramOn(xframe);
     }
 
-    xframe->SetName(Form("%s_%s",name_func.c_str(),name_var.c_str()));
+    xframe->SetName(Form("%s_%s",name_func.c_str(),name_data.c_str()));
     fit_res_.insert(std::pair<RooPlot*,RooFitResult*>(xframe,fit_result));
 }
 
-void RooContainer::fitToData(std::string name_func, std::string  name_var
+void RooContainer::fitToData(std::string name_func, std::string name_data, std::string  name_var
 			    ,double x1, double x2, double x3, double x4){
 
     
@@ -362,62 +425,76 @@ void RooContainer::fitToData(std::string name_func, std::string  name_var
 	      << name_var
 	      << std::endl; 
 
+    std::map<std::string,RooDataSet>::iterator it_data = data_.find(name_data);
+    if (it_data == data_.end()){
+      std::cout << "WARNING -- RooContainer::FitToData -- No DataSet Found Named "
+ 	 	<< name_var << std::endl;
+      return;
+    }
+
     RooFitResult *fit_result;
     // Look in the composed pdf before checking the standards
-    std::map<std::string ,RooAddPdf>::const_iterator it_pdf_ = m_pdf_.find(name_func);
-    if (it_pdf_ != m_pdf_.end()){
+    std::map<std::string ,RooAddPdf>::iterator it_pdf = m_pdf_.find(name_func);
+    std::map<std::string ,RooExtendPdf>::iterator it_exp = m_exp_.find(name_func);
+
+    if (it_pdf != m_pdf_.end()){
 
       if (x1 < x_min || x4 > x_max){
         std::cout << "RooContainer::FitToData -- WARNING!! Ranges outside of DataSet Range!" 
 		  << std::endl;
-        fit_result = m_pdf_[name_func].fitTo((data_[name_var]));
+        fit_result = (it_pdf->second).fitTo(it_data->second);
         std::cout << " Fitted To Full Range -- WARNING!!" 
 		  << std::endl;
       } else {
         m_real_var_[name_var].setRange("rnge1",x1,x2);
         m_real_var_[name_var].setRange("rnge2",x3,x4);
-        fit_result = m_pdf_[name_func].fitTo((data_[name_var]),Range("rnge1,rnge2"));
+        fit_result = (it_pdf->second).fitTo((it_data->second),Range("rnge1,rnge2"));
       }
       use_composed_pdf = true;
     }
     else {
-     if (x1 < x_min || x4 > x_max){
-        std::cout << "RooContianer::FitToData -- WARNING!! Ranges outside of DataSet Range!" 
-		  << std::endl;
-        fit_result = m_exp_[name_func].fitTo((data_[name_var]));
-        std::cout << " Fitted To Full Range -- WARNING!!" 
-		  << std::endl;
-      } else {
-        m_real_var_[name_var].setRange("rnge1",x1,x2);
-        m_real_var_[name_var].setRange("rnge2",x3,x4);
-        fit_result = m_exp_[name_func].fitTo((data_[name_var]),Range("rnge1,rnge2"));
+      if (it_exp != m_exp_.end()){
+        if (x1 < x_min || x4 > x_max){
+          std::cout << "RooContianer::FitToData -- WARNING!! Ranges outside of DataSet Range!" 
+		    << std::endl;
+          fit_result = (it_exp->second).fitTo((it_data->second));
+          std::cout << " Fitted To Full Range -- WARNING!!" 
+		    << std::endl;
+        } else {
+          m_real_var_[name_var].setRange("rnge1",x1,x2);
+          m_real_var_[name_var].setRange("rnge2",x3,x4);
+          fit_result = (it_exp->second).fitTo((it_data->second),Range("rnge1,rnge2"));
+        }
       }
+      else
+	std::cout << "WARNING -- RooContainer::FitToData -- No Pdf Found Named "
+	 	  << name_func << std::endl;
     }
 
     RooPlot *xframe = m_real_var_[name_var].frame(x_min,x_max);
 
-    if (bins > 0)  data_[name_var].plotOn(xframe,Binning(bins));
-    else  data_[name_var].plotOn(xframe);
+    if (bins > 0) (it_data->second).plotOn(xframe,Binning(bins));
+    else  (it_data->second).plotOn(xframe);
 
     if (use_composed_pdf){
-      m_pdf_[name_func].plotOn(xframe,LineColor(4));
-      int npdfs = m_pdf_[name_func].pdfList().getSize();
+      (it_pdf->second).plotOn(xframe,LineColor(4));
+      int npdfs = (it_pdf->second).pdfList().getSize();
     
       for (int i=0;i<npdfs;i++){
-	m_pdf_[name_func].plotOn(xframe
-			,Components(*(m_pdf_[name_func].pdfList().at(i)))
+	(it_pdf->second).plotOn(xframe
+			,Components(*((it_pdf->second).pdfList().at(i)))
 			,LineColor(i+1)
 			,LineStyle(kDashed));
-	m_pdf_[name_func].paramOn(xframe);
+	(it_pdf->second).paramOn(xframe);
       }
     }
 
     else {
-	m_exp_[name_func].plotOn(xframe,LineColor(4));
-	m_exp_[name_func].paramOn(xframe);
+	(it_exp->second).plotOn(xframe,LineColor(4));
+	(it_exp->second).paramOn(xframe);
     }
 
-    xframe->SetName(Form("%s_%s",name_func.c_str(),name_var.c_str()));
+    xframe->SetName(Form("%s_%s",name_func.c_str(),name_data.c_str()));
 
     fit_res_.insert(std::pair<RooPlot*,RooFitResult*>(xframe,fit_result));
 }
@@ -425,7 +502,11 @@ void RooContainer::fitToData(std::string name_func, std::string  name_var
 
 void RooContainer::writeRooDataHist(std::string name, TH1F* hist){
 
-  RooDataHist tmp(Form("roohist-%s",name.c_str()),name.c_str(),RooArgList(m_real_var_[name]),hist);
+  RooRealVar tmp_var(name.c_str(),name.c_str(),hist->GetBinLowEdge(1)
+		,hist->GetBinLowEdge(hist->GetNbinsX()+1));
+  tmp_var.setBins(hist->GetNbinsX());
+
+  RooDataHist tmp(Form("roohist-%s",name.c_str()),name.c_str(),RooArgList(tmp_var),hist);
 
   ws.import(tmp);
   hist->Write();
@@ -449,9 +530,9 @@ std::string RooContainer::getsysindexName(std::string name,std::string sys_name
 				    ,int sys,int direction){
   char* char_string;
   if (direction >= 0)
-    char_string = Form("%s_%s-up%d-sigma",name.c_str(),sys_name.c_str(),sys);
+    char_string = Form("%s_%s-up%.2d-sigma",name.c_str(),sys_name.c_str(),sys);
   else
-    char_string = Form("%s_%s-down%d-sigma",name.c_str(),sys_name.c_str(),sys);
+    char_string = Form("%s_%s-down%.2d-sigma",name.c_str(),sys_name.c_str(),sys);
   std::string output(char_string);
   return output;
 }
@@ -471,8 +552,8 @@ void RooContainer::makeSystematics(std::string s_name, std::string sys_name){
 
   if (test_it != data_.end()){
 
-    std::vector<RooRealVar*> v_var_up;
-    std::vector<RooRealVar*> v_var_dn;
+    //std::vector<RooRealVar*> v_var_up;
+    //std::vector<RooRealVar*> v_var_dn;
 
     std::vector<RooDataSet*> v_sys_up;
     std::vector<RooDataSet*> v_sys_dn;
@@ -489,13 +570,13 @@ void RooContainer::makeSystematics(std::string s_name, std::string sys_name){
       std::string name_up = getsysindexName(s_name,sys_name,sys,1);
       std::string name_dn = getsysindexName(s_name,sys_name,sys,-1);
     
-      addRealVar(name_up,min,max);
-      createDataSet(name_up,bins);
-      addRealVar(name_dn,min,max);
-      createDataSet(name_dn,bins);
+      //addRealVar(name_up,min,max);
+      createDataSet(s_name,name_up,bins);
+      //addRealVar(name_dn,min,max);
+      createDataSet(s_name,name_dn,bins);
 
-      v_var_up.push_back(&(m_real_var_[name_up]));
-      v_var_dn.push_back(&(m_real_var_[name_dn]));
+      //v_var_up.push_back(&(m_real_var_[name_up]));
+      //v_var_dn.push_back(&(m_real_var_[name_dn]));
 
       v_sys_up.push_back(&(data_[name_up]));
       v_sys_dn.push_back(&(data_[name_dn]));
@@ -506,8 +587,8 @@ void RooContainer::makeSystematics(std::string s_name, std::string sys_name){
 
   std::string map_name = getsysName(s_name,sys_name);
 
-  m_vars_up_.insert(std::pair<std::string,std::vector<RooRealVar*> >(map_name,v_var_up));
-  m_vars_dn_.insert(std::pair<std::string,std::vector<RooRealVar*> >(map_name,v_var_dn));
+  //m_vars_up_.insert(std::pair<std::string,std::vector<RooRealVar*> >(map_name,v_var_up));
+  //m_vars_dn_.insert(std::pair<std::string,std::vector<RooRealVar*> >(map_name,v_var_dn));
 
   data_up_.insert(std::pair<std::string,std::vector<RooDataSet*> >(map_name,v_sys_up));
   data_dn_.insert(std::pair<std::string,std::vector<RooDataSet*> >(map_name,v_sys_dn));

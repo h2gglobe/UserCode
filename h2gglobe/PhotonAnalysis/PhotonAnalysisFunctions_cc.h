@@ -6,6 +6,8 @@ void LoopAll::TermRealPhotonAnalysis(int typerun)
       rooContainer->FitToData("cms-data_model","Data_mass");
       rooContainer->FitToData("bw"	      ,"Signal_mass");
       rooContainer->FitToData("exp"	      ,"Background_mass");
+      rooContainer->FitToSystematicSet("bw","Signal_mass","e-scale");
+      rooContainer->FitToSystematicSet("exp","Background_mass","e-scale");
    }
 
 }
@@ -85,11 +87,12 @@ void LoopAll::InitRealPhotonAnalysis(int typerun) {
      // -------------------------------------//
      // Create The DataSets
      rooContainer->CreateDataSet("Data_mass",25);
-     rooContainer->CreateDataSet("Signal_mass",25);
-     rooContainer->CreateDataSet("Background_mass",25);
+     rooContainer->CreateDataSet("Signal_mass",55);
+     rooContainer->CreateDataSet("Background_mass",55);
 
      // Systematic Errors
-     rooContainer->MakeSystematics("Data_mass","e-scale");
+     rooContainer->MakeSystematics("Signal_mass","e-scale");
+     rooContainer->MakeSystematics("Background_mass","e-scale");
   }
 
   if(PADEBUG) 
@@ -398,16 +401,19 @@ void LoopAll::myStatPhotonAnalysis(Util * ut, int jentry) {
 	     rooContainer->InputDataPoint("Data_mass",0,mass);
 	     rooContainer->InputDataPoint("Data_mass",category,mass);
 
-             rooContainer->InputSystematicSet("Data_mass","e-scale",0,mass_errors);
-             rooContainer->InputSystematicSet("Data_mass","e-scale",category,mass_errors);
-
            } else if (cur_type < 0){ // Signal
 	     rooContainer->InputDataPoint("Signal_mass",0,mass,weight);
 	     rooContainer->InputDataPoint("Signal_mass",category,mass,weight);
 
+             rooContainer->InputSystematicSet("Signal_mass","e-scale",0,mass_errors);
+             rooContainer->InputSystematicSet("Signal_mass","e-scale",category,mass_errors);
+
 	   } else if (cur_type > 0){ // Background
 	     rooContainer->InputDataPoint("Background_mass",0,mass,weight);
 	     rooContainer->InputDataPoint("Background_mass",category,mass,weight);
+
+             rooContainer->InputSystematicSet("Background_mass","e-scale",0,mass_errors);
+             rooContainer->InputSystematicSet("Background_mass","e-scale",category,mass_errors);
 	   }
 
      }

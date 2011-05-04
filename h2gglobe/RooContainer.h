@@ -51,6 +51,8 @@ class RooContainer {
    void FitToData(std::string,std::string);
    void FitToData(std::string,std::string 
 	         ,double,double,double,double);
+   void FitToSystematicSet(std::string,std::string,std::string
+	     ,double x1=-999,double x2=-999,double x3=-999,double x4=-999);
    void InputDataPoint(std::string,int,float,float w=1.);
    void InputSystematicSet(std::string,std::string,int
 		,std::vector<float>,float w=1.);
@@ -66,12 +68,14 @@ class RooContainer {
    void composePdf(std::string , std::string 
 			     ,std::vector<std::string> &);
 
-   void createDataSet(std::string,int);
+   void createDataSet(std::string,std::string,int);
    void makeSystematics(std::string,std::string);
    
-   void fitToData(std::string,std::string);
-   void fitToData(std::string,std::string
+   void fitToData(std::string,std::string,std::string);
+   void fitToData(std::string,std::string,std::string
 	         ,double,double,double,double);
+   void fitToSystematicSet(std::string,std::string,std::string
+	     ,double,double,double,double);
    void writeRooDataHist(std::string, TH1F *);
    void writeRooPlot(RooPlot *);
    int ncat;
@@ -93,8 +97,8 @@ class RooContainer {
 
    std::map<std::string,RooDataSet> data_; 
 
-   std::map<std::string,std::vector<RooRealVar*> > m_vars_up_; 
-   std::map<std::string,std::vector<RooRealVar*> > m_vars_dn_;
+   //std::map<std::string,std::vector<RooRealVar*> > m_vars_up_; 
+   //std::map<std::string,std::vector<RooRealVar*> > m_vars_dn_;
 
    std::map<std::string,std::vector<RooDataSet*> > data_up_; 
    std::map<std::string,std::vector<RooDataSet*> > data_dn_;
