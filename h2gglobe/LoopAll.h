@@ -89,6 +89,7 @@ class LoopAll {
   void myWriteFits();
   void myWriteCounters();
   
+  int findIndex(int);  
   int FillAndReduce(int);
   
   //void BookHistos();

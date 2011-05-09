@@ -1,14 +1,22 @@
-intL=58 histfile=Data_hist.root output=shifo.root
+intL=1. histfile=Data.root output=shifo.root
 
-
-typ=0    ind=10 draw=1  Nam=Data       Fil=/vols/cms02/h2g/ntuples/data_V06/Data_2011.root   tot=109848    red=43107   lum=1.0e10  xsec=1        kfac=1.0  scal=1.
-
+typ=0    ind=0 draw=1  Nam=Data       Dir=/vols/cms02/h2g/ntuples/data_V06/   				       tot=1   red=43107   lum=1.0e10  xsec=1.        kfac=1.0  scal=1.
+typ=1    ind=1 draw=1  Nam=QCD     Fil=/vols/cms02/mjarvis/Higgs/h2gglobe/Martyn_scripts/output/QCD40.root     tot=1   red=43107   lum=1.e10 xsec=1.   kfac=1.0  scal=1.
+typ=2    ind=2 draw=1  Nam=GJet    Fil=/vols/cms02/mjarvis/Higgs/h2gglobe/Martyn_scripts/output/GJet20.root    tot=1   red=43107   lum=1.e10  xsec=1.   kfac=1.0  scal=1.
+typ=3    ind=3 draw=1  Nam=Dyee20  Fil=/vols/cms02/mjarvis/Higgs/h2gglobe/Martyn_scripts/output/DYEEM20.root   tot=1   red=43107   lum=1.e10  xsec=1.   kfac=1.0  scal=1.
+typ=4    ind=4 draw=1  Nam=Dyee10  Fil=/vols/cms02/mjarvis/Higgs/h2gglobe/Martyn_scripts/output/DYEEM1020.root tot=1   red=43107   lum=1.e10  xsec=1.   kfac=1.0  scal=1.
+typ=5    ind=5 draw=1  Nam=Box10   Fil=/vols/cms02/mjarvis/Higgs/h2gglobe/Martyn_scripts/output/Box_10.root    tot=1   red=43107   lum=1.e10   xsec=1.   kfac=1.0  scal=1.
+typ=6    ind=6 draw=1  Nam=Box25   Fil=/vols/cms02/mjarvis/Higgs/h2gglobe/Martyn_scripts/output/Box_25.root    tot=1   red=43107   lum=1.e10   xsec=1.   kfac=1.0  scal=1.
+typ=7    ind=7 draw=1  Nam=Born10  Fil=/vols/cms02/mjarvis/Higgs/h2gglobe/Martyn_scripts/output/Born_10.root   tot=1   red=43107   lum=1.e10   xsec=1.   kfac=1.0  scal=1.
+typ=8    ind=8 draw=1  Nam=Born25  Fil=/vols/cms02/mjarvis/Higgs/h2gglobe/Martyn_scripts/output/Born_25.root   tot=1   red=43107   lum=1.e10    xsec=1.   kfac=1.0  scal=1.
 ->
-typ=2    ind=10 draw=1  Nam=VBF130       Dir=some_dir   tot=109848    red=43107   lum=1.0e+10  xsec=0.022        kfac=1.0  scal=1. 
-
 inputfiles.dat
 Comments Here
 add the files, with types you would like to include in the Analysis
+->
+
+->
+More Comments
 ->
 
 

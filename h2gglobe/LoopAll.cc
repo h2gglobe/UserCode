@@ -595,6 +595,15 @@ int LoopAll::ApplyCut(std::string cutname, float var, int icat) {
   //std::cout<<"ApplyCut: attention cutname "<<cutname<<" not found"<<endl;
   return 0;
 }
+
+int LoopAll::findIndex(int type){
+
+  for (int i=0;i<sampleContainer.size();i++){
+    if (sampleContainer[i].itype == type)
+	return i;
+  }
+  return 0;
+}
  
 void LoopAll::FillHist(std::string name, float y) {
   FillHist(name, 0, y);
@@ -605,11 +614,11 @@ void LoopAll::FillHist2D(std::string name, float x, float y) {
 }
 
 void LoopAll::FillHist(std::string name, int category, float y) {
-  histoContainer[utilInstance->current].Fill(name, category, y);
+  histoContainer[findIndex(utilInstance->current_type)].Fill(name, category, y);
 }
 
 void LoopAll::FillHist2D(std::string name, int category, float x, float y) {
-  histoContainer[utilInstance->current].Fill2D(name, category, x, y);
+  histoContainer[findIndex(utilInstance->current_type)].Fill2D(name, category, x, y);
 }
 
 void LoopAll::FillCounter(std::string name) {
@@ -617,5 +626,5 @@ void LoopAll::FillCounter(std::string name) {
 }
 
 void LoopAll::FillCounter(std::string name, int category) {
-  counterContainer[utilInstance->current].Fill(name, category);
+  counterContainer[findIndex(utilInstance->current_type)].Fill(name, category);
 }
