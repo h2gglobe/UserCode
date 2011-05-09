@@ -614,11 +614,11 @@ void LoopAll::FillHist2D(std::string name, float x, float y) {
 }
 
 void LoopAll::FillHist(std::string name, int category, float y) {
-  histoContainer[findIndex(utilInstance->current_type)].Fill(name, category, y);
+  histoContainer[(utilInstance->current_type_index)].Fill(name, category, y);
 }
 
 void LoopAll::FillHist2D(std::string name, int category, float x, float y) {
-  histoContainer[findIndex(utilInstance->current_type)].Fill2D(name, category, x, y);
+  histoContainer[(utilInstance->current_type_index)].Fill2D(name, category, x, y);
 }
 
 void LoopAll::FillCounter(std::string name) {
@@ -626,5 +626,5 @@ void LoopAll::FillCounter(std::string name) {
 }
 
 void LoopAll::FillCounter(std::string name, int category) {
-  counterContainer[findIndex(utilInstance->current_type)].Fill(name, category);
+  counterContainer[(utilInstance->current_type_index)].Fill(name, category);
 }

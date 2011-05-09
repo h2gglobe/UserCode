@@ -3,11 +3,11 @@
 void LoopAll::TermRealPhotonAnalysis(int typerun) 
 {
    if (typerun==3){	
-      rooContainer->FitToData("cms-data_model","Data_mass");
-      //rooContainer->FitToData("bw"	      ,"Signal_mass");
-      //rooContainer->FitToData("exp"	      ,"Background_mass");
-      //rooContainer->FitToSystematicSet("bw","Signal_mass","e-scale");
-      //rooContainer->FitToSystematicSet("exp","Background_mass","e-scale");
+      //rooContainer->FitToData("cms-data_model","Data_mass");
+//      rooContainer->FitToData("rbw"	      ,"Signal_mass");
+      rooContainer->FitToData("exp"	      ,"Background_mass");
+//      rooContainer->FitToSystematicSet("rbw","Signal_mass","e-scale");
+      rooContainer->FitToSystematicSet("exp","Background_mass","e-scale");
    }
 
 }
@@ -24,7 +24,7 @@ void LoopAll::InitRealPhotonAnalysis(int typerun) {
   if (typerun == 3) {  
      // initialize the RooContainer with number of categories
 
-     rooContainer = new RooContainer(5);
+     rooContainer = new RooContainer(1);
 
      //RooFitting type
      rooContainer->AddRealVar("Signal_mass",90.,200.);
@@ -32,11 +32,14 @@ void LoopAll::InitRealPhotonAnalysis(int typerun) {
      rooContainer->AddRealVar("Data_mass",90.,200.);
 
      // Signal Parameters
-     rooContainer->AddRealVar("width",1.,0.1,3.);
+     rooContainer->AddRealVar("width",1.,0.01,5.);
      rooContainer->AddRealVar("mean",130.,100.,150.);
+     rooContainer->AddRealVar("sigma",1.,0.01,5.);
 
      // Background Parameters
-     rooContainer->AddRealVar("alpha",-0.04,-1.,-0.001);
+     rooContainer->AddRealVar("c",+3.0,-5.,+5);
+     rooContainer->AddRealVar("p1",-0.03,-1.,-0.001);
+     rooContainer->AddRealVar("p2",+0.01,-1.,+1);
 
      // All parameters for the Data
      rooContainer->AddRealVar("d_width",1.,0.1,3.);
@@ -47,19 +50,35 @@ void LoopAll::InitRealPhotonAnalysis(int typerun) {
      // -------------------------------------//
      std::vector<std::string> sig_pars(3,"p");	 
      sig_pars[0] = "Signal_mass";
-     sig_pars[1] = "width";
-     sig_pars[2] = "mean";
-     rooContainer->AddGenericPdf("bw"
-	,"1./((@0-@2)*(@0-@2)+@1*@1)"
+     sig_pars[1] = "mean";
+     sig_pars[2] = "width";
+     //sig_pars[3] = "sigma";
+     rooContainer->AddGenericPdf("rbw"
+	,"1./((@0*@0-@1*@1)*(@0*@0-@1*@1)+@2*@2*@1*@1)"
 	,sig_pars,0,10.);
+    
+     //std::vector<std::string> tail_pars(2,"p");	 
+     //tail_pars[0] = "Signal_mass";
+     //tail_pars[1] = "alpha";
+     //rooContainer->AddGenericPdf("s-exp"
+//	,"expo"
+//	,tail_pars,1,1.);
+
+     //std::vector<std::string> s_pdfs(2,"t");
+     //s_pdfs[0] = "bw";
+     //s_pdfs[1] = "s-exp";
+  
+     //rooContainer->ComposePdf("signal-model","bw+s-exp",s_pdfs);
      // -------------------------------------//
 
      // Set Up The Background Pdfs
-     std::vector<std::string> bkg_pars(2,"p");	 
+     std::vector<std::string> bkg_pars(4,"p");	 
      bkg_pars[0] = "Background_mass";
-     bkg_pars[1] = "alpha";
+     bkg_pars[1] = "c";
+     bkg_pars[2] = "p1";
+     bkg_pars[3] = "p2";
      rooContainer->AddGenericPdf("exp"
-	,"exp((@0)*(@1))",bkg_pars,0,10);
+	,"@1+@2*@0+@3*@0*@0",bkg_pars,0,10);
      // -------------------------------------//
 
      // A Model For The Data
@@ -87,7 +106,7 @@ void LoopAll::InitRealPhotonAnalysis(int typerun) {
      // -------------------------------------//
      // Create The DataSets
      rooContainer->CreateDataSet("Data_mass",25);
-     rooContainer->CreateDataSet("Signal_mass",55);
+     rooContainer->CreateDataSet("Signal_mass",110);
      rooContainer->CreateDataSet("Background_mass",55);
 
      // Systematic Errors
@@ -256,7 +275,6 @@ void LoopAll::myFillHistPhotonAnalysisRed(Util * ut, int jentry) {
 
 
   	 if (leading.p4->Pt() > 40.)  {
-           
          min_r9  = min(leading.r9
 		      ,nleading.r9);
 	 max_eta = max(fabs(leading.calopos->Eta())
@@ -300,7 +318,7 @@ void LoopAll::myStatPhotonAnalysis(Util * ut, int jentry) {
     cout << "myStat START"<<endl;
   counters[0]++;
 
-  float weight = sampleContainer[ut->current_sample].event_weight;
+  float weight = sampleContainer[ut->current_type_index].event_weight;
   int cur_type = ut->current_type;
 
   std::vector<PhotonCandidate> preselected_photons;  
@@ -399,21 +417,21 @@ void LoopAll::myStatPhotonAnalysis(Util * ut, int jentry) {
 
   	   if (cur_type ==0){        // Data
 	     rooContainer->InputDataPoint("Data_mass",0,mass);
-	     rooContainer->InputDataPoint("Data_mass",category,mass);
+	     //rooContainer->InputDataPoint("Data_mass",category,mass);
 
            } else if (cur_type < 0){ // Signal
 	     rooContainer->InputDataPoint("Signal_mass",0,mass,weight);
-	     rooContainer->InputDataPoint("Signal_mass",category,mass,weight);
+	     //rooContainer->InputDataPoint("Signal_mass",category,mass,weight);
 
              rooContainer->InputSystematicSet("Signal_mass","e-scale",0,mass_errors);
-             rooContainer->InputSystematicSet("Signal_mass","e-scale",category,mass_errors);
+             //rooContainer->InputSystematicSet("Signal_mass","e-scale",category,mass_errors);
 
 	   } else if (cur_type > 0){ // Background
 	     rooContainer->InputDataPoint("Background_mass",0,mass,weight);
-	     rooContainer->InputDataPoint("Background_mass",category,mass,weight);
+	     //rooContainer->InputDataPoint("Background_mass",category,mass,weight);
 
              rooContainer->InputSystematicSet("Background_mass","e-scale",0,mass_errors);
-             rooContainer->InputSystematicSet("Background_mass","e-scale",category,mass_errors);
+             //rooContainer->InputSystematicSet("Background_mass","e-scale",category,mass_errors);
 	   }
 
      }

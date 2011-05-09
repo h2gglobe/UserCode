@@ -75,7 +75,7 @@ class Util {
 
   Int_t        current; //current file
   Int_t        current_type;   //type of current file
-  Int_t        current_sample; //index of sample of current file
+  Int_t        current_type_index; //index of sample of current file
 
   Int_t        tot_events;
   Int_t        sel_events;
