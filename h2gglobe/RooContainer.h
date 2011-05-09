@@ -15,6 +15,7 @@
 #include "RooExponential.h"
 #include "RooGaussian.h"
 #include "RooBreitWigner.h"
+#include "RooVoigtian.h"
 #include "RooCBShape.h"
 #include "RooExtendPdf.h"
 #include "RooAddPdf.h"
@@ -52,9 +53,8 @@ class RooContainer {
    void CreateDataSet(std::string,int nbins=-1); 
    void MakeSystematics(std::string,std::string);
 
-   void FitToData(std::string,std::string);
    void FitToData(std::string,std::string 
-	         ,double,double,double,double);
+	     ,double x1=-999,double x2=-999,double x3=-999,double x4=-999);
    void FitToSystematicSet(std::string,std::string,std::string
 	     ,double x1=-999,double x2=-999,double x3=-999,double x4=-999);
    void InputDataPoint(std::string,int,float,float w=1.);
@@ -76,7 +76,6 @@ class RooContainer {
    void createDataSet(std::string,std::string,int);
    void makeSystematics(std::string,std::string);
    
-   void fitToData(std::string,std::string,std::string);
    void fitToData(std::string,std::string,std::string
 	         ,double,double,double,double);
    void fitToSystematicSet(std::string,std::string,std::string
