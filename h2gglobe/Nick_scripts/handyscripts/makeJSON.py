@@ -1,4 +1,4 @@
-rom JSON import JSON
+from JSON import JSON
 
 outfile=open("goodRuns_cpp.txt",'w')
 
