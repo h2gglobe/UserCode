@@ -1,13 +1,17 @@
 #define PADEBUG 0
 
-void LoopAll::TermRealPhotonAnalysis(int typerun) 
+void LoopAll::TermRealPhotonAnalysis(Util* ut, int typerun) 
 {
    if (typerun==3){	
-      //rooContainer->FitToData("cms-data_model","Data_mass");
-//      rooContainer->FitToData("rbw"	      ,"Signal_mass");
-      rooContainer->FitToData("exp"	      ,"Background_mass");
-//      rooContainer->FitToSystematicSet("rbw","Signal_mass","e-scale");
+      rooContainer->FitToData("cms-data_model","Data_mass");
+      rooContainer->FitToData("bw"	      ,"Signal_mass");
+      rooContainer->FitToData("exp"	      ,"Background_mass",100,115,125,200);
+      rooContainer->FitToSystematicSet("bw","Signal_mass","e-scale");
       rooContainer->FitToSystematicSet("exp","Background_mass","e-scale");
+
+      std::string outputfilename = (std::string) ut->histFileName;  // Not happy about doing this!!!
+
+      rooContainer->WriteDataCard(outputfilename,"Data_mass","Signal_mass","Background_mass");
    }
 
 }
@@ -24,12 +28,12 @@ void LoopAll::InitRealPhotonAnalysis(int typerun) {
   if (typerun == 3) {  
      // initialize the RooContainer with number of categories
 
-     rooContainer = new RooContainer(1);
+     rooContainer = new RooContainer(4);
 
      //RooFitting type
-     rooContainer->AddRealVar("Signal_mass",90.,200.);
-     rooContainer->AddRealVar("Background_mass",90.,200.);
-     rooContainer->AddRealVar("Data_mass",90.,200.);
+     rooContainer->AddRealVar("Signal_mass",100.,200.);
+     rooContainer->AddRealVar("Background_mass",100.,200.);
+     rooContainer->AddRealVar("Data_mass",100.,200.);
 
      // Signal Parameters
      rooContainer->AddRealVar("width",1.,0.01,5.);
@@ -41,6 +45,7 @@ void LoopAll::InitRealPhotonAnalysis(int typerun) {
      rooContainer->AddRealVar("p1",-0.03,-1.,-0.001);
      rooContainer->AddRealVar("p2",+0.01,-1.,+1);
 
+     rooContainer->AddRealVar("alpha",-0.03,-1.,-0.001);
      // All parameters for the Data
      rooContainer->AddRealVar("d_width",1.,0.1,3.);
      rooContainer->AddRealVar("d_mean",130.,100.,150.);
@@ -52,34 +57,15 @@ void LoopAll::InitRealPhotonAnalysis(int typerun) {
      sig_pars[0] = "Signal_mass";
      sig_pars[1] = "mean";
      sig_pars[2] = "width";
-     //sig_pars[3] = "sigma";
-     rooContainer->AddGenericPdf("rbw"
-	,"1./((@0*@0-@1*@1)*(@0*@0-@1*@1)+@2*@2*@1*@1)"
-	,sig_pars,0,10.);
+     rooContainer->AddGenericPdf("bw","bw",sig_pars,3,10.);
     
-     //std::vector<std::string> tail_pars(2,"p");	 
-     //tail_pars[0] = "Signal_mass";
-     //tail_pars[1] = "alpha";
-     //rooContainer->AddGenericPdf("s-exp"
-//	,"expo"
-//	,tail_pars,1,1.);
-
-     //std::vector<std::string> s_pdfs(2,"t");
-     //s_pdfs[0] = "bw";
-     //s_pdfs[1] = "s-exp";
-  
-     //rooContainer->ComposePdf("signal-model","bw+s-exp",s_pdfs);
-     // -------------------------------------//
-
-     // Set Up The Background Pdfs
-     std::vector<std::string> bkg_pars(4,"p");	 
+     std::vector<std::string> bkg_pars(2,"p");	 
      bkg_pars[0] = "Background_mass";
-     bkg_pars[1] = "c";
-     bkg_pars[2] = "p1";
-     bkg_pars[3] = "p2";
+     bkg_pars[1] = "alpha";
      rooContainer->AddGenericPdf("exp"
-	,"@1+@2*@0+@3*@0*@0",bkg_pars,0,10);
+	,"exp(@1*@0)",bkg_pars,0,100);
      // -------------------------------------//
+     // Set Up The Background Pdfs
 
      // A Model For The Data
      // -------------------------------------//
@@ -87,12 +73,14 @@ void LoopAll::InitRealPhotonAnalysis(int typerun) {
      data_sig[0] = "Data_mass";
      data_sig[1] = "d_mean";
      data_sig[2] = "d_width";
+
      std::vector<std::string> data_bkg(2,"p");
      data_bkg[0] = "Data_mass";
      data_bkg[1] = "d_alpha";
+
      rooContainer->AddGenericPdf("data_bw"
 	,"1./((@0-@2)*(@0-@2)+@1*@1)"
-	,data_sig,2,1.);
+	,data_sig,3,1.);
      rooContainer->AddGenericPdf("data_exp"
 	,"exp((@0)*(@1))",data_bkg,1,10);
      // -------------------------------------//
@@ -105,13 +93,14 @@ void LoopAll::InitRealPhotonAnalysis(int typerun) {
 			     ,pdfs);
      // -------------------------------------//
      // Create The DataSets
-     rooContainer->CreateDataSet("Data_mass",25);
-     rooContainer->CreateDataSet("Signal_mass",110);
-     rooContainer->CreateDataSet("Background_mass",55);
+     rooContainer->CreateDataSet("Data_mass",50);
+     rooContainer->CreateDataSet("Signal_mass",50);
+     rooContainer->CreateDataSet("Background_mass",50);
 
      // Systematic Errors
      rooContainer->MakeSystematics("Signal_mass","e-scale");
      rooContainer->MakeSystematics("Background_mass","e-scale");
+     rooContainer->MakeSystematics("Data_mass","e-scale");
   }
 
   if(PADEBUG) 
@@ -120,13 +109,327 @@ void LoopAll::InitRealPhotonAnalysis(int typerun) {
 }
 
 bool LoopAll::myPhotonAnalysisRunSelection(int cur_type){
-  
+
   if (cur_type != 0)    return true;
 
 
   bool passes_run_selection = false; 
 
+if (run < 163217) return true;  // This is the end of 2010 Runs + paolo
+				 // -> JSON already applied
+
+if(   ( run==163659 && (
+ 	(lumis > 1 && lumis < 374)
+  	|| (lumis > 376 && lumis < 650)
+  	|| (lumis > 652 && lumis < 705)
+   	)
+  	)
+   || ( run==163658 && (
+ 	(lumis > 1 && lumis < 3)
+   	)
+  	)
+   || ( run==163657 && (
+ 	(lumis > 1 && lumis < 140)
+   	)
+  	)
+   || ( run==163630 && (
+ 	(lumis > 76 && lumis < 164)
+  	|| (lumis > 176 && lumis < 185)
+   	)
+  	)
+   || ( run==163655 && (
+ 	(lumis > 15 && lumis < 23)
+   	)
+  	)
+   || ( run==163480 && (
+ 	(lumis > 1 && lumis < 92)
+  	|| (lumis > 96 && lumis < 188)
+  	|| (lumis > 190 && lumis < 191)
+   	)
+  	)
+   || ( run==163478 && (
+ 	(lumis > 1 && lumis < 70)
+   	)
+  	)
+   || ( run==163297 && (
+ 	(lumis > 1 && lumis < 219)
+   	)
+  	)
+   || ( run==163296 && (
+ 	(lumis > 59 && lumis < 230)
+  	|| (lumis > 232 && lumis < 585)
+   	)
+  	)
+   || ( run==163481 && (
+ 	(lumis > 1 && lumis < 72)
+  	|| (lumis > 74 && lumis < 77)
+  	|| (lumis > 79 && lumis < 79)
+   	)
+  	)
+   || ( run==163663 && (
+ 	(lumis > 1 && lumis < 106)
+  	|| (lumis > 109 && lumis < 246)
+   	)
+  	)
+   || ( run==163334 && (
+ 	(lumis > 1 && lumis < 35)
+  	|| (lumis > 37 && lumis < 37)
+  	|| (lumis > 156 && lumis < 556)
+   	)
+  	)
+   || ( run==163252 && (
+ 	(lumis > 60 && lumis < 137)
+   	)
+  	)
+   || ( run==163585 && (
+ 	(lumis > 1 && lumis < 32)
+   	)
+  	)
+   || ( run==163337 && (
+ 	(lumis > 1 && lumis < 18)
+  	|| (lumis > 27 && lumis < 201)
+  	|| (lumis > 203 && lumis < 426)
+  	|| (lumis > 434 && lumis < 461)
+   	)
+  	)
+   || ( run==163583 && (
+ 	(lumis > 1 && lumis < 63)
+  	|| (lumis > 65 && lumis < 92)
+  	|| (lumis > 96 && lumis < 155)
+  	|| (lumis > 157 && lumis < 173)
+  	|| (lumis > 175 && lumis < 219)
+   	)
+  	)
+   || ( run==163582 && (
+ 	(lumis > 1 && lumis < 22)
+   	)
+  	)
+   || ( run==163332 && (
+ 	(lumis > 43 && lumis < 118)
+  	|| (lumis > 224 && lumis < 264)
+  	|| (lumis > 266 && lumis < 599)
+  	|| (lumis > 601 && lumis < 639)
+  	|| (lumis > 641 && lumis < 801)
+   	)
+  	)
+   || ( run==163333 && (
+ 	(lumis > 1 && lumis < 106)
+   	)
+  	)
+   || ( run==163661 && (
+ 	(lumis > 1 && lumis < 17)
+   	)
+  	)
+   || ( run==163338 && (
+ 	(lumis > 1 && lumis < 164)
+   	)
+  	)
+   || ( run==163339 && (
+ 	(lumis > 1 && lumis < 172)
+   	)
+  	)
+   || ( run==163589 && (
+ 	(lumis > 1 && lumis < 49)
+  	|| (lumis > 51 && lumis < 160)
+   	)
+  	)
+   || ( run==163588 && (
+ 	(lumis > 1 && lumis < 8)
+  	|| (lumis > 10 && lumis < 446)
+   	)
+  	)
+   || ( run==163235 && (
+ 	(lumis > 1 && lumis < 461)
+   	)
+  	)
+   || ( run==163234 && (
+ 	(lumis > 1 && lumis < 66)
+   	)
+  	)
+   || ( run==163237 && (
+ 	(lumis > 1 && lumis < 213)
+   	)
+  	)
+   || ( run==163374 && (
+ 	(lumis > 1 && lumis < 599)
+  	|| (lumis > 603 && lumis < 863)
+   	)
+  	)
+   || ( run==163375 && (
+ 	(lumis > 1 && lumis < 10)
+   	)
+  	)
+   || ( run==163233 && (
+ 	(lumis > 1 && lumis < 283)
+   	)
+  	)
+   || ( run==163232 && (
+ 	(lumis > 110 && lumis < 149)
+   	)
+  	)
+   || ( run==163378 && (
+ 	(lumis > 1 && lumis < 81)
+  	|| (lumis > 89 && lumis < 272)
+  	|| (lumis > 306 && lumis < 615)
+   	)
+  	)
+   || ( run==163270 && (
+ 	(lumis > 1 && lumis < 76)
+  	|| (lumis > 79 && lumis < 96)
+  	|| (lumis > 99 && lumis < 475)
+  	|| (lumis > 479 && lumis < 527)
+  	|| (lumis > 529 && lumis < 685)
+  	|| (lumis > 695 && lumis < 928)
+   	)
+  	)
+   || ( run==163482 && (
+ 	(lumis > 1 && lumis < 27)
+  	|| (lumis > 48 && lumis < 48)
+   	)
+  	)
+   || ( run==163238 && (
+ 	(lumis > 9 && lumis < 15)
+   	)
+  	)
+   || ( run==163358 && (
+ 	(lumis > 39 && lumis < 63)
+   	)
+  	)
+   || ( run==163476 && (
+ 	(lumis > 1 && lumis < 94)
+  	|| (lumis > 98 && lumis < 212)
+   	)
+  	)
+   || ( run==163587 && (
+ 	(lumis > 1 && lumis < 52)
+   	)
+  	)
+   || ( run==163664 && (
+ 	(lumis > 1 && lumis < 119)
+  	|| (lumis > 121 && lumis < 178)
+   	)
+  	)
+   || ( run==163370 && (
+ 	(lumis > 1 && lumis < 147)
+   	)
+  	)
+   || ( run==163402 && (
+ 	(lumis > 37 && lumis < 582)
+  	|| (lumis > 586 && lumis < 801)
+   	)
+  	)
+   || ( run==163376 && (
+ 	(lumis > 1 && lumis < 20)
+  	|| (lumis > 22 && lumis < 246)
+   	)
+  	)
+   || ( run==163660 && (
+ 	(lumis > 1 && lumis < 74)
+   	)
+  	)
+   || ( run==163586 && (
+ 	(lumis > 1 && lumis < 75)
+   	)
+  	)
+   || ( run==163371 && (
+ 	(lumis > 1 && lumis < 107)
+  	|| (lumis > 148 && lumis < 363)
+   	)
+  	)
+   || ( run==163584 && (
+ 	(lumis > 1 && lumis < 56)
+   	)
+  	)
+   || ( run==163385 && (
+ 	(lumis > 52 && lumis < 240)
+  	|| (lumis > 244 && lumis < 406)
+   	)
+  	)
+   || ( run==163668 && (
+ 	(lumis > 1 && lumis < 53)
+  	|| (lumis > 57 && lumis < 136)
+  	|| (lumis > 140 && lumis < 213)
+   	)
+  	)
+   || ( run==163387 && (
+ 	(lumis > 1 && lumis < 256)
+   	)
+  	)
+   || ( run==163757 && (
+ 	(lumis > 1 && lumis < 40)
+   	)
+  	)
+   || ( run==163289 && (
+ 	(lumis > 1 && lumis < 388)
+   	)
+  	)
+   || ( run==163261 && (
+ 	(lumis > 1 && lumis < 3)
+  	|| (lumis > 10 && lumis < 126)
+   	)
+  	)
+   || ( run==163255 && (
+ 	(lumis > 1 && lumis < 359)
+  	|| (lumis > 412 && lumis < 844)
+  	|| (lumis > 846 && lumis < 846)
+  	|| (lumis > 848 && lumis < 977)
+   	)
+  	)
+   || ( run==163475 && (
+ 	(lumis > 30 && lumis < 295)
+   	)
+  	)
+   || ( run==163662 && (
+ 	(lumis > 1 && lumis < 154)
+   	)
+  	)
+   || ( run==163286 && (
+ 	(lumis > 112 && lumis < 401)
+   	)
+  	)
+   || ( run==163483 && (
+ 	(lumis > 1 && lumis < 57)
+   	)
+  	)
+   || ( run==163738 && (
+ 	(lumis > 34 && lumis < 311)
+   	)
+  	)
+   || ( run==163340 && (
+ 	(lumis > 1 && lumis < 488)
+   	)
+  	)
+   || ( run==163369 && (
+ 	(lumis > 1 && lumis < 94)
+   	)
+  	)
+   || ( run==163301 && (
+ 	(lumis > 1 && lumis < 192)
+   	)
+  	)
+   || ( run==163300 && (
+ 	(lumis > 1 && lumis < 616)
+   	)
+  	)
+   || ( run==163479 && (
+ 	(lumis > 1 && lumis < 175)
+   	)
+  	)
+   || ( run==163302 && (
+ 	(lumis > 1 && lumis < 190)
+   	)
+  	)
+   || ( run==163596 && (
+ 	(lumis > 1 && lumis < 29)
+   	)
+  	)
+   || ( run==163372 && (
+ 	(lumis > 1 && lumis < 52)
+   	)
+  	)
+  )
   // Put here the Run Selection you want in the Data
+
   passes_run_selection = true; 
 
   // -----------------------------------------------
@@ -158,7 +461,7 @@ void LoopAll::myGetEntryPhotonRedAnalysis(Util *ut, int jentry, int cur_type){
   b_pho_trksumpthollowconedr04->GetEntry(jentry); 
   b_pho_haspixseed->GetEntry(jentry);
 
-  if (cur_type>0){
+  if (cur_type!=0){
 
     b_gen_n->GetEntry(jentry);
     b_gen_p4->GetEntry(jentry);
@@ -261,7 +564,7 @@ void LoopAll::myFillHistPhotonAnalysisRed(Util * ut, int jentry) {
            ,PhoP4greater); 
  
 // Regular Event Selection begins here
-  float best_mass = 0.;
+  float best_mass = -1;
   float best_pt   = -1;
   int   category  = -1;
   float min_r9;
@@ -274,11 +577,12 @@ void LoopAll::myFillHistPhotonAnalysisRed(Util * ut, int jentry) {
      nleading = preselected_photons[1];
 
 
-  	 if (leading.p4->Pt() > 40.)  {
+     if (leading.p4->Pt() > 40.)  {
          min_r9  = min(leading.r9
 		      ,nleading.r9);
 	 max_eta = max(fabs(leading.calopos->Eta())
 			   ,fabs(nleading.calopos->Eta()));
+
 	 if (min_r9 < 0.93 && max_eta < 1.4442 ) category = 1;
 	 if (min_r9 > 0.93 && max_eta < 1.4442 ) category = 2;
 	 if (min_r9 < 0.93 && max_eta > 1.566 && max_eta < 2.5) category = 3;
@@ -290,23 +594,28 @@ void LoopAll::myFillHistPhotonAnalysisRed(Util * ut, int jentry) {
            float mass = Higgs.M();
            float h_pt = Higgs.Pt();
 
-             if (mass > 100. && mass < 150.){
+             //if (mass > 100. && mass < 150.){
 
+	       FillHist("pho_pt",0,leading.p4->Pt());
+	       FillHist("pho_pt",0,nleading.p4->Pt());
 	       FillHist("pho_pt",category,leading.p4->Pt());
 	       FillHist("pho_pt",category,nleading.p4->Pt());
+
                best_mass = mass;
  	       best_pt   = h_pt;
 
-            }
+            //}
      }
    }
 
   FillHist("mass",0, best_mass);
   FillHist("pt",0, best_pt);
+
   if (category > -1){
     FillHist("mass",category, best_mass);
     FillHist("pt",category, best_pt);
   }
+
   if(PADEBUG) 
     cout<<"myFillHistRed END"<<endl;
  
@@ -385,10 +694,10 @@ void LoopAll::myStatPhotonAnalysis(Util * ut, int jentry) {
 		      ,nleading.r9);
 	 max_eta = max(fabs(leading.calopos->Eta())
 			   ,fabs(nleading.calopos->Eta()));
-	 if (min_r9 < 0.93 && max_eta < 1.4442 ) category = 1;
-	 if (min_r9 > 0.93 && max_eta < 1.4442 ) category = 2;
-	 if (min_r9 < 0.93 && max_eta > 1.566 && max_eta < 2.5) category = 3;
-	 if (min_r9 > 0.93 && max_eta > 1.566 && max_eta < 2.5) category = 4;
+	 if (min_r9 < 0.93 && max_eta < 1.4442 ) category = 0;
+	 if (min_r9 > 0.93 && max_eta < 1.4442 ) category = 1;
+	 if (min_r9 < 0.93 && max_eta > 1.566 && max_eta < 2.5) category = 2;
+	 if (min_r9 > 0.93 && max_eta > 1.566 && max_eta < 2.5) category = 3;
 
          // -------------------------------------------------------
 	
@@ -416,22 +725,15 @@ void LoopAll::myStatPhotonAnalysis(Util * ut, int jentry) {
             
 
   	   if (cur_type ==0){        // Data
-	     rooContainer->InputDataPoint("Data_mass",0,mass);
-	     //rooContainer->InputDataPoint("Data_mass",category,mass);
+	     rooContainer->InputDataPoint("Data_mass",category,mass);
 
            } else if (cur_type < 0){ // Signal
-	     rooContainer->InputDataPoint("Signal_mass",0,mass,weight);
-	     //rooContainer->InputDataPoint("Signal_mass",category,mass,weight);
-
-             rooContainer->InputSystematicSet("Signal_mass","e-scale",0,mass_errors);
-             //rooContainer->InputSystematicSet("Signal_mass","e-scale",category,mass_errors);
+	     rooContainer->InputDataPoint("Signal_mass",category,mass,weight);
+             rooContainer->InputSystematicSet("Signal_mass","e-scale",category,mass_errors);
 
 	   } else if (cur_type > 0){ // Background
-	     rooContainer->InputDataPoint("Background_mass",0,mass,weight);
-	     //rooContainer->InputDataPoint("Background_mass",category,mass,weight);
-
-             rooContainer->InputSystematicSet("Background_mass","e-scale",0,mass_errors);
-             //rooContainer->InputSystematicSet("Background_mass","e-scale",category,mass_errors);
+	     rooContainer->InputDataPoint("Background_mass",category,mass,weight);
+             rooContainer->InputSystematicSet("Background_mass","e-scale",category,mass_errors);
 	   }
 
      }
@@ -557,7 +859,7 @@ int LoopAll::mySelectEventRedPhotonAnalysis(Util * ut, int jentry) {
 
   b_pho_n->GetEntry(jentry);
 
-  if (pho_n > 1)
+  if (pho_n > 1 )//&&  (run >= 163217)) 
     selectevent = 1;
   else
     selectevent = 0;
