@@ -1,7 +1,7 @@
 # Python Configuration Handler for Util
 # Original Author - Nicholas Wardle
 
-PYDEBUG = 0
+PYDEBUG = 1
 
 # System python imports
 import sys,os
@@ -43,14 +43,29 @@ class configProducer:
     else: 
       sys.exit("No Such Type As: %d"%self.type_)
       
-    
-  def read_file(self,conf_filename):
+  def read_file(self,conf_filename,lines=None):
+    if lines == None:
+      self.lines_ = [ ]
+      lines = self.lines_
     if not os.path.isfile(conf_filename):
       sys.exit("No Configuration file named - %s"%conf_filename)
     else:
       cf = open(conf_filename,"r")
-      self.lines_ = cf.readlines()
-  
+      comment_status = False
+      for l in cf.read().split("\n"):
+        line = l.strip(" ").lstrip(" ")
+        if len(line) < 2:
+          continue
+        if line[0:2] == '->':	
+          if comment_status:
+            comment_status = False
+          else:
+            comment_status = True
+        elif not comment_status:
+          lines.append(line)
+        else:
+          self.conf_.comments+=line+'\n'
+
   def init_cuts(self):
     self.read_dat_cuts('cuts.dat')
     for dum in self.plotvar_.vardef:
@@ -267,14 +282,6 @@ class configProducer:
      comment_status = False 
 
      for line in self.lines_:
-      if len(line) < 2: continue
-     
-      if line[0:2] == '->':	
-       if comment_status: comment_status = False
-       else:		  comment_status = True
-     
-      else:
-       if not comment_status:     
        # Decide whether this is a define line or a file line:
         if "output" in line:   
          split_line = line.split()
@@ -325,7 +332,6 @@ class configProducer:
 
 
         else: sys.exit("Config Line Unrecognised:\n ' %s '"%line)
-       else: self.conf_.comments+=line
 
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
   def read_config_loop(self,f):
@@ -336,13 +342,6 @@ class configProducer:
      map_c	    = {}
 
      for line in self.lines_:
-      if len(line) < 2: continue
-      if line[0:2] == '->':	
-       if comment_status: comment_status = False
-       else:		  comment_status = True
-
-      else:
-       if not comment_status:
         # Decide whether this is a define line or a file line:
         if "histfile" in line:  
         # We have the definition line
@@ -420,8 +419,7 @@ class configProducer:
         
 
 	else: sys.exit("Config Line Unrecognised:\n ' %s '"%line)
-       else: self.conf_.comments+=line
-       for cc in  self.conf_.confs:
+     for cc in  self.conf_.confs:
          cc["intL"] = intL 
 
 
