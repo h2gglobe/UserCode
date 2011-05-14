@@ -419,7 +419,7 @@ bool GlobePhotons::analyze(const edm::Event& iEvent, const edm::EventSetup& iSet
       if (!pho_conv_validvtx[pho_n]) {
         if (debug_level>9) std::cout << "Invalid Conversion" << std::endl;
         ((TLorentzVector *)pho_conv_vertexcorrected_p4->At(pho_n))->SetXYZT(localPho.px(), localPho.py(), localPho.pz(), localPho.energy());
-        pho_n++;
+
         continue;
       }
       
