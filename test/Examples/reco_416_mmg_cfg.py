@@ -19,8 +19,7 @@ options.parseArguments()
 
 
 process = cms.Process("Globe")
-#process.load("Configuration.StandardSequences.GeometryDB_cff")
-process.load("Configuration.StandardSequences.Geometry_cff")
+process.load("Configuration.StandardSequences.GeometryDB_cff")
 process.load("HiggsAnalysis.HiggsTo2photons.h2ganalyzer_41X_RECO_cfi")
 process.load("Configuration.StandardSequences.FrontierConditions_GlobalTag_cff")
 process.load("PhysicsTools/PatAlgos/patSequences_cff")
@@ -74,11 +73,11 @@ process.h2ganalyzer.doGenJet_algo2 = doGenSim
 process.h2ganalyzer.doGenJet_algo3 = doGenSim
 process.h2ganalyzer.doGenParticles = doGenSim
 process.h2ganalyzer.doGenVertices  = doGenSim
-process.h2ganalyzer.doGenerator    = doGenSim
+# process.h2ganalyzer.doGenerator    = doGenSim
 
 process.h2ganalyzer.doReducedGen = doGenSim
 
-process.h2ganalyzer.doSimHits   = doGenSim
+process.h2ganalyzer.doSimHits   = False
 process.h2ganalyzer.doSimTracks = doGenSim
 process.h2ganalyzer.doSimTrackPlusSimVertex = doGenSim
 

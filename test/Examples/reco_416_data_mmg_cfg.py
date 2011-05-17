@@ -9,7 +9,7 @@ from PhysicsTools.PatAlgos.tools.cmsswVersionTools import pickRelValInputFiles
 #                                            globalTag     = 'GR_R_311_V2',
 #                                            numberOfFiles = 1              )
 
-options.outputFile = "reco_mmg_test.root"
+options.outputFile = "reco_data_mmg_test.root"
 #options.hltProcessName = "REDIGI311X"
 options.isRealData = True
 options.globalTag = 'GR_R_311_V2'
@@ -19,8 +19,7 @@ options.parseArguments()
 
 
 process = cms.Process("Globe")
-#process.load("Configuration.StandardSequences.GeometryDB_cff")
-process.load("Configuration.StandardSequences.Geometry_cff")
+process.load("Configuration.StandardSequences.GeometryDB_cff")
 process.load("HiggsAnalysis.HiggsTo2photons.h2ganalyzer_41X_RECO_cfi")
 process.load("Configuration.StandardSequences.FrontierConditions_GlobalTag_cff")
 process.load("PhysicsTools/PatAlgos/patSequences_cff")

@@ -7,7 +7,7 @@ import FWCore.ParameterSet.Config as cms
 ##+ commented out here
 from Configuration.StandardSequences.Services_cff import *
 from Configuration.StandardSequences.MagneticField_38T_cff import *
-from Configuration.StandardSequences.Geometry_cff import *
+from Configuration.StandardSequences.GeometryDB_cff import *
 from Configuration.StandardSequences.Reconstruction_cff import *
 from Configuration.StandardSequences.FrontierConditions_GlobalTag_cff import *
 from RecoEgamma.EgammaPhotonProducers.conversionTracks_cff import *
