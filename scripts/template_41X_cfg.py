@@ -7,12 +7,13 @@ flagMC = 'OFF'
 #SKIM TYPE
 flagSkimDiphoton = 'OFF'
 flagNoSkim = 'OFF'
+flagMMgSkim = 'OFF'
 
 #ADDITIONAL OPTIONS
 flagAOD = 'ON'
 jobMaker = 'jobmaker unknown'
 
-if (flagNoSkim is 'ON' and flagSkimDiphoton is 'ON') or (flagNoSkim is 'OFF' and flagSkimDiphoton is 'OFF'):
+if (not((flagNoSkim is 'ON') ^ (flagSkimDiphoton is 'ON') ^ (flagMMgSkim is 'ON'))):
   print "You must skim or not skim... these are your options"
   exit(-1)
 
@@ -32,7 +33,8 @@ process.load('Configuration.StandardSequences.MagneticField_38T_cff')
 process.load('Configuration.StandardSequences.RawToDigi_cff')
 process.load('Configuration.StandardSequences.L1Reco_cff')
 process.load('Configuration.StandardSequences.Reconstruction_cff')
-
+process.load('HiggsAnalysis.HiggsTo2photons.ZMuSkim_cff')
+process.load('HiggsAnalysis.HiggsTo2photons.photonReRecoForMMG_cfi')
 
 process.load("HiggsAnalysis.HiggsTo2photons.CMSSW_RelValDUMMY_cfi")
 #process.skipEvents = cms.untracked.PSet(input=cms.untracked.uint32(3500))
@@ -48,12 +50,11 @@ process.load("FWCore.MessageLogger.MessageLogger_cfi")
 process.MessageLogger.cerr.FwkReport.reportEvery = 500
 
 
-
-
-process.superClusterMerger =  cms.EDProducer("EgammaSuperClusterMerger",
-                                             src = cms.VInputTag(cms.InputTag('correctedHybridSuperClusters'),
-                                                                 cms.InputTag('correctedMulti5x5SuperClustersWithPreshower'))
-                                             )
+process.superClusterMerger =  cms.EDProducer(
+  "EgammaSuperClusterMerger",
+  src = cms.VInputTag(cms.InputTag('correctedHybridSuperClusters'),
+                      cms.InputTag('correctedMulti5x5SuperClustersWithPreshower'))
+  )
 
 
 process.primaryVertexFilter = cms.EDFilter("GoodVertexFilter",
@@ -104,16 +105,18 @@ process.dummySelector = cms.EDFilter("CandViewCountFilter",
                                      )
 
 
-
-
 #process.goodEvents = cms.Sequence(process.noScraping * process.primaryVertexFilter)
 #process.pathToCheck = cms.Sequence(process.L10and34 *process.noScraping*process.primaryVertexFilter*process.HFCoincidence*process.L140or41)
 #process.pathToCheck2 = cms.Sequence(process.L10and34 *process.noScraping*process.primaryVertexFilter*process.L140or41*process.HFCoincidence)
+
+process.diMuonSelSeq.remove(process.ZMuHLTFilter)
 
 if flagSkimDiphoton == 'ON':
   process.eventFilter1 = cms.Sequence(process.superClusterMerger*process.goodPhotonsLowPtCut*process.TwoPhotonsLowPtCut) # for bkg
 elif flagNoSkim == 'ON':    
   process.eventFilter1 = cms.Sequence(process.dummySelector)   #for signal MC
+elif flagMMgSkim == 'ON':
+  process.eventFilter1 = cms.Sequence(process.diMuonSelSeq*process.photonReReco)
 
 
 process.h2ganalyzer.RootFileName = 'aod_mc_test.root'

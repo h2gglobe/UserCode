@@ -24,6 +24,7 @@ job_maker [options]
 --caf                              send jobs using CAF (hadoop is std in SD)
 --skim2pho                         skim on 2 photons
 --noskim                           no skim performed (typically only for signal)
+--skimmmg                          skim for mumugamma 
 --storage=\"castor\" or \"hadoop\" use castor/hadoop as storage element
 --name=                            name of the job, directory, files
 --datasetpath=                     datasetpath
@@ -45,6 +46,7 @@ flagData = False
 flagMC = False
 flagSkimDiphoton = False
 flagNoSkim = False
+falgMMgSkim = False
 flagAOD = False
 flagRECO = False
 
@@ -64,7 +66,7 @@ lumis = -1
 lumis_per_job=10
 blackList=""
 
-(opts, args) = getopt.getopt(sys.argv[1:], '', ['data', 'MC', 'AOD', 'RECO', 'skim2pho', 'storage=',  'name=', 'datasetpath=', 'outputdir=','runselection=', 'events=', 'events_per_job=', 'help', 'globaltag=', 'noskim', 'json=', 'lumis=', 'lumis_per_job=', 'caf','hlttag=', 'blacklist='])
+(opts, args) = getopt.getopt(sys.argv[1:], '', ['data', 'MC', 'AOD', 'RECO', 'skim2pho', 'storage=',  'name=', 'datasetpath=', 'outputdir=','runselection=', 'events=', 'events_per_job=', 'help', 'globaltag=', 'noskim', 'json=', 'lumis=', 'lumis_per_job=', 'caf','hlttag=', 'blacklist=', 'skimmmg'])
 
 for opt,argm in opts:
     if (opt == "--help"):
@@ -82,6 +84,8 @@ for opt,argm in opts:
         useCAF = True
     elif (opt == "--skim2pho"):
         flagSkimDiphoton = True
+    elif (opt == "--skimmmg"):
+        flagMMgSkim = True
     elif (opt == "--noskim"):
         flagNoSkim = True
     elif (opt == "--storage"):
@@ -114,10 +118,12 @@ for opt,argm in opts:
         print 'Wrong options: %s' % (opt)
         sys.exit(3)
 
-if (flagNoSkim and flagSkimDiphoton) or (not flagNoSkim and not flagSkimDiphoton):
-    print "You must have one and only one of these:"
-    print "flagNoSkim is "+str(flagNoSkim)+"\tflagSkimdiphoton is "+str(flagSkimDiphoton)
-    print "Try again when you have chosen one:  --skim2pho or --noskim."
+if (globaltag == ""):
+    print "WARNING: you are using default GLOBAL-TAG, it may not be correct."
+
+if (not(flagNoSkim ^ flagSkimDiphoton ^ flagMMgSkim)):
+    print "You must have one and only one of the skims."
+    print "Try again when you have chosen one:  --skim2pho or --noskim or --skimmmg."
     sys.exit(1)
 
 if (flagRECO and flagAOD) or (not flagRECO and not flagAOD):
@@ -154,6 +160,8 @@ for run in runselection:
             file_out.write("flagAOD = \'OFF\'\n")
         elif ("flagNoSkim = 'OFF'" in line and flagNoSkim):
             file_out.write("flagNoSkim = \'ON\'\n")
+        elif ("flagMMgSkim = 'OFF'" in line and flagMMgSkim):
+            file_out.write("flagMMgSkim = \'ON\'\n")
         elif ("flagSkimDiphoton = 'OFF'" in line and flagSkimDiphoton):
             file_out.write("flagSkimDiphoton = \'ON\'\n")
         elif ("hltLabel = \"HLT\"" in line and hlttag != ""):

@@ -44,3 +44,12 @@
 ./job_maker --MC --AOD --skim2pho --storage="castor" --events=-1 --events_per_job=200000 --outputdir="c/cmshgg/processed/h2g_V05_00/Spring11-PU_S1_START311_V1G1" --globaltag=START311_V2::All --hlttag="REDIGI311X" --name=DYToEE_M20_2011PU --datasetpath="/DYToEE_M-20_TuneZ2_7TeV-pythia6/Spring11-PU_S1_START311_V1G1-v1/AODSIM" --blacklist="T2_US_Florida"
 ./job_maker --MC --AOD --skim2pho --storage="castor" --events=-1 --events_per_job=10000000 --outputdir="c/cmshgg/processed/h2g_V05_00/Spring11-PU_S1_START311_V1G1" --globaltag=START311_V2::All --hlttag="REDIGI311X" --name=DYToEE_M10To20_2011PU --datasetpath="/DYToEE_M-10To20_TuneZ2_7TeV-pythia6/Spring11-PU_S1_START311_V1G1-v1/AODSIM" --blacklist="T2_US_Florida"
 
+
+####################################
+######## Zmumugamma       ##########
+######## MUST RUN ON DATA ##########
+####################################
+./job_maker --MC --RECO --skimmmg --storage="castor" --name=DYToMuMu_2011PU --datasetpath=/DYToMuMu_M-20_CT10_TuneZ2_7TeV-powheg-pythia/Spring11-PU_S1_START311_V1G1-v1/GEN-SIM-RECO --events=-1 --events_per_job=30000 --outputdir="c/cmshgg/processed/h2g_V06_00/Spring11-PU_S1_START311_V1G1" --globaltag="START311_V2::All" --hlttag="REDIGI311X"
+./job_maker --MC --RECO --skimmmg --storage="castor" --name=TTJets_2011PU --datasetpath=/TTJets_TuneZ2_7TeV-madgraph-tauola/Spring11-PU_S1_START311_V1G1-v1/GEN-SIM-RECO --events=-1 --events_per_job=30000 --outputdir="c/cmshgg/processed/h2g_V06_00/Spring11-PU_S1_START311_V1G1" --globaltag="START311_V2::All" --hlttag="REDIGI311X"
+./job_maker --MC --RECO --skimmmg --storage="castor" --name=WJetsToLNu_2011PU --datasetpath=/WJetsToLNu_TuneZ2_7TeV-madgraph-tauola/Spring11-PU_S1_START311_V1G1-v1/GEN-SIM-RECO --events=-1 --events_per_job=30000 --outputdir="c/cmshgg/processed/h2g_V06_00/Spring11-PU_S1_START311_V1G1" --globaltag="START311_V2::All" --hlttag="REDIGI311X"
+./job_maker --MC --RECO --skimmmg --storage="castor" --name=QCD_Pt-20_MuEnrichedPt-15_2011PU --datasetpath=/QCD_Pt-20_MuEnrichedPt-15_TuneZ2_7TeV-pythia6/Spring11-PU_S1_START311_V1G1-v1/GEN-SIM-RECO --events=-1 --events_per_job=30000 --outputdir="c/cmshgg/processed/h2g_V06_00/Spring11-PU_S1_START311_V1G1" --globaltag="START311_V2::All" --hlttag="REDIGI311X"
