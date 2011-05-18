@@ -46,7 +46,7 @@ flagData = False
 flagMC = False
 flagSkimDiphoton = False
 flagNoSkim = False
-falgMMgSkim = False
+flagMMgSkim = False
 flagAOD = False
 flagRECO = False
 
