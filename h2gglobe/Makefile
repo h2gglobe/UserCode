@@ -53,6 +53,7 @@ DICTS = LoopAll.h BaseAnalysis.h BaseSmearer.h EnergySmearer.h EfficiencySmearer
 	VertexAnalysis/interface/VertexAlgoParameters.h\
 	PhotonAnalysis/interface/PhotonAnalysis.h\
 	PhotonAnalysis/interface/StatAnalysis.h\
+	PhotonAnalysis/interface/MicroAnalysis.h\
 	RooContainer.h
 
 
