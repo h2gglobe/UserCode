@@ -12,7 +12,8 @@ using namespace std;
 // ----------------------------------------------------------------------------------------------------
 MicroAnalysis::MicroAnalysis()  : 
     name_("MicroAnalysis"),
-    pho1_p4_(0), pho2_p4_(0), dipho_p4_(0)
+    pho1_p4_(0), pho2_p4_(0), dipho_p4_(0),
+    uFileName("uTree.root")
 {
 	cout << "Constructing MicroAnalysis" << endl;
 }
@@ -41,7 +42,7 @@ void MicroAnalysis::Init(LoopAll& l)
 	cout << "Initializing MicroAnalysis" << endl;
 	if(PADEBUG) cout << "InitRealMicroAnalysis START"<<endl;
 	//TODO open ttree
-	uFile_ = TFile::Open(l.histFileName,"recreate");
+	uFile_ = TFile::Open(uFileName,"recreate");
 	uTree_ = new TTree("utree","MicroAnalysis Tree");
 
 	uTree_->Branch("dZtoGen",&dZtoGen_,"dZtoGen/F");

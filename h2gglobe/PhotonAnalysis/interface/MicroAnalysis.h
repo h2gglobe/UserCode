@@ -35,11 +35,13 @@ public:
 	TLorentzVector *pho2_p4_;
 	TLorentzVector *dipho_p4_;
 	Float_t ptasym_;
-    Float_t ptbal_;
-    Float_t logsumpt2_;
+	Float_t ptbal_;
+	Float_t logsumpt2_;
 	Float_t  dZtoGen_;
 	Bool_t isClosestToGen_;
 	//Float_t  dZtoClosest_;
+
+	TString uFileName;
 
 protected:
 	std::string name_;

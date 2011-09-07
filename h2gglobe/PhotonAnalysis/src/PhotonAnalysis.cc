@@ -816,7 +816,7 @@ bool PhotonAnalysis::SelectEventsReduction(LoopAll& l, int jentry)
 			
 			l.vertexAnalysis(vtxAna_, pho1, pho2 );
 			// make sure that vertex analysis indexes are in synch 
-			assert( id == vtxAna_.pairID(ipho1,ipho2) );
+			assert( (int)id == vtxAna_.pairID(ipho1,ipho2) );
 			
 			l.vtx_std_ranked_list->push_back( l.vertexSelection(vtxAna_, vtxConv_, pho1, pho2, vtxVarNames) );
 			if( l.vtx_std_ranked_list->back().size() != 0 && ! useDefaultVertex ) {  
