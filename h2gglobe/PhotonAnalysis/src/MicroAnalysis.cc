@@ -208,15 +208,17 @@ void MicroAnalysis::Analysis(LoopAll& l, Int_t jentry)
 
     TVector3 *genVtx = (TVector3*)l.gv_pos->At(0);
     int closest_idx = -1;
+    float dist = 0;
     float closest_dist = 1e6;
     for (int vi=0;vi<l.gv_n;vi++){
     	TVector3 *curVtx = (TVector3*)l.vtx_std_xyz->At(vi);
-    	float dist = (*curVtx-*genVtx).Mag();
+    	dist = (*curVtx-*genVtx).Mag();
     	if (dist < closest_dist){
     		closest_idx = vi;
     		closest_dist = dist;
     	}
     }
+    assert(closest_idx!=-1);
 
     for (int vi=0;vi<l.gv_n;vi++){
     	ptasym_ = vtxAna_.ptasym(vi);
@@ -224,10 +226,13 @@ void MicroAnalysis::Analysis(LoopAll& l, Int_t jentry)
     	logsumpt2_ = vtxAna_.logsumpt2(vi);
 
     	TVector3 *curVtx = (TVector3*)l.vtx_std_xyz->At(vi);
-
     	dZtoGen_ = (*curVtx-*genVtx).Mag();
 
-    	isClosestToGen_ = (vi == closest_idx);
+    	if(vi == closest_idx){
+    		isClosestToGen_ = true;
+    	}else{
+    		isClosestToGen_ = false;
+    	}
 
     	uTree_->Fill();
     }

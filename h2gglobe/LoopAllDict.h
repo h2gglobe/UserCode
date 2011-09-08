@@ -37,11 +37,13 @@ extern void G__set_cpp_environmentLoopAllDict();
 #include "EnergySmearer.h"
 #include "EfficiencySmearer.h"
 #include "DiPhoEfficiencySmearer.h"
+#include "EnergySmearer.h"
 #include "KFactorSmearer.h"
 #include "SampleContainer.h"
 #include "VertexAnalysis/interface/VertexAlgoParameters.h"
 #include "PhotonAnalysis/interface/PhotonAnalysis.h"
 #include "PhotonAnalysis/interface/StatAnalysis.h"
+#include "PhotonAnalysis/interface/MicroAnalysis.h"
 #include "RooContainer.h"
 #include <algorithm>
 namespace std { }
@@ -281,6 +283,7 @@ extern G__linked_taginfo G__LoopAllDictLN_maplEintcOvectorlETH1mUcOallocatorlETH
 extern G__linked_taginfo G__LoopAllDictLN_PhotonAnalysis;
 extern G__linked_taginfo G__LoopAllDictLN_vectorlETriggerSelectioncOallocatorlETriggerSelectiongRsPgR;
 extern G__linked_taginfo G__LoopAllDictLN_reverse_iteratorlEvectorlETriggerSelectioncOallocatorlETriggerSelectiongRsPgRcLcLiteratorgR;
+extern G__linked_taginfo G__LoopAllDictLN_PhotonAnalysiscLcLBkgCategory;
 extern G__linked_taginfo G__LoopAllDictLN_maplEintcOvectorlEdoublecOallocatorlEdoublegRsPgRcOlesslEintgRcOallocatorlEpairlEconstsPintcOvectorlEdoublecOallocatorlEdoublegRsPgRsPgRsPgRsPgR;
 extern G__linked_taginfo G__LoopAllDictLN_StatAnalysis;
 extern G__linked_taginfo G__LoopAllDictLN_vectorlEBaseSmearermUcOallocatorlEBaseSmearermUgRsPgR;
@@ -289,5 +292,6 @@ extern G__linked_taginfo G__LoopAllDictLN_vectorlEBaseDiPhotonSmearermUcOallocat
 extern G__linked_taginfo G__LoopAllDictLN_reverse_iteratorlEvectorlEBaseDiPhotonSmearermUcOallocatorlEBaseDiPhotonSmearermUgRsPgRcLcLiteratorgR;
 extern G__linked_taginfo G__LoopAllDictLN_vectorlEBaseGenLevelSmearermUcOallocatorlEBaseGenLevelSmearermUgRsPgR;
 extern G__linked_taginfo G__LoopAllDictLN_reverse_iteratorlEvectorlEBaseGenLevelSmearermUcOallocatorlEBaseGenLevelSmearermUgRsPgRcLcLiteratorgR;
+extern G__linked_taginfo G__LoopAllDictLN_MicroAnalysis;
 
 /* STUB derived class for protected member access */
