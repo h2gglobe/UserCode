@@ -31,14 +31,16 @@ public:
 
 	//Variables for the tree
 	Int_t	nVert_;
-	TLorentzVector *pho1_p4_;
-	TLorentzVector *pho2_p4_;
-	TLorentzVector *dipho_p4_;
+	Int_t	nPU_;
+	TLorentzVector *pho1_;
+	TLorentzVector *pho2_;
+	TLorentzVector *dipho_;
 	Float_t ptasym_;
 	Float_t ptbal_;
 	Float_t logsumpt2_;
-	Float_t  dZtoGen_;
-	Bool_t isClosestToGen_;
+	Float_t dZToGen_;
+	Float_t	evWeight_;
+	Int_t isClosestToGen_;
 	//Float_t  dZtoClosest_;
 
 	TString uFileName;

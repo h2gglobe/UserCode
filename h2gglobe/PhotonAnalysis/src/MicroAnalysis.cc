@@ -12,7 +12,7 @@ using namespace std;
 // ----------------------------------------------------------------------------------------------------
 MicroAnalysis::MicroAnalysis()  : 
     name_("MicroAnalysis"),
-    pho1_p4_(0), pho2_p4_(0), dipho_p4_(0),
+    pho1_(0), pho2_(0), dipho_(0),
     uFileName("uTree.root")
 {
 	cout << "Constructing MicroAnalysis" << endl;
@@ -45,15 +45,17 @@ void MicroAnalysis::Init(LoopAll& l)
 	uFile_ = TFile::Open(uFileName,"recreate");
 	uTree_ = new TTree("utree","MicroAnalysis Tree");
 
-	uTree_->Branch("dZtoGen",&dZtoGen_,"dZtoGen/F");
+	uTree_->Branch("dZToGen",&dZToGen_,"dZToGen/F");
 	uTree_->Branch("nVert",&nVert_,"nVert/I");
-	uTree_->Branch("pho1_p4",&pho1_p4_,32000,0);
-	uTree_->Branch("pho2_p4",&pho2_p4_,32000,0);
-	uTree_->Branch("dipho1_p4",&dipho_p4_,32000,0);
+	uTree_->Branch("nPU",&nPU_,"nPU/I");
+	uTree_->Branch("evWeight",&evWeight_,"evWeight/F");
+	uTree_->Branch("pho1",&pho1_,32000,0);
+	uTree_->Branch("pho2",&pho2_,32000,0);
+	uTree_->Branch("dipho",&dipho_,32000,0);
 	uTree_->Branch("ptasym",&ptasym_,"ptasym/F");
 	uTree_->Branch("ptbal",&ptbal_,"ptbal/F");
 	uTree_->Branch("logsumpt2",&logsumpt2_,"logsumpt2/F");
-	uTree_->Branch("isClosestToGen",&isClosestToGen_,"isClosestToGen/O");
+	uTree_->Branch("isClosestToGen",&isClosestToGen_,"isClosestToGen/I");
 
     if(PADEBUG)	cout << "InitRealMicroAnalysis END"<<endl;
 }
@@ -156,9 +158,11 @@ void MicroAnalysis::Analysis(LoopAll& l, Int_t jentry)
    
     sumev += weight;
     // FIXME pass smeared R9
-    int diphoton_id = l.DiphotonCiCSelection(l.phoSUPERTIGHT, l.phoSUPERTIGHT, leadEtCut, subleadEtCut, 4,false, &smeared_pho_energy[0] ); 
+    // int diphoton_id = l.DiphotonCiCSelection(l.phoSUPERTIGHT, l.phoSUPERTIGHT, leadEtCut, subleadEtCut, 4,false, &smeared_pho_energy[0] );
+    // Better do this without applying the ID
+    int diphoton_id = 0;
     // std::cerr << "Selected pair " << l.dipho_n << " " << diphoton_id << std::endl;
-	if (diphoton_id <= -1 ) return;
+	if (diphoton_id <= -1 || l.dipho_n < 1 ) return;
 
 
 	diphoton_index = std::make_pair( l.dipho_leadind[diphoton_id],  l.dipho_subleadind[diphoton_id] );
@@ -198,41 +202,39 @@ void MicroAnalysis::Analysis(LoopAll& l, Int_t jentry)
    
 
 	// MicroAnalysis-specific stuff
-
 	// TODO dipho selection should match the Higgs truth (not just the best dipho)
     vtxAna_.setPairID(diphoton_id);
-    nVert_ = l.gv_n;
-    pho1_p4_ = &lead_p4;
-    pho2_p4_ = &sublead_p4;
-    dipho_p4_ = &Higgs;
+    nVert_ = l.vtx_std_n;
+    nPU_ = l.pu_n;
+    evWeight_ = evweight;
+    pho1_ = &lead_p4;
+    pho2_ = &sublead_p4;
+    dipho_ = &Higgs;
 
     TVector3 *genVtx = (TVector3*)l.gv_pos->At(0);
     int closest_idx = -1;
-    float dist = 0;
     float closest_dist = 1e6;
-    for (int vi=0;vi<l.gv_n;vi++){
+    for (int vi=0;vi<l.vtx_std_n;vi++){
     	TVector3 *curVtx = (TVector3*)l.vtx_std_xyz->At(vi);
-    	dist = (*curVtx-*genVtx).Mag();
+    	float dist = (*curVtx-*genVtx).Mag();
     	if (dist < closest_dist){
+//    		cout << dist << " ";
     		closest_idx = vi;
     		closest_dist = dist;
     	}
     }
+//    cout<<endl;
     assert(closest_idx!=-1);
 
-    for (int vi=0;vi<l.gv_n;vi++){
+    for (int vi=0;vi<l.vtx_std_n;vi++){
     	ptasym_ = vtxAna_.ptasym(vi);
     	ptbal_ = vtxAna_.ptbal(vi);
     	logsumpt2_ = vtxAna_.logsumpt2(vi);
 
     	TVector3 *curVtx = (TVector3*)l.vtx_std_xyz->At(vi);
-    	dZtoGen_ = (*curVtx-*genVtx).Mag();
+    	dZToGen_ = (*curVtx-*genVtx).Mag();
 
-    	if(vi == closest_idx){
-    		isClosestToGen_ = true;
-    	}else{
-    		isClosestToGen_ = false;
-    	}
+    	isClosestToGen_ = (vi == closest_idx);
 
     	uTree_->Fill();
     }
