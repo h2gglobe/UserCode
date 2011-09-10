@@ -30,8 +30,8 @@ public:
 	virtual void Analysis(LoopAll&, Int_t);
 
 	//Variables for the tree
-	Int_t	nVert_;
-	Int_t	nPU_;
+	UShort_t	nVert_;
+	UShort_t	nPU_;
 	TLorentzVector *pho1_;
 	TLorentzVector *pho2_;
 	TLorentzVector *dipho_;
@@ -39,9 +39,10 @@ public:
 	Float_t ptbal_;
 	Float_t logsumpt2_;
 	Float_t dZToGen_;
+	Float_t dZtoClosest_;
 	Float_t	evWeight_;
-	Int_t isClosestToGen_;
-	//Float_t  dZtoClosest_;
+	Bool_t isClosestToGen_;
+
 
 	TString uFileName;
 

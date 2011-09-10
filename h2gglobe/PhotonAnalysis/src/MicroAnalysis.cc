@@ -45,17 +45,19 @@ void MicroAnalysis::Init(LoopAll& l)
 	uFile_ = TFile::Open(uFileName,"recreate");
 	uTree_ = new TTree("utree","MicroAnalysis Tree");
 
-	uTree_->Branch("dZToGen",&dZToGen_,"dZToGen/F");
-	uTree_->Branch("nVert",&nVert_,"nVert/I");
-	uTree_->Branch("nPU",&nPU_,"nPU/I");
-	uTree_->Branch("evWeight",&evWeight_,"evWeight/F");
+	//LINK http://root.cern.ch/root/html/TTree.html
+	uTree_->Branch("dZToGen",&dZToGen_);
+	uTree_->Branch("dZToClosest",&dZtoClosest_);
+	uTree_->Branch("nVert",&nVert_);
+	uTree_->Branch("nPU",&nPU_);
+	uTree_->Branch("evWeight",&evWeight_);
 	uTree_->Branch("pho1",&pho1_,32000,0);
 	uTree_->Branch("pho2",&pho2_,32000,0);
 	uTree_->Branch("dipho",&dipho_,32000,0);
-	uTree_->Branch("ptasym",&ptasym_,"ptasym/F");
-	uTree_->Branch("ptbal",&ptbal_,"ptbal/F");
-	uTree_->Branch("logsumpt2",&logsumpt2_,"logsumpt2/F");
-	uTree_->Branch("isClosestToGen",&isClosestToGen_,"isClosestToGen/I");
+	uTree_->Branch("ptasym",&ptasym_);
+	uTree_->Branch("ptbal",&ptbal_);
+	uTree_->Branch("logsumpt2",&logsumpt2_);
+	uTree_->Branch("isClosestToGen",&isClosestToGen_);
 
     if(PADEBUG)	cout << "InitRealMicroAnalysis END"<<endl;
 }
@@ -214,6 +216,7 @@ void MicroAnalysis::Analysis(LoopAll& l, Int_t jentry)
     TVector3 *genVtx = (TVector3*)l.gv_pos->At(0);
     int closest_idx = -1;
     float closest_dist = 1e6;
+    vector<float> closest_reco(nVert_,1e6);
     for (int vi=0;vi<l.vtx_std_n;vi++){
     	TVector3 *curVtx = (TVector3*)l.vtx_std_xyz->At(vi);
     	float dist = (*curVtx-*genVtx).Mag();
@@ -222,6 +225,15 @@ void MicroAnalysis::Analysis(LoopAll& l, Int_t jentry)
     		closest_idx = vi;
     		closest_dist = dist;
     	}
+
+        for (int vj=0;vj<l.vtx_std_n;vj++){
+        	if (vj==vi) continue;
+        	TVector3 *otherVtx = (TVector3*)l.vtx_std_xyz->At(vj);
+        	float dist = (*curVtx-*otherVtx).Mag();
+        	if (dist < closest_reco[vi]){
+        		closest_reco[vi] = dist;
+        	}
+        }
     }
 //    cout<<endl;
     assert(closest_idx!=-1);
@@ -233,6 +245,7 @@ void MicroAnalysis::Analysis(LoopAll& l, Int_t jentry)
 
     	TVector3 *curVtx = (TVector3*)l.vtx_std_xyz->At(vi);
     	dZToGen_ = (*curVtx-*genVtx).Mag();
+    	dZtoClosest_ = closest_reco[vi];
 
     	isClosestToGen_ = (vi == closest_idx);
 
@@ -240,4 +253,3 @@ void MicroAnalysis::Analysis(LoopAll& l, Int_t jentry)
     }
 
 }
-
