@@ -285,6 +285,8 @@ void MicroAnalysis::Analysis(LoopAll& l, Int_t jentry)
     }
 
     //per event tree
+    vector<int> & rankedVtxs = (*l.vtx_std_ranked_list)[diphoton_id];
+    vtxAna_.preselection(rankedVtxs);
     vtxAna_.evaluate(*tmvaReader_,tmvaMethod);
     for (int vi=0;vi<l.vtx_std_n;vi++){
     	if(vi>=storeNVert) break;
