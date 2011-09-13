@@ -127,6 +127,7 @@ public:
 	std::vector<int> rank(getter_t method, bool sign);
 #endif
 	std::vector<int> rank(TMVA::Reader &reader, const std::string & method);
+	void evaluate(TMVA::Reader &reader, const std::string & method);
 	std::vector<int> ranksum(const std::vector<std::string> & vars);
 	std::vector<int> rankprod(const std::vector<std::string> & vars);
 	////// std::vector<int> rankreciprocal(const std::vector<std::string> & vars);

@@ -13,6 +13,8 @@
 #include "KFactorSmearer.h"
 #include "TTree.h"
 
+#include "TMVA/Reader.h"
+
 // ------------------------------------------------------------------------------------
 class MicroAnalysis : public StatAnalysis
 {
@@ -29,7 +31,17 @@ public:
 	
 	virtual void Analysis(LoopAll&, Int_t);
 
+	TString uFileName;
+	std::string tmvaMethod;
+	std::string tmvaWeights;
+	Int_t storeNVert;
+
+protected:
+	std::string name_;
+	TFile *uFile_;
+
 	//Variables for the tree
+	TTree *uTree_;
 	UShort_t	nVert_;
 	UShort_t	nPU_;
 	TLorentzVector *pho1_;
@@ -44,12 +56,19 @@ public:
 	Bool_t isClosestToGen_;
 
 
-	TString uFileName;
+	// TMVA reader
+	vector<string> tmvaVariables_;
+	TMVA::Reader *tmvaReader_;
+	TTree *evTree_;
+	Float_t dZTrue_;
+	vector<float> MVA_;
+	vector<float> dZ_;
+	vector<float> diphoM_;
+	vector<float> diphoCosTheta_;
+	vector<float> diphoDeltaPhi_;
+	vector<float> diphoPt_;
 
-protected:
-	std::string name_;
-	TTree *uTree_;
-	TFile *uFile_;
+
 };
 
 #endif

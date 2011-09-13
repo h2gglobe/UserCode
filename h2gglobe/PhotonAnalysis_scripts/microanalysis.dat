@@ -1,0 +1,4 @@
+uFileName=uTree.root
+tmvaMethod=Likelihood
+tmvaWeights=/afs/cern.ch/user/m/musella/public/higgs/vertex_likelihoods/TMVAClassification_Likelihood.weights.xml
+storeNVert=5

@@ -354,6 +354,18 @@ std::vector<int> HggVertexAnalyzer::rank(TMVA::Reader &reader, const std::string
 	return vtxs;	
 }
 
+// -------------------------------------------------------------------------------------------------------------------------------------------------------------
+void HggVertexAnalyzer::evaluate(TMVA::Reader &reader, const std::string & method)
+{
+	std::vector<int> vtxs = preselection_;
+	assert( ! vtxs.empty() );
+	assert( (size_t)ipair_ < pho1_.size() );
+	mva_.clear(); mva_.resize(sumpt2_.size(),0.);
+	for(int ii=0; ii<nvtx_; ++ii) {
+		fillVariables(ii);
+		mva_[ii] = reader.EvaluateMVA(method);
+	}
+}
 
 // -------------------------------------------------------------------------------------------------------------------------------------------------------------
 std::vector<int> HggVertexAnalyzer::ranksum(const vector<string> & vars)

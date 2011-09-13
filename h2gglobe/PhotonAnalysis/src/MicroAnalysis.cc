@@ -11,9 +11,12 @@ using namespace std;
 
 // ----------------------------------------------------------------------------------------------------
 MicroAnalysis::MicroAnalysis()  : 
-    name_("MicroAnalysis"),
-    pho1_(0), pho2_(0), dipho_(0),
-    uFileName("uTree.root")
+    uFileName("uTree.root"),
+	tmvaMethod("Likelihood"),
+	tmvaWeights(""),
+	storeNVert(3),
+	name_("MicroAnalysis"),
+	pho1_(0), pho2_(0), dipho_(0)
 {
 	cout << "Constructing MicroAnalysis" << endl;
 }
@@ -31,6 +34,7 @@ void MicroAnalysis::Term(LoopAll& l)
 	//TODO close up
 	uFile_->cd();
 	uTree_->Write(0,TObject::kWriteDelete);
+	evTree_->Write(0,TObject::kWriteDelete);
 	uFile_->Close();
 }
 
@@ -41,10 +45,10 @@ void MicroAnalysis::Init(LoopAll& l)
 
 	cout << "Initializing MicroAnalysis" << endl;
 	if(PADEBUG) cout << "InitRealMicroAnalysis START"<<endl;
-	//TODO open ttree
 	uFile_ = TFile::Open(uFileName,"recreate");
-	uTree_ = new TTree("utree","MicroAnalysis Tree");
 
+	// per vertex tree
+	uTree_ = new TTree("utree","MicroAnalysis per Vertex Tree");
 	//LINK http://root.cern.ch/root/html/TTree.html
 	uTree_->Branch("dZToGen",&dZToGen_);
 	uTree_->Branch("dZToClosest",&dZtoClosest_);
@@ -58,6 +62,34 @@ void MicroAnalysis::Init(LoopAll& l)
 	uTree_->Branch("ptbal",&ptbal_);
 	uTree_->Branch("logsumpt2",&logsumpt2_);
 	uTree_->Branch("isClosestToGen",&isClosestToGen_);
+
+
+	//TMVA
+	tmvaVariables_.push_back("ptbal"), tmvaVariables_.push_back("ptasym"), tmvaVariables_.push_back("logsumpt2");
+	tmvaReader_ = new TMVA::Reader( "!Color:!Silent" );
+	HggVertexAnalyzer::bookVariables( *tmvaReader_, tmvaVariables_ );
+	tmvaReader_->BookMVA( tmvaMethod, tmvaWeights );
+
+	MVA_.resize(storeNVert);
+	dZ_.resize(storeNVert);
+	diphoM_.resize(storeNVert);
+	diphoCosTheta_.resize(storeNVert);
+	diphoDeltaPhi_.resize(storeNVert);
+	diphoPt_.resize(storeNVert);
+
+	evTree_ = new TTree("evtree","MicroAnalysis per Event Tree");
+	evTree_->Branch("dZTrue",&dZTrue_);
+	evTree_->Branch("nVert",&nVert_);
+	evTree_->Branch("evWeight",&evWeight_);
+	for(int i=0;i<storeNVert; i++){
+		evTree_->Branch(Form("MVA%d",i),&MVA_[i]);
+		evTree_->Branch(Form("dZ%d",i),&dZ_[i]);
+		evTree_->Branch(Form("diphoM%d",i),&diphoM_[i]);
+		evTree_->Branch(Form("diphoCosTheta%d",i),&diphoCosTheta_[i]);
+		evTree_->Branch(Form("diphoDeltaPhi%d",i),&diphoDeltaPhi_[i]);
+		evTree_->Branch(Form("diphoPt%d",i),&diphoPt_[i]);
+	}
+
 
     if(PADEBUG)	cout << "InitRealMicroAnalysis END"<<endl;
 }
@@ -251,5 +283,14 @@ void MicroAnalysis::Analysis(LoopAll& l, Int_t jentry)
 
     	uTree_->Fill();
     }
+
+    //per event tree
+    vtxAna_.evaluate(*tmvaReader_,tmvaMethod);
+    for (int vi=0;vi<l.vtx_std_n;vi++){
+    	if(vi>=storeNVert) break;
+    	MVA_[vi] = vtxAna_.mva(vi);
+    }
+    evTree_->Fill();
+
 
 }

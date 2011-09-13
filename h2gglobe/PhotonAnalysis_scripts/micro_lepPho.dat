@@ -1,4 +1,4 @@
-intL=1665. histfile=utree.root output=shifo.root
+intL=1665. histfile=histfile.root output=shifo.root
 
 ->
 Data
@@ -124,5 +124,5 @@ syntax:
 
 analyzer PhotonAnalysis photonanalysis.dat	
 ->
-analyzer MicroAnalysis photonanalysis.dat statanalysis.dat
+analyzer MicroAnalysis photonanalysis.dat statanalysis.dat microanalysis.dat
  
