@@ -74,7 +74,7 @@ void MicroAnalysis::Init(LoopAll& l)
 	dZ_.resize(storeNVert);
 	diphoM_.resize(storeNVert);
 	diphoCosTheta_.resize(storeNVert);
-	diphoDeltaPhi_.resize(storeNVert);
+	diphoCosDeltaPhi_.resize(storeNVert);
 	diphoPt_.resize(storeNVert);
 
 	evTree_ = new TTree("evtree","MicroAnalysis per Event Tree");
@@ -86,7 +86,7 @@ void MicroAnalysis::Init(LoopAll& l)
 		evTree_->Branch(Form("dZ%d",i),&dZ_[i]);
 		evTree_->Branch(Form("diphoM%d",i),&diphoM_[i]);
 		evTree_->Branch(Form("diphoCosTheta%d",i),&diphoCosTheta_[i]);
-		evTree_->Branch(Form("diphoDeltaPhi%d",i),&diphoDeltaPhi_[i]);
+		evTree_->Branch(Form("diphoCosDeltaPhi%d",i),&diphoCosDeltaPhi_[i]);
 		evTree_->Branch(Form("diphoPt%d",i),&diphoPt_[i]);
 	}
 
@@ -284,19 +284,35 @@ void MicroAnalysis::Analysis(LoopAll& l, Int_t jentry)
     	uTree_->Fill();
     }
 
+
     //per event tree
+
+    //put stupid values in vectors
+    MVA_.assign(storeNVert,-10);
+	dZ_.assign(storeNVert,-100);
+	diphoM_.assign(storeNVert,-2);
+	diphoCosTheta_.assign(storeNVert,-2);
+	diphoCosDeltaPhi_.assign(storeNVert,-2);
+	diphoPt_.assign(storeNVert,-2);
+
+	//get list of vertices as ranked for the selected diphoton
     vector<int> & rankedVtxs = (*l.vtx_std_ranked_list)[diphoton_id];
     vtxAna_.preselection(rankedVtxs);
     vtxAna_.evaluate(*tmvaReader_,tmvaMethod);
-    /// for (int vi=0;vi<l.vtx_std_n;vi++){
-    /// MVA_.assign(-10,storeNVert);
     dZTrue_ = ( *(TVector3*)l.vtx_std_xyz->At(rankedVtxs[0]) - *genVtx).Z();
     for (size_t vi=0;vi<rankedVtxs.size();vi++){
     	if(vi>=storeNVert) break;
     	MVA_[vi] = vtxAna_.mva(rankedVtxs[vi]);
-	dZ_[vi] = ( *(TVector3*)l.vtx_std_xyz->At(rankedVtxs[vi]) - *(TVector3*)l.vtx_std_xyz->At(rankedVtxs[0])).Z();
+    	dZ_[vi] = ( *(TVector3*)l.vtx_std_xyz->At(rankedVtxs[vi]) - *(TVector3*)l.vtx_std_xyz->At(rankedVtxs[0])).Z();
+
+    	TLorentzVector lead_pho = l.get_pho_p4( l.dipho_leadind[diphoton_id], vi, &smeared_pho_energy[0]);
+    	TLorentzVector sublead_pho = l.get_pho_p4( l.dipho_subleadind[diphoton_id], vi, &smeared_pho_energy[0]);
+    	TLorentzVector dipho = lead_pho+sublead_pho;
+    	diphoM_[vi]				= dipho.M();
+		diphoCosTheta_[vi]		= TMath::TanH(0.5*(lead_pho.Rapidity()-sublead_pho.Rapidity()));
+		diphoCosDeltaPhi_[vi]	= TMath::Cos(lead_pho.Phi()-sublead_pho.Phi());
+		diphoPt_[vi]			= dipho.Pt();
     }
     evTree_->Fill();
-
 
 }

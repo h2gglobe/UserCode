@@ -65,7 +65,7 @@ protected:
 	vector<float> dZ_;
 	vector<float> diphoM_;
 	vector<float> diphoCosTheta_;
-	vector<float> diphoDeltaPhi_;
+	vector<float> diphoCosDeltaPhi_;
 	vector<float> diphoPt_;
 
 
