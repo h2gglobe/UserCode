@@ -340,14 +340,9 @@ std::vector<int> HggVertexAnalyzer::rank(std::string method)
 // -------------------------------------------------------------------------------------------------------------------------------------------------------------
 std::vector<int> HggVertexAnalyzer::rank(TMVA::Reader &reader, const std::string & method)
 {
+	evaluate(reader,method);
 	std::vector<int> vtxs = preselection_;
 	assert( ! vtxs.empty() );
-	assert( (size_t)ipair_ < pho1_.size() );
-	mva_.clear(); mva_.resize(sumpt2_.size(),0.);
-	for(int ii=0; ii<nvtx_; ++ii) { 
-		fillVariables(ii);
-		mva_[ii] = reader.EvaluateMVA(method);
-	}
 	RankHelper helper(*this,&HggVertexAnalyzer::mva,false);
 	sort(vtxs.begin(),vtxs.end(),helper);
 
@@ -357,10 +352,9 @@ std::vector<int> HggVertexAnalyzer::rank(TMVA::Reader &reader, const std::string
 // -------------------------------------------------------------------------------------------------------------------------------------------------------------
 void HggVertexAnalyzer::evaluate(TMVA::Reader &reader, const std::string & method)
 {
-	std::vector<int> vtxs = preselection_;
-	assert( ! vtxs.empty() );
-	assert( (size_t)ipair_ < pho1_.size() );
-	mva_.clear(); mva_.resize(sumpt2_.size(),0.);
+	/// assert( (size_t)ipair_ < pho1_.size() );
+	mva_.clear(); mva_.resize(sumpt2_[ipair_].size(),0.);
+	nvtx_ = mva_.size();
 	for(int ii=0; ii<nvtx_; ++ii) {
 		fillVariables(ii);
 		mva_[ii] = reader.EvaluateMVA(method);
@@ -566,7 +560,7 @@ void HggVertexAnalyzer::analyze(const VertexInfoAdapter & e, const PhotonInfo & 
 	int pho1 = p1.id();
 	int pho2 = p2.id();
 	ipair_ = pairID(pho1,pho2);
-	if( ipair_ >= pho1_.size() ) {
+	if( ipair_ >= (int)pho1_.size() ) {
 		pho1_.push_back(pho1);
 		pho2_.push_back(pho2);
 

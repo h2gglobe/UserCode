@@ -288,9 +288,13 @@ void MicroAnalysis::Analysis(LoopAll& l, Int_t jentry)
     vector<int> & rankedVtxs = (*l.vtx_std_ranked_list)[diphoton_id];
     vtxAna_.preselection(rankedVtxs);
     vtxAna_.evaluate(*tmvaReader_,tmvaMethod);
-    for (int vi=0;vi<l.vtx_std_n;vi++){
+    /// for (int vi=0;vi<l.vtx_std_n;vi++){
+    /// MVA_.assign(-10,storeNVert);
+    dZTrue_ = ( *(TVector3*)l.vtx_std_xyz->At(rankedVtxs[0]) - *genVtx).Z();
+    for (size_t vi=0;vi<rankedVtxs.size();vi++){
     	if(vi>=storeNVert) break;
-    	MVA_[vi] = vtxAna_.mva(vi);
+    	MVA_[vi] = vtxAna_.mva(rankedVtxs[vi]);
+	dZ_[vi] = ( *(TVector3*)l.vtx_std_xyz->At(rankedVtxs[vi]) - *(TVector3*)l.vtx_std_xyz->At(rankedVtxs[0])).Z();
     }
     evTree_->Fill();
 
