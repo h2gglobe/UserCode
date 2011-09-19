@@ -29,6 +29,9 @@ MicroAnalysis::~MicroAnalysis()
 // ----------------------------------------------------------------------------------------------------
 void MicroAnalysis::Term(LoopAll& l) 
 {
+	if( rooFile_ ) {
+		rooFile_->Close();
+	} 
 	cout<<endl;
 	cout << "Closing-up MicroAnalysis" << endl;
 	//TODO close up
@@ -71,6 +74,8 @@ void MicroAnalysis::Init(LoopAll& l)
 	tmvaReader_->BookMVA( tmvaMethod, tmvaWeights );
 
 	MVA_.resize(storeNVert);
+	prob_.resize(storeNVert);
+	zRMSn_.resize(storeNVert);
 	dZ_.resize(storeNVert);
 	diphoM_.resize(storeNVert);
 	diphoCosTheta_.resize(storeNVert);
@@ -79,18 +84,28 @@ void MicroAnalysis::Init(LoopAll& l)
 
 	evTree_ = new TTree("evtree","MicroAnalysis per Event Tree");
 	evTree_->Branch("dZTrue",&dZTrue_);
+	evTree_->Branch("zRMS",&zRMS_);
 	evTree_->Branch("nVert",&nVert_);
 	evTree_->Branch("evWeight",&evWeight_);
 	for(int i=0;i<storeNVert; i++){
 		evTree_->Branch(Form("MVA%d",i),&MVA_[i]);
+		evTree_->Branch(Form("prob%d",i),&prob_[i]);
+		evTree_->Branch(Form("zRMSn%d",i),&zRMSn_[i]);
 		evTree_->Branch(Form("dZ%d",i),&dZ_[i]);
 		evTree_->Branch(Form("diphoM%d",i),&diphoM_[i]);
 		evTree_->Branch(Form("diphoCosTheta%d",i),&diphoCosTheta_[i]);
 		evTree_->Branch(Form("diphoCosDeltaPhi%d",i),&diphoCosDeltaPhi_[i]);
 		evTree_->Branch(Form("diphoPt%d",i),&diphoPt_[i]);
 	}
-
-
+	
+	vtxProb_ = 0;
+	rooFile_ = TFile::Open(roofitProbs);
+	if( rooFile_ ) {
+		RooWorkspace * w = (RooWorkspace*)rooFile_->Get("w");
+		assert(w);
+		vtxProb_ = new RooGenFunction(*(w->function("vtxProb")),RooArgList(*(w->var("vtxLike")),*(w->var("nVtx"))),RooArgList()); 
+	}
+	
     if(PADEBUG)	cout << "InitRealMicroAnalysis END"<<endl;
 }
 
@@ -289,17 +304,22 @@ void MicroAnalysis::Analysis(LoopAll& l, Int_t jentry)
 
     //put stupid values in vectors
     MVA_.assign(storeNVert,-10);
-	dZ_.assign(storeNVert,-100);
-	diphoM_.assign(storeNVert,-2);
-	diphoCosTheta_.assign(storeNVert,-2);
-	diphoCosDeltaPhi_.assign(storeNVert,-2);
-	diphoPt_.assign(storeNVert,-2);
-
-	//get list of vertices as ranked for the selected diphoton
+    prob_.assign(storeNVert,0.);
+    zRMSn_.assign(storeNVert,0.);
+    dZ_.assign(storeNVert,-100);
+    diphoM_.assign(storeNVert,-2);
+    diphoCosTheta_.assign(storeNVert,-2);
+    diphoCosDeltaPhi_.assign(storeNVert,-2);
+    diphoPt_.assign(storeNVert,-2);
+    
+    //get list of vertices as ranked for the selected diphoton
     vector<int> & rankedVtxs = (*l.vtx_std_ranked_list)[diphoton_id];
     vtxAna_.preselection(rankedVtxs);
     vtxAna_.evaluate(*tmvaReader_,tmvaMethod);
     dZTrue_ = ( *(TVector3*)l.vtx_std_xyz->At(rankedVtxs[0]) - *genVtx).Z();
+    Double_t vtxProbInputs[2];
+    float wtot = 0.;
+    zRMS_ = 0.;
     for (size_t vi=0;vi<rankedVtxs.size();vi++){
     	if(vi>=storeNVert) break;
     	MVA_[vi] = vtxAna_.mva(rankedVtxs[vi]);
@@ -309,10 +329,22 @@ void MicroAnalysis::Analysis(LoopAll& l, Int_t jentry)
     	TLorentzVector sublead_pho = l.get_pho_p4( l.dipho_subleadind[diphoton_id], vi, &smeared_pho_energy[0]);
     	TLorentzVector dipho = lead_pho+sublead_pho;
     	diphoM_[vi]				= dipho.M();
-		diphoCosTheta_[vi]		= TMath::TanH(0.5*(lead_pho.Rapidity()-sublead_pho.Rapidity()));
-		diphoCosDeltaPhi_[vi]	= TMath::Cos(lead_pho.Phi()-sublead_pho.Phi());
-		diphoPt_[vi]			= dipho.Pt();
+	diphoCosTheta_[vi]		= TMath::TanH(0.5*(lead_pho.Rapidity()-sublead_pho.Rapidity()));
+	diphoCosDeltaPhi_[vi]	= TMath::Cos(lead_pho.Phi()-sublead_pho.Phi());
+	diphoPt_[vi]			= dipho.Pt();
+	
+	vtxProbInputs[0] = MVA_[vi];
+	vtxProbInputs[1] = nVert_;
+	prob_[vi] = (*vtxProb_)( vtxProbInputs );
+	
+	if( vi > 0 ) {
+		zRMSn_[vi] = zRMS_ + dZ_[vi]*dZ_[vi]*prob_[vi];
+		zRMS_ = zRMSn_[vi];
+		wtot  += prob_[vi];
+		zRMSn_[vi] /= wtot;
+	}
     }
+    zRMS_ /= wtot;
     evTree_->Fill();
 
 }

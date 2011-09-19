@@ -5,6 +5,7 @@
 #include "BaseSmearer.h"
 #include "PhotonAnalysis.h"
 #include "RooContainer.h"
+#include "RooGenFunction.h"
 #include "VertexAnalysis/interface/HggVertexAnalyzer.h"
 
 #include "EnergySmearer.h"
@@ -34,6 +35,7 @@ public:
 	TString uFileName;
 	std::string tmvaMethod;
 	std::string tmvaWeights;
+	TString roofitProbs;
 	Int_t storeNVert;
 
 protected:
@@ -60,15 +62,18 @@ protected:
 	vector<string> tmvaVariables_;
 	TMVA::Reader *tmvaReader_;
 	TTree *evTree_;
-	Float_t dZTrue_;
+	Float_t dZTrue_, zRMS_;
 	vector<float> MVA_;
+	vector<float> prob_;
+	vector<float> zRMSn_;
 	vector<float> dZ_;
 	vector<float> diphoM_;
 	vector<float> diphoCosTheta_;
 	vector<float> diphoCosDeltaPhi_;
 	vector<float> diphoPt_;
-
-
+	
+	RooGenFunction * vtxProb_;
+	TFile * rooFile_;
 };
 
 #endif
