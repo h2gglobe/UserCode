@@ -595,10 +595,21 @@ int  LoopAll::matchPhotonToConversion( int lpho) {
 // ---------------------------------------------------------------------------------------------------------------------------------------------
 TLorentzVector LoopAll::get_pho_p4(int ipho, int ivtx, float * energy)
 {
+	/// /// PhotonInfo p(ipho, *((TVector3*)sc_xyz->At(pho_scind[ipho])),
+	/// PhotonInfo p(ipho, *((TVector3*)pho_calopos->At(ipho)),
+	/// 	     energy != 0 ? energy[ipho] : ((TLorentzVector*)pho_p4->At(ipho))->Energy() );
+	/// TVector3 * vtx = (TVector3*) vtx_std_xyz->At(ivtx);
+	/// return p.p4( vtx->X(), vtx->Y(), vtx->Z() );
+	TVector3 * vtx = (TVector3*) vtx_std_xyz->At(ivtx);
+	return get_pho_p4(ipho,vtx,energy);
+}
+
+// ---------------------------------------------------------------------------------------------------------------------------------------------
+TLorentzVector LoopAll::get_pho_p4(int ipho, TVector3 * vtx, float * energy)
+{
 	/// PhotonInfo p(ipho, *((TVector3*)sc_xyz->At(pho_scind[ipho])),
 	PhotonInfo p(ipho, *((TVector3*)pho_calopos->At(ipho)),
 		     energy != 0 ? energy[ipho] : ((TLorentzVector*)pho_p4->At(ipho))->Energy() );
-	TVector3 * vtx = (TVector3*) vtx_std_xyz->At(ivtx);
 	return p.p4( vtx->X(), vtx->Y(), vtx->Z() );
 }
 

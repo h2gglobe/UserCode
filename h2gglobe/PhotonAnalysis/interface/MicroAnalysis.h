@@ -62,9 +62,14 @@ protected:
 	vector<string> tmvaVariables_;
 	TMVA::Reader *tmvaReader_;
 	TTree *evTree_;
-	Float_t dZTrue_, zRMS_;
+	Float_t dZTrue_, zRMS_, zTrue_, rTrue_, alphaTrue_;
+	Int_t category_;
+	Float_t mTrue_, mTrueVtx_;
+	vector<float> alpha_;
 	vector<float> MVA_;
 	vector<float> prob_;
+	vector<float> corrProb_;
+	vector<float> wrongProb_;
 	vector<float> zRMSn_;
 	vector<float> dZ_;
 	vector<float> diphoM_;
@@ -72,7 +77,7 @@ protected:
 	vector<float> diphoCosDeltaPhi_;
 	vector<float> diphoPt_;
 	
-	RooGenFunction * vtxProb_;
+	RooGenFunction * vtxProb_, * sigProb_, * bkgProb_;
 	TFile * rooFile_;
 };
 

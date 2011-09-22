@@ -74,7 +74,10 @@ void MicroAnalysis::Init(LoopAll& l)
 	tmvaReader_->BookMVA( tmvaMethod, tmvaWeights );
 
 	MVA_.resize(storeNVert);
+	alpha_.resize(storeNVert);
 	prob_.resize(storeNVert);
+	corrProb_.resize(storeNVert);
+	wrongProb_.resize(storeNVert);
 	zRMSn_.resize(storeNVert);
 	dZ_.resize(storeNVert);
 	diphoM_.resize(storeNVert);
@@ -84,12 +87,21 @@ void MicroAnalysis::Init(LoopAll& l)
 
 	evTree_ = new TTree("evtree","MicroAnalysis per Event Tree");
 	evTree_->Branch("dZTrue",&dZTrue_);
+	evTree_->Branch("alphaTrue",&alphaTrue_);
+	evTree_->Branch("zTrue",&zTrue_);
+	evTree_->Branch("rTrue",&rTrue_);
 	evTree_->Branch("zRMS",&zRMS_);
+	evTree_->Branch("category",&category_,"category/I");
+	evTree_->Branch("mTrue",&mTrue_);
+	evTree_->Branch("mTrueVtx",&mTrueVtx_);
 	evTree_->Branch("nVert",&nVert_);
 	evTree_->Branch("evWeight",&evWeight_);
 	for(int i=0;i<storeNVert; i++){
 		evTree_->Branch(Form("MVA%d",i),&MVA_[i]);
+		evTree_->Branch(Form("alpha%d",i),&alpha_[i]);
 		evTree_->Branch(Form("prob%d",i),&prob_[i]);
+		evTree_->Branch(Form("corrProb%d",i),&corrProb_[i]);
+		evTree_->Branch(Form("wrongProb%d",i),&wrongProb_[i]);
 		evTree_->Branch(Form("zRMSn%d",i),&zRMSn_[i]);
 		evTree_->Branch(Form("dZ%d",i),&dZ_[i]);
 		evTree_->Branch(Form("diphoM%d",i),&diphoM_[i]);
@@ -103,7 +115,19 @@ void MicroAnalysis::Init(LoopAll& l)
 	if( rooFile_ ) {
 		RooWorkspace * w = (RooWorkspace*)rooFile_->Get("w");
 		assert(w);
+		RooRealVar * vtxLike = w->var("vtxLike");
+
+		RooAbsPdf * correctVtxUnbinnedPdf = w->pdf("correctVtxUnbinnedPdf");
+		RooAbsPdf * wrongVtxUnbinnedPdf = w->pdf("wrongVtxUnbinnedPdf");
+
+		RooAbsReal * correctVtxCdf = correctVtxUnbinnedPdf->createCdf(RooArgSet(*vtxLike));
+		RooAbsReal *  wrongVtxCdf   = wrongVtxUnbinnedPdf->createCdf(RooArgSet(*vtxLike));
+
+		RooFormulaVar * wrongVtxInvCdf = new RooFormulaVar("wrongVtxInvCdf","1.-@0",RooArgList(*wrongVtxCdf) );
+			
 		vtxProb_ = new RooGenFunction(*(w->function("vtxProb")),RooArgList(*(w->var("vtxLike")),*(w->var("nVtx"))),RooArgList()); 
+		sigProb_ = new RooGenFunction(*correctVtxCdf,RooArgList(*vtxLike),RooArgList());
+		bkgProb_ = new RooGenFunction(*wrongVtxInvCdf,RooArgList(*vtxLike),RooArgList());
 	}
 	
     if(PADEBUG)	cout << "InitRealMicroAnalysis END"<<endl;
@@ -207,51 +231,51 @@ void MicroAnalysis::Analysis(LoopAll& l, Int_t jentry)
    
     sumev += weight;
     // FIXME pass smeared R9
-    // int diphoton_id = l.DiphotonCiCSelection(l.phoSUPERTIGHT, l.phoSUPERTIGHT, leadEtCut, subleadEtCut, 4,false, &smeared_pho_energy[0] );
+    int diphoton_id = l.DiphotonCiCSelection(l.phoNOCUTS, l.phoNOCUTS, leadEtCut, subleadEtCut, 4,false, &smeared_pho_energy[0] );
     // Better do this without applying the ID
-    int diphoton_id = 0;
+    /// int diphoton_id = 0;
     // std::cerr << "Selected pair " << l.dipho_n << " " << diphoton_id << std::endl;
-	if (diphoton_id <= -1 || l.dipho_n < 1 ) return;
-
-
-	diphoton_index = std::make_pair( l.dipho_leadind[diphoton_id],  l.dipho_subleadind[diphoton_id] );
-		// bring all the weights together: lumi & Xsection, single gammas, pt kfactor
-	float evweight = weight * smeared_pho_weight[diphoton_index.first] * smeared_pho_weight[diphoton_index.second] * genLevWeight;
-
-	l.countersred[diPhoCounter_]++;
-
-	TLorentzVector lead_p4 = l.get_pho_p4( l.dipho_leadind[diphoton_id], l.dipho_vtxind[diphoton_id], &smeared_pho_energy[0]);
-	TLorentzVector sublead_p4 = l.get_pho_p4( l.dipho_subleadind[diphoton_id], l.dipho_vtxind[diphoton_id], &smeared_pho_energy[0]);
-	float lead_r9    = l.pho_r9[l.dipho_leadind[diphoton_id]];
-	float sublead_r9 = l.pho_r9[l.dipho_subleadind[diphoton_id]];
-	TLorentzVector Higgs = lead_p4 + sublead_p4;
-	TVector3 * vtx = (TVector3*)l.vtx_std_xyz->At(l.dipho_vtxind[diphoton_id]);
-
-	bool CorrectVertex;
-	// FIXME pass smeared R9
-	int category = l.DiphotonCategory(diphoton_index.first,diphoton_index.second,Higgs.Pt(),nEtaCategories,nR9Categories,nPtCategories);
-	int selectioncategory = l.DiphotonCategory(diphoton_index.first,diphoton_index.second,Higgs.Pt(),nEtaCategories,nR9Categories,0);
-	if( cur_type != 0 && doMCSmearing ) {
-		float pth = Higgs.Pt();
-		for(std::vector<BaseDiPhotonSmearer *>::iterator si=diPhotonSmearers_.begin(); si!= diPhotonSmearers_.end(); ++si ) {
-		float rewei=1.;
-		(*si)->smearDiPhoton( Higgs, *vtx, rewei, selectioncategory, cur_type, *((TVector3*)l.gv_pos->At(0)), 0. );
-		if( rewei < 0. ) {
-			std::cerr << "Negative weight from smearer " << (*si)->name() << std::endl;
-			assert(0);
-		}
-		evweight *= rewei;
-		}
-		CorrectVertex=(*vtx- *((TVector3*)l.gv_pos->At(0))).Mag() < 1.;
-	}
-	float mass    = Higgs.M();
-	float ptHiggs = Higgs.Pt();
-
-	assert( evweight >= 0. );
-   
-
-	// MicroAnalysis-specific stuff
-	// TODO dipho selection should match the Higgs truth (not just the best dipho)
+    if (diphoton_id <= -1 || l.dipho_n < 1 ) return;
+    
+    
+    diphoton_index = std::make_pair( l.dipho_leadind[diphoton_id],  l.dipho_subleadind[diphoton_id] );
+    // bring all the weights together: lumi & Xsection, single gammas, pt kfactor
+    float evweight = weight * smeared_pho_weight[diphoton_index.first] * smeared_pho_weight[diphoton_index.second] * genLevWeight;
+    
+    l.countersred[diPhoCounter_]++;
+    
+    TLorentzVector lead_p4 = l.get_pho_p4( l.dipho_leadind[diphoton_id], l.dipho_vtxind[diphoton_id], &smeared_pho_energy[0]);
+    TLorentzVector sublead_p4 = l.get_pho_p4( l.dipho_subleadind[diphoton_id], l.dipho_vtxind[diphoton_id], &smeared_pho_energy[0]);
+    float lead_r9    = l.pho_r9[l.dipho_leadind[diphoton_id]];
+    float sublead_r9 = l.pho_r9[l.dipho_subleadind[diphoton_id]];
+    TLorentzVector Higgs = lead_p4 + sublead_p4;
+    TVector3 * vtx = (TVector3*)l.vtx_std_xyz->At(l.dipho_vtxind[diphoton_id]);
+    
+    bool CorrectVertex;
+    // FIXME pass smeared R9
+    int category = l.DiphotonCategory(diphoton_index.first,diphoton_index.second,Higgs.Pt(),nEtaCategories,nR9Categories,nPtCategories);
+    int selectioncategory = l.DiphotonCategory(diphoton_index.first,diphoton_index.second,Higgs.Pt(),nEtaCategories,nR9Categories,0);
+    if( cur_type != 0 && doMCSmearing ) {
+	    float pth = Higgs.Pt();
+	    for(std::vector<BaseDiPhotonSmearer *>::iterator si=diPhotonSmearers_.begin(); si!= diPhotonSmearers_.end(); ++si ) {
+		    float rewei=1.;
+		    (*si)->smearDiPhoton( Higgs, *vtx, rewei, selectioncategory, cur_type, *((TVector3*)l.gv_pos->At(0)), 0. );
+		    if( rewei < 0. ) {
+			    std::cerr << "Negative weight from smearer " << (*si)->name() << std::endl;
+			    assert(0);
+		    }
+		    evweight *= rewei;
+	    }
+	    CorrectVertex=(*vtx- *((TVector3*)l.gv_pos->At(0))).Mag() < 1.;
+    }
+    float mass    = Higgs.M();
+    float ptHiggs = Higgs.Pt();
+    
+    assert( evweight >= 0. );
+    
+    
+    // MicroAnalysis-specific stuff
+    // TODO dipho selection should match the Higgs truth (not just the best dipho)
     vtxAna_.setPairID(diphoton_id);
     nVert_ = l.vtx_std_n;
     nPU_ = l.pu_n;
@@ -305,13 +329,25 @@ void MicroAnalysis::Analysis(LoopAll& l, Int_t jentry)
     //put stupid values in vectors
     MVA_.assign(storeNVert,-10);
     prob_.assign(storeNVert,0.);
+    corrProb_.assign(storeNVert,0.);
+    wrongProb_.assign(storeNVert,0.);
     zRMSn_.assign(storeNVert,0.);
     dZ_.assign(storeNVert,-100);
     diphoM_.assign(storeNVert,-2);
     diphoCosTheta_.assign(storeNVert,-2);
     diphoCosDeltaPhi_.assign(storeNVert,-2);
     diphoPt_.assign(storeNVert,-2);
-    
+
+    TLorentzVector truevtx_lead_pho = l.get_pho_p4( l.dipho_leadind[diphoton_id], genVtx, &smeared_pho_energy[0]);
+    TLorentzVector truevtx_sublead_pho = l.get_pho_p4( l.dipho_subleadind[diphoton_id], genVtx, &smeared_pho_energy[0]);
+    TLorentzVector truevtx_dipho = truevtx_lead_pho+truevtx_sublead_pho;
+    mTrue_ = gP4.M(); 
+    mTrueVtx_ = truevtx_dipho.M(); 
+    zTrue_ = genVtx->Z();
+    rTrue_ = genVtx->Mag();
+    category_ = category;
+    alphaTrue_ = truevtx_lead_pho.Angle(truevtx_sublead_pho.Vect());
+
     //get list of vertices as ranked for the selected diphoton
     vector<int> & rankedVtxs = (*l.vtx_std_ranked_list)[diphoton_id];
     vtxAna_.preselection(rankedVtxs);
@@ -320,22 +356,25 @@ void MicroAnalysis::Analysis(LoopAll& l, Int_t jentry)
     Double_t vtxProbInputs[2];
     float wtot = 0.;
     zRMS_ = 0.;
-    for (size_t vi=0;vi<rankedVtxs.size();vi++){
+    for (size_t vi=0;vi<rankedVtxs.size();vi++) {
     	if(vi>=storeNVert) break;
     	MVA_[vi] = vtxAna_.mva(rankedVtxs[vi]);
     	dZ_[vi] = ( *(TVector3*)l.vtx_std_xyz->At(rankedVtxs[vi]) - *(TVector3*)l.vtx_std_xyz->At(rankedVtxs[0])).Z();
 
-    	TLorentzVector lead_pho = l.get_pho_p4( l.dipho_leadind[diphoton_id], vi, &smeared_pho_energy[0]);
-    	TLorentzVector sublead_pho = l.get_pho_p4( l.dipho_subleadind[diphoton_id], vi, &smeared_pho_energy[0]);
+    	TLorentzVector lead_pho = l.get_pho_p4( l.dipho_leadind[diphoton_id], rankedVtxs[vi], &smeared_pho_energy[0]);
+    	TLorentzVector sublead_pho = l.get_pho_p4( l.dipho_subleadind[diphoton_id], rankedVtxs[vi], &smeared_pho_energy[0]);
     	TLorentzVector dipho = lead_pho+sublead_pho;
     	diphoM_[vi]				= dipho.M();
 	diphoCosTheta_[vi]		= TMath::TanH(0.5*(lead_pho.Rapidity()-sublead_pho.Rapidity()));
 	diphoCosDeltaPhi_[vi]	= TMath::Cos(lead_pho.Phi()-sublead_pho.Phi());
 	diphoPt_[vi]			= dipho.Pt();
-	
+	alpha_[vi] = lead_pho.Angle(sublead_pho.Vect());
+
 	vtxProbInputs[0] = MVA_[vi];
 	vtxProbInputs[1] = nVert_;
 	prob_[vi] = (*vtxProb_)( vtxProbInputs );
+	corrProb_[vi] = (*sigProb_)( MVA_[vi] );
+	wrongProb_[vi] = (*bkgProb_)( MVA_[vi] );
 	
 	if( vi > 0 ) {
 		zRMSn_[vi] = zRMS_ + dZ_[vi]*dZ_[vi]*prob_[vi];

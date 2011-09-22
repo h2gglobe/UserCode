@@ -25,6 +25,7 @@ std::vector<int> vertexSelection(HggVertexAnalyzer & vtxAna, HggVertexFromConver
 				 std::vector<std::string> & vtxVarNames);
 
 TLorentzVector get_pho_p4(int ipho, int ivtx, float *pho_energy_array=0);
+TLorentzVector get_pho_p4(int ipho, TVector3 * vtx, float * energy=0);
 void set_pho_p4(int ipho, int ivtx, float *pho_energy_array=0);
 
 // end vertex analysis 
