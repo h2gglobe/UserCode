@@ -12,7 +12,12 @@ using namespace std;
 // ----------------------------------------------------------------------------------------------------
 StatAnalysis::StatAnalysis()  : 
     name_("StatAnalysis"),
-    vtxAna_(vtxAlgoParams), vtxConv_(vtxAlgoParams)
+    vtxAna_(vtxAlgoParams), vtxConv_(vtxAlgoParams),
+	tmvaPerVtxMethod("BDTG"),
+	tmvaPerVtxWeights(""),
+	tmvaPerEvtMethod("evtBTG"),
+	tmvaPerEvtWeights(""),
+	useNVert(3)
 {
     reRunCiC = false;
     doMCSmearing = true;
@@ -424,6 +429,25 @@ void StatAnalysis::Init(LoopAll& l)
     if(PADEBUG) 
 	cout << "InitRealStatAnalysis END"<<endl;
 	
+
+    //vertex-related TMVAs
+	tmvaPerVtxVariables_.push_back("ptbal"), tmvaPerVtxVariables_.push_back("ptasym"), tmvaPerVtxVariables_.push_back("logsumpt2");
+	tmvaPerVtxReader_ = new TMVA::Reader( "!Color:!Silent" );
+	HggVertexAnalyzer::bookVariables( *tmvaPerVtxReader_, tmvaPerVtxVariables_ );
+	tmvaPerVtxReader_->BookMVA( tmvaPerVtxMethod, tmvaPerVtxWeights );
+	//
+	tmvaPerEvtReader_ = new TMVA::Reader( "!Color:!Silent" );
+	MVA_.resize(useNVert);
+	dZ_.resize(useNVert);
+	tmvaPerEvtReader_->AddVariable( "diphoPt0/diphoM0", &diphoRelPt_ );
+	tmvaPerEvtReader_->AddVariable( "nVert"	 , &nVert_ 		);
+	tmvaPerEvtReader_->AddVariable( "MVA0" 	 , &MVA_[0]		);
+	tmvaPerEvtReader_->AddVariable( "MVA1"    , &MVA_[1]		);
+	tmvaPerEvtReader_->AddVariable( "dZ1"     , &dZ_[1]		);
+	tmvaPerEvtReader_->AddVariable( "MVA2"    , &MVA_[2]		);
+	tmvaPerEvtReader_->AddVariable( "dZ2"     , &dZ_[2]		);
+	tmvaPerEvtReader_->BookMVA( tmvaPerEvtMethod, tmvaPerEvtWeights );
+
     // FIXME book of additional variables
 }
 
@@ -538,6 +562,35 @@ void StatAnalysis::Analysis(LoopAll& l, Int_t jentry)
     int diphoton_id = l.DiphotonCiCSelection(l.phoSUPERTIGHT, l.phoSUPERTIGHT, leadEtCut, subleadEtCut, 4,false, &smeared_pho_energy[0] ); 
     /// std::cerr << "Selected pair " << l.dipho_n << " " << diphoton_id << std::endl;
     if (diphoton_id > -1 ) {
+
+        // MicroAnalysis-specific stuff
+        // TODO dipho selection should match the Higgs truth (not just the best dipho)
+        vtxAna_.setPairID(diphoton_id);
+        nVert_ = l.vtx_std_n;
+
+        //put stupid values in vectors
+        MVA_.assign(useNVert,-10);
+        dZ_.assign(useNVert,-100);
+
+        //get list of vertices as ranked for the selected diphoton
+        vector<int> & rankedVtxs = (*l.vtx_std_ranked_list)[diphoton_id];
+        vtxAna_.preselection(rankedVtxs);
+        vtxAna_.evaluate(*tmvaPerVtxReader_,tmvaPerVtxMethod);
+        for (size_t vi=0;vi<rankedVtxs.size();vi++) {
+        	if(vi>=useNVert) break;
+        	MVA_[vi] = vtxAna_.mva(rankedVtxs[vi]);
+        	dZ_[vi] = ( *(TVector3*)l.vtx_std_xyz->At(rankedVtxs[vi]) - *(TVector3*)l.vtx_std_xyz->At(rankedVtxs[0])).Z();
+
+        	TLorentzVector lead_pho = l.get_pho_p4( l.dipho_leadind[diphoton_id], rankedVtxs[vi], &smeared_pho_energy[0]);
+        	TLorentzVector sublead_pho = l.get_pho_p4( l.dipho_subleadind[diphoton_id], rankedVtxs[vi], &smeared_pho_energy[0]);
+        	TLorentzVector dipho = lead_pho+sublead_pho;
+        	if(vi==0) diphoRelPt_ = dipho.Pt()/dipho.M();
+        }
+
+        VtxEvtMVA_ = tmvaPerVtxReader_->EvaluateMVA(tmvaPerEvtMethod);
+        cout << "VtxEvtMVA: " << VtxEvtMVA_ << endl;
+        //TODO microanalysis imported stuff
+
 
 	diphoton_index = std::make_pair( l.dipho_leadind[diphoton_id],  l.dipho_subleadind[diphoton_id] );
     	// bring all the weights together: lumi & Xsection, single gammas, pt kfactor

@@ -1,5 +1,12 @@
 ->
 ->
+
+tmvaPerVtxMethod=BDTG
+tmvaPerVtxWeights=/afs/cern.ch/user/m/musella/public/higgs/vertex_likelihoods/TMVAClassification_BDTG.weights.xml
+tmvaPerEvtMethod=evtBDTG
+tmvaPerEvtWeights=/afs/cern.ch/user/m/musella/public/higgs/vertex_likelihoods/TMVAClassification_evtBDTG.weights.xml
+
+
 leadEtCut=40.0
 subleadEtCut=30.0
 
