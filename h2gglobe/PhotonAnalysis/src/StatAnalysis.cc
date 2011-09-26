@@ -27,6 +27,8 @@ StatAnalysis::StatAnalysis()  :
 
     systRange  = 3.; // in units of sigma
     nSystSteps = 1;    
+
+    nVtxCategories = 0;
 }
 
 // ----------------------------------------------------------------------------------------------------
@@ -83,6 +85,7 @@ void StatAnalysis::Init(LoopAll& l)
 	<< "nEtaCategories "<< nEtaCategories << "\n"
 	<< "nR9Categories "<< nR9Categories << "\n"		
 	<< "nPtCategories "<< nPtCategories << "\n"		
+	<< "nVtxCategories "<< nVtxCategories << "\n"		
 	<< "doEscaleSyst "<< doEscaleSyst << "\n"
 	<< "doEresolSyst "<< doEresolSyst << "\n"
 	<< "doEcorrectionSyst "<< doEcorrectionSyst << "\n"
@@ -112,7 +115,8 @@ void StatAnalysis::Init(LoopAll& l)
     nCategories_ = nEtaCategories;
     if( nR9Categories != 0 ) nCategories_ *= nR9Categories;
     if( nPtCategories != 0 ) nCategories_ *= nPtCategories;
-
+    if( nVtxCategories != 0 ) nCategories_ *= nVtxCategories;
+    
     nPhotonCategories_ = nEtaCategories;
     if( nR9Categories != 0 ) nPhotonCategories_ *= nR9Categories;
     
@@ -607,7 +611,8 @@ void StatAnalysis::Analysis(LoopAll& l, Int_t jentry)
 
 	bool CorrectVertex;
 	// FIXME pass smeared R9
-	int category = l.DiphotonCategory(diphoton_index.first,diphoton_index.second,Higgs.Pt(),nEtaCategories,nR9Categories,nPtCategories);
+	/// int category = l.DiphotonCategory(diphoton_index.first,diphoton_index.second,Higgs.Pt(),nEtaCategories,nR9Categories,nPtCategories);
+	int category = l.DiphotonCategory(diphoton_index.first,diphoton_index.second,Higgs.Pt(),nEtaCategories,nR9Categories,nPtCategories,nVtxCategories,VtxEvtMVA_);
 	int selectioncategory = l.DiphotonCategory(diphoton_index.first,diphoton_index.second,Higgs.Pt(),nEtaCategories,nR9Categories,0);
 	if( cur_type != 0 && doMCSmearing ) {
 	    float pth = Higgs.Pt();

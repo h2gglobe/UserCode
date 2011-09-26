@@ -52,7 +52,7 @@ public:
 	bool  doEscaleSmear, doEresolSmear, doPhotonIdEffSmear, doVtxEffSmear, doR9Smear, doTriggerEffSmear, doKFactorSmear;
 	float systRange;
 	int   nSystSteps;   
-	int   nEtaCategories, nR9Categories, nPtCategories;
+	int   nEtaCategories, nR9Categories, nPtCategories, nVtxCategories;
 	float massMin, massMax;
 	int nDataBins;	
 	//float smearing_sigma_EBHighR9       ;

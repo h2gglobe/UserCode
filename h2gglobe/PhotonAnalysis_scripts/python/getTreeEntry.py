@@ -17,6 +17,8 @@ def getTreeEntry(fileName,treeName,branchName):
 	brnch.SetAddress(ROOT.AddressOf(valueStruct,'r'))
 	tree.GetEntry(0)
 
+	newFile.Close()
+
 	return int(valueStruct.r)
 
 	

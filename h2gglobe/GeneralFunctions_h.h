@@ -119,12 +119,25 @@ int PhotonEtaCategory(int photonindex, int n_etacat=4) {
   return  etacat;
 }
 //diphoton category functions ( r9, eta, and diphoton pt)
-int DiphotonCategory(Int_t leadind, Int_t subleadind, float pTh, int n_r9cat=3, int n_etacat=4, int n_pThcat=0) {
+int DiphotonCategory(Int_t leadind, Int_t subleadind, float pTh, int n_r9cat=3, int n_etacat=4, int n_pThcat=0, int nVtxCategories=0, float vtxMva=-1.) {
   Int_t r9cat  =  TMath::Max(PhotonR9Category(leadind,n_r9cat),PhotonR9Category(subleadind,n_r9cat));
   Int_t etacat =  TMath::Max(PhotonEtaCategory(leadind,n_etacat),PhotonEtaCategory(subleadind,n_etacat));
   Int_t pThcat =  DiphotonPtCategory(pTh,n_pThcat);
-  return  (r9cat + n_r9cat*etacat + (n_r9cat*n_etacat)*pThcat);  // (n_r9cat*c_etacat*n_pThcat) categories
+  Int_t vtxThcat =  DiphotonVtxCategory(vtxMva,nVtxCategories);
+  return  (r9cat + n_r9cat*etacat + (n_r9cat*n_etacat)*pThcat) + (n_r9cat*n_etacat*nVtxCategories)*vtxThcat;  // (n_r9cat*c_etacat*n_pThcat) categories
 }
+
+int DiphotonVtxCategory(float vtxMva, int nVtxCategories)
+{
+	int cat=0;
+	if(nVtxCategories==2) {
+		  vtxMva < -0.8;
+	} else if (nVtxCategories>0) {
+		cat = (Int_t)(vtxMva < -0.8) + (Int_t)(vtxMva < -0.55);
+	}
+	return  cat;
+}
+
 int DiphotonPtCategory(double pTh, int n_pThcat=0) {
   if(n_pThcat<2)return 0;
   int pThcat=0;
