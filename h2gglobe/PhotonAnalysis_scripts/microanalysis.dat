@@ -1,4 +1,4 @@
-uFileName=uTree.root
+uFileName=/tmp/musella/uTree.root
 tmvaMethod=BDTG
 tmvaWeights=/afs/cern.ch/user/m/musella/public/higgs/vertex_likelihoods/TMVAClassification_BDTG.weights.xml
 roofitProbs=/afs/cern.ch/user/m/musella/public/higgs/vertex_likelihoods/RooFitBDTG.distributions.root

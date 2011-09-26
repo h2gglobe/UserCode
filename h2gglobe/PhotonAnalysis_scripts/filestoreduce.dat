@@ -1,5 +1,6 @@
 output=my_reduced_tuple_foo.root
-CaDir=/castor/cern.ch/user/m/musella/Higgs2011/test/Data/May10ReReco_Run2011A_DiPho_bru typ=0
+Fil=/afs/cern.ch/user/m/musella/Analysis/Higgs_423p5/src/HiggsAnalysis/HiggsTo2photons/test/crabTasks/GJet_Pt-20_doubleEMEnriched/GJet_Pt-20_doubleEMEnriched.root typ=2
+Fil=/afs/cern.ch/user/m/musella/Analysis/Higgs_423p5/src/HiggsAnalysis/HiggsTo2photons/test/crabTasks/GJet_Pt-20_doubleEMEnriched/GJet_Pt-20_doubleEMEnriched.root typ=2
 
 ->
 filestoreduce.dat
@@ -15,6 +16,7 @@ CaDir=/castor/cern.ch/user/c/cmshgg/processed/h2g_V06_00/Data/Run2010A typ=0
 CaDir=/castor/cern.ch/user/c/cmshgg/processed/h2g_V06_00/Data/promptreco_161475_163754 typ=0
 
 ->
+
 
 ->
 input and output branches

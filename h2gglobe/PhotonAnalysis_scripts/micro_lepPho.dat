@@ -19,47 +19,9 @@ Signal samples
 --- GF addin in prospect of having new samples included	 ---
 ->
 
-->
-typ=-57 ind=1 draw=1  Nam=gluglu_H_gg_123_pu2011  CaDir=/castor/cern.ch/user/c/cmshgg/reduced/h2gglobe_V11_00_reduction_08_09/Summer11-PU_S4_START42_V11/GluGluToHToGG_M-123  red=0 lum=1000.000000  xsec=0.0355224 kfac=1.000000  scal=1.000000
-typ=-58 ind=2 draw=1  Nam=vbf_H_gg_123_pu2011     CaDir=/castor/cern.ch/user/c/cmshgg/reduced/h2gglobe_V11_00_reduction_08_09/Summer11-PU_S4_START42_V11/VBF_HToGG_M-123      red=0 lum=1000.000000  xsec=0.00281352 kfac=1.000000  scal=1.000000
-typ=-60 ind=4 draw=1  Nam=wz_H_gg_123_pu2011      CaDir=/castor/cern.ch/user/c/cmshgg/reduced/h2gglobe_V11_00_reduction_08_09/Summer11-PU_S4_START42_V11/WH_ZH_HToGG_M-123    red=0 lum=1000.000000  xsec=0.002136816 kfac=1.000000  scal=1.000000
-typ=-59 ind=3 draw=1  Nam=tt_H_gg_123_pu2011      CaDir=/castor/cern.ch/user/c/cmshgg/reduced/h2gglobe_V11_00_reduction_08_09/Summer11-PU_S4_START42_V11/TTH_HToGG_M-123      red=0 lum=1000.000000  xsec=0.0002066364 kfac=1.000000  scal=1.000000
-
-typ=-53 ind=1 draw=1  Nam=gluglu_H_gg_121_pu2011  CaDir=/castor/cern.ch/user/c/cmshgg/reduced/h2gglobe_V11_00_reduction_08_09/Summer11-PU_S4_START42_V11/GluGluToHToGG_M-121  red=0 lum=1000.000000  xsec=0.0369736 kfac=1.000000  scal=1.000000
-typ=-54 ind=2 draw=1  Nam=vbf_H_gg_121_pu2011     CaDir=/castor/cern.ch/user/c/cmshgg/reduced/h2gglobe_V11_00_reduction_08_09/Summer11-PU_S4_START42_V11/VBF_HToGG_M-121      red=0 lum=1000.000000  xsec=0.00284082 kfac=1.000000  scal=1.000000
-typ=-56 ind=4 draw=1  Nam=wz_H_gg_121_pu2011      CaDir=/castor/cern.ch/user/c/cmshgg/reduced/h2gglobe_V11_00_reduction_08_09/Summer11-PU_S4_START42_V11/WH_ZH_HToGG_M-121    red=0 lum=1000.000000  xsec=0.002234914 kfac=1.000000  scal=1.000000
-typ=-55 ind=3 draw=1  Nam=tt_H_gg_121_pu2011      CaDir=/castor/cern.ch/user/c/cmshgg/reduced/h2gglobe_V11_00_reduction_08_09/Summer11-PU_S4_START42_V11/TTH_HToGG_M-121      red=0 lum=1000.000000  xsec=0.0002151068 kfac=1.000000  scal=1.000000
-
-
-typ=-65 ind=1 draw=1  Nam=gluglu_H_gg_160_pu2011  CaDir=/castor/cern.ch/user/c/cmshgg/reduced/h2gglobe_V11_00_reduction_08_14/Summer11-PU_S4_START42_V11/GluGluToHToGG_M-155  red=0 lum=1000.000000  xsec=0.00483056 kfac=1.000000  scal=1.000000
-typ=-66 ind=2 draw=1  Nam=vbf_H_gg_160_pu2011     CaDir=/castor/cern.ch/user/c/cmshgg/reduced/h2gglobe_V11_00_reduction_08_09/Summer11-PU_S4_START42_V11/GluGluToHToGG_M-160   red=0 lum=1000.000000  xsec=0.0004674684 kfac=1.000000  scal=1.000000
-typ=-68 ind=4 draw=1  Nam=wz_H_gg_160_pu2011      CaDir=/castor/cern.ch/user/c/cmshgg/reduced/h2gglobe_V11_00_reduction_08_10_prelim/Summer11-PU_S4_START42_V11/WH_ZH_HToGG_M-160   red=0 lum=1000.000000  xsec=0.00019285 kfac=1.000000  scal=1.000000
-typ=-67 ind=3 draw=1  Nam=tt_H_gg_160_pu2011      CaDir=/castor/cern.ch/user/c/cmshgg/reduced/h2gglobe_V11_00_reduction_08_10_prelim/Summer11-PU_S4_START42_V11/TTH_HToGG_M-160      red=0 lum=1000.000000  xsec=0.00002097144 kfac=1.000000  scal=1.000000
-
-typ=-61 ind=1 draw=1  Nam=gluglu_H_gg_155_pu2011  CaDir=/castor/cern.ch/user/c/cmshgg/reduced/h2gglobe_V11_00_reduction_08_09/Summer11-PU_S4_START42_V11/GluGluToHToGG_M-150  red=0 lum=1000.000000  xsec=0.009785205 kfac=1.000000  scal=1.000000
-typ=-62 ind=2 draw=1  Nam=vbf_H_gg_155_pu2011     CaDir=/castor/cern.ch/user/c/cmshgg/reduced/h2gglobe_V11_00_reduction_08_09/Summer11-PU_S4_START42_V11/VBF_HToGG_M-155      red=0 lum=1000.000000  xsec=0.000917082 kfac=1.000000  scal=1.000000
-typ=-64 ind=4 draw=1  Nam=wz_H_gg_155_pu2011      CaDir=/castor/cern.ch/user/c/cmshgg/reduced/h2gglobe_V11_00_reduction_08_10_prelim/Summer11-PU_S4_START42_V11/WH_ZH_HToGG_M-155    red=0 lum=1000.000000  xsec=0.0004166829 kfac=1.000000  scal=1.000000
-typ=-63 ind=3 draw=1  Nam=tt_H_gg_155_pu2011      CaDir=/castor/cern.ch/user/c/cmshgg/reduced/h2gglobe_V11_00_reduction_08_10_prelim/Summer11-PU_S4_START42_V11/TTH_HToGG_M-155      red=0 lum=1000.000000  xsec=0.00004369626 kfac=1.000000  scal=1.000000
-
-
-typ=-49 ind=1 draw=1  Nam=gluglu_H_gg_150_pu2011  CaDir=/castor/cern.ch/user/c/cmshgg/reduced/h2gglobe_V11_00_reduction_08_09/Summer11-PU_S4_START42_V11/GluGluToHToGG_M-145  red=0 lum=1000.000000  xsec=0.01428 kfac=1.000000  scal=1.000000
-typ=-50 ind=2 draw=1  Nam=vbf_H_gg_150_pu2011     CaDir=/castor/cern.ch/user/c/cmshgg/reduced/h2gglobe_V11_00_reduction_08_09/Summer11-PU_S4_START42_V11/VBF_HToGG_M-150      red=0 lum=1000.000000  xsec=0.001307912 kfac=1.000000  scal=1.000000
-typ=-52 ind=4 draw=1  Nam=wz_H_gg_150_pu2011      CaDir=/castor/cern.ch/user/c/cmshgg/reduced/h2gglobe_V11_00_reduction_08_10_prelim/Summer11-PU_S4_START42_V11/WH_ZH_HToGG_M-150    red=0 lum=1000.000000  xsec=0.000641104 kfac=1.000000  scal=1.000000
-typ=-51 ind=3 draw=1  Nam=tt_H_gg_150_pu2011      CaDir=/castor/cern.ch/user/c/cmshgg/reduced/h2gglobe_V11_00_reduction_08_10_prelim/Summer11-PU_S4_START42_V11/TTH_HToGG_M-150      red=0 lum=1000.000000  xsec=0.0000662184 kfac=1.000000  scal=1.000000
-->
-->
-5-GeV-spaced points not used for LP
-typ=-45 ind=1 draw=1  Nam=gluglu_H_gg_145_pu2011  CaDir=/castor/cern.ch/user/c/cmshgg/reduced/h2gglobe_V11_00_reduction_08_09/Summer11-PU_S4_START42_V11/GluGluToHToGG_M-145  red=0 lum=1000.000000  xsec=0.0188209 kfac=1.000000  scal=1.000000
-typ=-46 ind=2 draw=1  Nam=vbf_H_gg_145_pu2011     CaDir=/castor/cern.ch/user/c/cmshgg/reduced/h2gglobe_V11_00_reduction_08_09/Summer11-PU_S4_START42_V11/VBF_HToGG_M-145      red=0 lum=1000.000000  xsec=0.00167668 kfac=1.000000  scal=1.000000
-typ=-48 ind=4 draw=1  Nam=wz_H_gg_145_pu2011      CaDir=/castor/cern.ch/user/c/cmshgg/reduced/h2gglobe_V11_00_reduction_08_10_prelim/Summer11-PU_S4_START42_V11/WH_ZH_HToGG_M-145    red=0 lum=1000.000000  xsec=0.000891112 kfac=1.000000  scal=1.000000
-typ=-47 ind=3 draw=1  Nam=tt_H_gg_145_pu2011      CaDir=/castor/cern.ch/user/c/cmshgg/reduced/h2gglobe_V11_00_reduction_08_10_prelim/Summer11-PU_S4_START42_V11/TTH_HToGG_M-145      red=0 lum=1000.000000  xsec=0.0000907645 kfac=1.000000  scal=1.000000
-->
-->
---- GF addin in prospect of having new samples included	 ---
-->
-->
 typ=-33 ind=1 draw=1  Nam=gluglu_H_gg_140_pu2011  CaDir=/castor/cern.ch/user/c/cmshgg/reduced/h2gglobe_V11_00_reduction_08_09/Summer11-PU_S4_START42_V11/GluGluToHToGG_M-140  red=0 lum=1000.000000  xsec=0.0234109 kfac=1.000000  scal=1.000000
 typ=-34 ind=2 draw=1  Nam=vbf_H_gg_140_pu2011     CaDir=/castor/cern.ch/user/c/cmshgg/reduced/h2gglobe_V11_00_reduction_08_09/Summer11-PU_S4_START42_V11/VBF_HToGG_M-140      red=0 lum=1000.000000  xsec=0.00203036 kfac=1.000000  scal=1.000000
+->
 typ=-36 ind=4 draw=1  Nam=wz_H_gg_140_pu2011      CaDir=/castor/cern.ch/user/c/cmshgg/reduced/h2gglobe_V11_00_reduction_08_09/Summer11-PU_S4_START42_V11/WH_ZH_HToGG_M-140    red=0 lum=1000.000000  xsec=0.001163597 kfac=1.000000  scal=1.000000
 typ=-35 ind=3 draw=1  Nam=tt_H_gg_140_pu2011      CaDir=/castor/cern.ch/user/c/cmshgg/reduced/h2gglobe_V11_00_reduction_08_09/Summer11-PU_S4_START42_V11/TTH_HToGG_M-140      red=0 lum=1000.000000  xsec=0.0001171896 kfac=1.000000  scal=1.000000
 
@@ -67,9 +29,11 @@ typ=-41 ind=28 draw=1  Nam=gluglu_H_gg_135_pu2011  CaDir=/castor/cern.ch/user/c/
 typ=-42 ind=30 draw=1  Nam=vbf_H_gg_135_pu2011     CaDir=/castor/cern.ch/user/c/cmshgg/reduced/h2gglobe_V11_00_reduction_08_09/Summer11-PU_S4_START42_V11/VBF_HToGG_M-135      red=0 lum=1000.000000 xsec=0.002343 kfac=1.000000  scal=1.000000
 typ=-44 ind=31 draw=1  Nam=wz_H_gg_135_pu2011      CaDir=/castor/cern.ch/user/c/cmshgg/reduced/h2gglobe_V11_00_reduction_08_09/Summer11-PU_S4_START42_V11/WH_ZH_HToGG_M-135    red=0 lum=1000.000000 xsec=0.001457559 kfac=1.000000  scal=1.000000
 typ=-43 ind=32 draw=1  Nam=tt_H_gg_135_pu2011      CaDir=/castor/cern.ch/user/c/cmshgg/reduced/h2gglobe_V11_00_reduction_08_09/Summer11-PU_S4_START42_V11/TTH_HToGG_M-135      red=0 lum=1000.000000 xsec=0.000145053 kfac=1.000000  scal=1.000000
+->
                                                                           
 typ=-29 ind=5 draw=1  Nam=gluglu_H_gg_130_pu2011  CaDir=/castor/cern.ch/user/c/cmshgg/reduced/h2gglobe_V11_00_reduction_08_09/Summer11-PU_S4_START42_V11/GluGluToHToGG_M-130  red=0 lum=1000.000000  xsec=0.0319112 kfac=1.000000  scal=1.000000
 typ=-30 ind=6 draw=1  Nam=vbf_H_gg_130_pu2011     CaDir=/castor/cern.ch/user/c/cmshgg/reduced/h2gglobe_V11_00_reduction_08_09/Summer11-PU_S4_START42_V11/VBF_HToGG_M-130      red=0 lum=1000.000000  xsec=0.00260804 kfac=1.000000  scal=1.000000
+->
 typ=-32 ind=7 draw=1  Nam=wz_H_gg_130_pu2011      CaDir=/castor/cern.ch/user/c/cmshgg/reduced/h2gglobe_V11_00_reduction_08_09/Summer11-PU_S4_START42_V11/WH_ZH_HToGG_M-130    red=0 lum=1000.000000  xsec=0.001759636 kfac=1.000000  scal=1.000000
 typ=-31 ind=8 draw=1  Nam=tt_H_gg_130_pu2011      CaDir=/castor/cern.ch/user/c/cmshgg/reduced/h2gglobe_V11_00_reduction_08_09/Summer11-PU_S4_START42_V11/TTH_HToGG_M-130      red=0 lum=1000.000000  xsec=0.0001730708 kfac=1.000000  scal=1.000000
                                                                           
@@ -80,8 +44,8 @@ typ=-39 ind=28 draw=1  Nam=tt_H_gg_125_pu2011     CaDir=/castor/cern.ch/user/c/c
 ->
 
 typ=-25 ind=9 draw=1   Nam=gluglu_H_gg_120_pu2011 CaDir=/castor/cern.ch/user/c/cmshgg/reduced/h2gglobe_V11_00_reduction_08_09/Summer11-PU_S4_START42_V11/GluGluToHToGG_M-120  red=0 lum=1000.000000  xsec=0.0374175 kfac=1.000000  scal=1.000000
-->
 typ=-26 ind=10 draw=1  Nam=vbf_H_gg_120_pu2011    CaDir=/castor/cern.ch/user/c/cmshgg/reduced/h2gglobe_V11_00_reduction_08_09/Summer11-PU_S4_START42_V11/VBF_HToGG_M-120      red=0 lum=1000.000000  xsec=0.00285525 kfac=1.000000  scal=1.000000
+->
 typ=-28 ind=11 draw=1  Nam=wz_H_gg_120_pu2011     CaDir=/castor/cern.ch/user/c/cmshgg/reduced/h2gglobe_V11_00_reduction_08_09/Summer11-PU_S4_START42_V11/WH_ZH_HToGG_M-120    red=0 lum=1000.000000  xsec=0.002285775 kfac=1.000000  scal=1.000000
 typ=-27 ind=12 draw=1  Nam=tt_H_gg_120_pu2011     CaDir=/castor/cern.ch/user/c/cmshgg/reduced/h2gglobe_V11_00_reduction_08_09/Summer11-PU_S4_START42_V11/TTH_HToGG_M-120      red=0 lum=1000.000000  xsec=0.00021951 kfac=1.000000  scal=1.000000
 ->
@@ -91,7 +55,9 @@ typ=-21 ind=13 draw=1  Nam=gluglu_H_gg_115_pu2011 CaDir=/castor/cern.ch/user/c/c
 typ=-22 ind=14 draw=1  Nam=vbf_H_gg_115_pu2011    CaDir=/castor/cern.ch/user/c/cmshgg/reduced/h2gglobe_V11_00_reduction_08_09/Summer11-PU_S4_START42_V11/VBF_HToGG_M-115      red=0 lum=1000.000000  xsec=0.00283716 kfac=1.000000  scal=1.000000
 typ=-24 ind=15 draw=1  Nam=wz_H_gg_115_pu2011     CaDir=/castor/cern.ch/user/c/cmshgg/reduced/h2gglobe_V11_00_reduction_08_09/Summer11-PU_S4_START42_V11/WH_ZH_HToGG_M-115    red=0 lum=1000.000000  xsec=0.002482089 kfac=1.000000  scal=1.000000
 typ=-23 ind=16 draw=1  Nam=tt_H_gg_115_pu2011     CaDir=/castor/cern.ch/user/c/cmshgg/reduced/h2gglobe_V11_00_reduction_08_09/Summer11-PU_S4_START42_V11/TTH_HToGG_M-115      red=0 lum=1000.000000  xsec=0.000235578 kfac=1.000000  scal=1.000000
+->
                                                                           
+->
 typ=-17 ind=17 draw=1  Nam=gluglu_H_gg_110_pu2011 CaDir=/castor/cern.ch/user/c/cmshgg/reduced/h2gglobe_V11_00_reduction_08_09/Summer11-PU_S4_START42_V11/GluGluToHToGG_M-110  red=0 lum=1000.000000  xsec=0.0390848 kfac=1.000000  scal=1.000000
 typ=-18 ind=18 draw=1  Nam=vbf_H_gg_110_pu2011    CaDir=/castor/cern.ch/user/c/cmshgg/reduced/h2gglobe_V11_00_reduction_08_09/Summer11-PU_S4_START42_V11/VBF_HToGG_M-110      red=0 lum=1000.000000  xsec=0.00275406 kfac=1.000000  scal=1.000000
 typ=-19 ind=19 draw=1  Nam=wz_H_gg_110_pu2011     CaDir=/castor/cern.ch/user/c/cmshgg/reduced/h2gglobe_V11_00_reduction_08_09/Summer11-PU_S4_START42_V11/WH_ZH_HToGG_M-110    red=0 lum=1000.000000  xsec=0.002654575 kfac=1.000000  scal=1.000000

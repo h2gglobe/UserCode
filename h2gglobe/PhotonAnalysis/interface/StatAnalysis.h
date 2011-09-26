@@ -111,7 +111,7 @@ protected:
 	TMVA::Reader *tmvaPerVtxReader_;
 	vector<string> tmvaPerEvtVariables_;
 	TMVA::Reader *tmvaPerEvtReader_;
-	Int_t	nVert_;
+	Float_t	nVert_;
 	vector<float> MVA_;
 	vector<float> dZ_;
 	Float_t diphoRelPt_;

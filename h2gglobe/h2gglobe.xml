@@ -2,7 +2,7 @@
 To teach scram about h2gglobe 
 scram saetup h2gglobe.xml 
 -->
-  <tool name="h2gglobe" version="v0">
+  <tool name="h2gglobe" version="v1">
     <lib name="LoopAll"/>
     <client>
       <environment name="H2GGLOBE_BASE" default="$CMSSW_BASE/src/h2gglobe"/>

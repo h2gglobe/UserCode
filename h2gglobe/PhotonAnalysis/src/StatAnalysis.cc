@@ -439,7 +439,7 @@ void StatAnalysis::Init(LoopAll& l)
 	tmvaPerEvtReader_ = new TMVA::Reader( "!Color:!Silent" );
 	MVA_.resize(useNVert);
 	dZ_.resize(useNVert);
-	tmvaPerEvtReader_->AddVariable( "diphoPt0/diphoM0", &diphoRelPt_ );
+	tmvaPerEvtReader_->AddVariable( "diphoPt0", &diphoRelPt_ );
 	tmvaPerEvtReader_->AddVariable( "nVert"	 , &nVert_ 		);
 	tmvaPerEvtReader_->AddVariable( "MVA0" 	 , &MVA_[0]		);
 	tmvaPerEvtReader_->AddVariable( "MVA1"    , &MVA_[1]		);
@@ -563,6 +563,10 @@ void StatAnalysis::Analysis(LoopAll& l, Int_t jentry)
     /// std::cerr << "Selected pair " << l.dipho_n << " " << diphoton_id << std::endl;
     if (diphoton_id > -1 ) {
 
+	diphoton_index = std::make_pair( l.dipho_leadind[diphoton_id],  l.dipho_subleadind[diphoton_id] );
+    	// bring all the weights together: lumi & Xsection, single gammas, pt kfactor
+	float evweight = weight * smeared_pho_weight[diphoton_index.first] * smeared_pho_weight[diphoton_index.second] * genLevWeight;
+
         // MicroAnalysis-specific stuff
         // TODO dipho selection should match the Higgs truth (not just the best dipho)
         vtxAna_.setPairID(diphoton_id);
@@ -584,17 +588,13 @@ void StatAnalysis::Analysis(LoopAll& l, Int_t jentry)
         	TLorentzVector lead_pho = l.get_pho_p4( l.dipho_leadind[diphoton_id], rankedVtxs[vi], &smeared_pho_energy[0]);
         	TLorentzVector sublead_pho = l.get_pho_p4( l.dipho_subleadind[diphoton_id], rankedVtxs[vi], &smeared_pho_energy[0]);
         	TLorentzVector dipho = lead_pho+sublead_pho;
-        	if(vi==0) diphoRelPt_ = dipho.Pt()/dipho.M();
+        	/// if(vi==0) diphoRelPt_ = dipho.Pt()/dipho.M();
+        	if(vi==0) diphoRelPt_ = dipho.Pt();
         }
-
-        VtxEvtMVA_ = tmvaPerVtxReader_->EvaluateMVA(tmvaPerEvtMethod);
-        cout << "VtxEvtMVA: " << VtxEvtMVA_ << endl;
+        VtxEvtMVA_ = tmvaPerEvtReader_->EvaluateMVA(tmvaPerEvtMethod);
+	
+        // cout << "VtxEvtMVA: " << VtxEvtMVA_ << endl;
         //TODO microanalysis imported stuff
-
-
-	diphoton_index = std::make_pair( l.dipho_leadind[diphoton_id],  l.dipho_subleadind[diphoton_id] );
-    	// bring all the weights together: lumi & Xsection, single gammas, pt kfactor
-	float evweight = weight * smeared_pho_weight[diphoton_index.first] * smeared_pho_weight[diphoton_index.second] * genLevWeight;
 
 	l.countersred[diPhoCounter_]++;
 
@@ -624,8 +624,16 @@ void StatAnalysis::Analysis(LoopAll& l, Int_t jentry)
 	}
 	float mass    = Higgs.M();
 	float ptHiggs = Higgs.Pt();
-      
+	
 	assert( evweight >= 0. ); 
+	
+        for (size_t vi=0;vi<rankedVtxs.size();vi++) {
+        	if(vi>=useNVert) break;
+		l.FillHist(Form("vtx_mva_%d",vi),0,MVA_[vi],evweight);
+		l.FillHist(Form("vtx_mva_%d",vi),category % 4 + 1,MVA_[vi],evweight);
+        }
+	l.FillHist("evt_vtx_mva",0,VtxEvtMVA_,evweight);
+	l.FillHist("evt_vtx_mva",category % 4 + 1,VtxEvtMVA_,evweight);
 
 	l.FillCounter( "Accepted", weight );
 	l.FillCounter( "Smeared", evweight );
