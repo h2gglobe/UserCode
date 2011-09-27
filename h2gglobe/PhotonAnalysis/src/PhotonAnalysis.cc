@@ -17,7 +17,9 @@ using namespace std;
 PhotonAnalysis::PhotonAnalysis()  : 
 	runStatAnalysis(false), doTriggerSelection(false),
 	name_("PhotonAnalysis"),
-	vtxAna_(vtxAlgoParams), vtxConv_(vtxAlgoParams)
+	vtxAna_(vtxAlgoParams), vtxConv_(vtxAlgoParams),
+	tmvaPerVtxMethod("BDTG"),
+	tmvaPerVtxWeights("")
 {
 	useDefaultVertex=false;
 	forcedRho = -1.;
@@ -188,6 +190,15 @@ void PhotonAnalysis::Init(LoopAll& l)
 		}
 	}
 	
+	if( tmvaPerVtxWeights != ""  ) {
+		tmvaPerVtxVariables_.push_back("ptbal"), tmvaPerVtxVariables_.push_back("ptasym"), tmvaPerVtxVariables_.push_back("logsumpt2");
+		tmvaPerVtxReader_ = new TMVA::Reader( "!Color:!Silent" );
+		HggVertexAnalyzer::bookVariables( *tmvaPerVtxReader_, tmvaPerVtxVariables_ );
+		tmvaPerVtxReader_->BookMVA( tmvaPerVtxMethod, tmvaPerVtxWeights );
+	} else {
+		tmvaPerVtxReader_ = 0;
+	}
+
 	eSmearDataPars.categoryType = "2CatR9_EBEE";
 	eSmearDataPars.byRun = true;
 	eSmearDataPars.n_categories = 4;

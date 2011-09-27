@@ -8,6 +8,8 @@
 #include "TriggerSelection.h"
 #include "EnergySmearer.h"
 
+#include "TMVA/Reader.h"
+
 // ------------------------------------------------------------------------------------
 class PhotonAnalysis : public BaseAnalysis 
 {
@@ -79,6 +81,9 @@ public:
 	enum BkgCategory{promptprompt,promptfake,fakefake};
 	bool keepPP, keepPF, keepFF;
 
+	std::string tmvaPerVtxMethod;
+	std::string tmvaPerVtxWeights;
+
 protected:
 	void PreselectPhotons(LoopAll& l, int jentry);
 	void StatAnalysis(LoopAll &l, int jentry);
@@ -99,7 +104,9 @@ protected:
 	EnergySmearer *eCorrSmearer;      // corrections for energy scale  MC
 	std::vector<float> corrected_pho_energy;
 	
-	
+	vector<string> tmvaPerVtxVariables_;
+	TMVA::Reader *tmvaPerVtxReader_;
+
 };
 
 #endif

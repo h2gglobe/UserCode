@@ -22,7 +22,8 @@ vector<double> generate_flat10_weights(TH1D* data_npu_estimated);
 void vertexAnalysis(HggVertexAnalyzer & vtxAna,  PhotonInfo pho1, PhotonInfo pho2);
 //std::vector<int> vertexSelection(HggVertexAnalyzer & vtxAna, HggVertexFromConversions & vtxAnaFromConv, int p1, int p2, std::vector<std::string> & vtxVarNames);
 std::vector<int> vertexSelection(HggVertexAnalyzer & vtxAna, HggVertexFromConversions & vtxAnaFromConv, PhotonInfo & pho1, PhotonInfo & pho2,
-				 std::vector<std::string> & vtxVarNames);
+				 std::vector<std::string> & vtxVarNames, 					  
+				 bool useMva=false, TMVA::Reader * reader=0, std::string tmvaMethod="");
 
 TLorentzVector get_pho_p4(int ipho, int ivtx, float *pho_energy_array=0);
 TLorentzVector get_pho_p4(int ipho, TVector3 * vtx, float * energy=0);
@@ -123,18 +124,19 @@ int DiphotonCategory(Int_t leadind, Int_t subleadind, float pTh, int n_r9cat=3, 
   Int_t r9cat  =  TMath::Max(PhotonR9Category(leadind,n_r9cat),PhotonR9Category(subleadind,n_r9cat));
   Int_t etacat =  TMath::Max(PhotonEtaCategory(leadind,n_etacat),PhotonEtaCategory(subleadind,n_etacat));
   Int_t pThcat =  DiphotonPtCategory(pTh,n_pThcat);
-  Int_t vtxThcat =  DiphotonVtxCategory(vtxMva,nVtxCategories);
-  return  (r9cat + n_r9cat*etacat + (n_r9cat*n_etacat)*pThcat) + (n_r9cat*n_etacat*(n_pThcat>0?n_pThcat:1))*vtxThcat;  // (n_r9cat*c_etacat*n_pThcat) categories
+  Int_t vtxCat =  DiphotonVtxCategory(vtxMva,nVtxCategories);
+  return  (r9cat + n_r9cat*etacat + (n_r9cat*n_etacat)*pThcat) + (n_r9cat*n_etacat*(n_pThcat>0?n_pThcat:1))*vtxCat;  // (n_r9cat*c_etacat*n_pThcat) categories
 }
 
 int DiphotonVtxCategory(float vtxMva, int nVtxCategories)
 {
 	int cat=0;
 	if(nVtxCategories==2) {
-		  vtxMva < -0.8;
+		cat = (Int_t)(vtxMva > -0.8);
 	} else if (nVtxCategories>0) {
-		cat = (Int_t)(vtxMva < -0.8) + (Int_t)(vtxMva < -0.55);
+		cat = (Int_t)(vtxMva > -0.8) + (Int_t)(vtxMva > -0.55);
 	}
+	/// cout << "DiphotonVtxCategory " << cat << " " << vtxMva << " " << nVtxCategories << endl;
 	return  cat;
 }
 

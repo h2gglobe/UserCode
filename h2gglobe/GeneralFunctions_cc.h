@@ -339,7 +339,8 @@ PhotonInfo LoopAll::fillPhotonInfos(int p1, bool useAllConvs)
 
 // ---------------------------------------------------------------------------------------------------------------------------------------------
 std::vector<int> LoopAll::vertexSelection(HggVertexAnalyzer & vtxAna, HggVertexFromConversions & vtxAnaFromConv, 
-					  PhotonInfo & pho1, PhotonInfo & pho2, std::vector<std::string> & vtxVarNames)
+					  PhotonInfo & pho1, PhotonInfo & pho2, std::vector<std::string> & vtxVarNames, 
+					  bool useMva, TMVA::Reader * tmvaReader, std::string tmvaMethod)
 {
 	int p1 = pho1.id(), p2 = pho2.id();
 	// assert( p1 == vtxAna.pho1() && p2 == vtxAna.pho2() );
@@ -401,7 +402,7 @@ std::vector<int> LoopAll::vertexSelection(HggVertexAnalyzer & vtxAna, HggVertexF
 	
 	// ---- NEW METHOD 2 (suggested by MarcoP) : first use ranking, then conversions info, e.g. on the N vtxs with best rank
 	// preselection  : all vtxs
-	std::vector<int> rankprodAll = vtxAna.rankprod(vtxVarNames);
+	std::vector<int> rankprodAll = useMva ? vtxAna.rank(*tmvaReader,tmvaMethod) : vtxAna.rankprod(vtxVarNames);
 	int iClosestConv = -1;
 	float dminconv = 9999999;
 	

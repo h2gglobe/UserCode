@@ -13,8 +13,6 @@ using namespace std;
 StatAnalysis::StatAnalysis()  : 
     name_("StatAnalysis"),
     vtxAna_(vtxAlgoParams), vtxConv_(vtxAlgoParams),
-	tmvaPerVtxMethod("BDTG"),
-	tmvaPerVtxWeights(""),
 	tmvaPerEvtMethod("evtBTG"),
 	tmvaPerEvtWeights(""),
 	useNVert(3)
@@ -435,22 +433,17 @@ void StatAnalysis::Init(LoopAll& l)
 	
 
     //vertex-related TMVAs
-	tmvaPerVtxVariables_.push_back("ptbal"), tmvaPerVtxVariables_.push_back("ptasym"), tmvaPerVtxVariables_.push_back("logsumpt2");
-	tmvaPerVtxReader_ = new TMVA::Reader( "!Color:!Silent" );
-	HggVertexAnalyzer::bookVariables( *tmvaPerVtxReader_, tmvaPerVtxVariables_ );
-	tmvaPerVtxReader_->BookMVA( tmvaPerVtxMethod, tmvaPerVtxWeights );
-	//
-	tmvaPerEvtReader_ = new TMVA::Reader( "!Color:!Silent" );
-	MVA_.resize(useNVert);
-	dZ_.resize(useNVert);
-	tmvaPerEvtReader_->AddVariable( "diphoPt0", &diphoRelPt_ );
-	tmvaPerEvtReader_->AddVariable( "nVert"	 , &nVert_ 		);
-	tmvaPerEvtReader_->AddVariable( "MVA0" 	 , &MVA_[0]		);
-	tmvaPerEvtReader_->AddVariable( "MVA1"    , &MVA_[1]		);
-	tmvaPerEvtReader_->AddVariable( "dZ1"     , &dZ_[1]		);
-	tmvaPerEvtReader_->AddVariable( "MVA2"    , &MVA_[2]		);
-	tmvaPerEvtReader_->AddVariable( "dZ2"     , &dZ_[2]		);
-	tmvaPerEvtReader_->BookMVA( tmvaPerEvtMethod, tmvaPerEvtWeights );
+    tmvaPerEvtReader_ = new TMVA::Reader( "!Color:!Silent" );
+    MVA_.resize(useNVert);
+    dZ_.resize(useNVert);
+    tmvaPerEvtReader_->AddVariable( "diphoPt0", &diphoRelPt_ );
+    tmvaPerEvtReader_->AddVariable( "nVert"	 , &nVert_ 		);
+    tmvaPerEvtReader_->AddVariable( "MVA0" 	 , &MVA_[0]		);
+    tmvaPerEvtReader_->AddVariable( "MVA1"    , &MVA_[1]		);
+    tmvaPerEvtReader_->AddVariable( "dZ1"     , &dZ_[1]		);
+    tmvaPerEvtReader_->AddVariable( "MVA2"    , &MVA_[2]		);
+    tmvaPerEvtReader_->AddVariable( "dZ2"     , &dZ_[2]		);
+    tmvaPerEvtReader_->BookMVA( tmvaPerEvtMethod, tmvaPerEvtWeights );
 
     // FIXME book of additional variables
 }
@@ -614,6 +607,8 @@ void StatAnalysis::Analysis(LoopAll& l, Int_t jentry)
 	// FIXME pass smeared R9
 	/// int category = l.DiphotonCategory(diphoton_index.first,diphoton_index.second,Higgs.Pt(),nEtaCategories,nR9Categories,nPtCategories);
 	int category = l.DiphotonCategory(diphoton_index.first,diphoton_index.second,Higgs.Pt(),nEtaCategories,nR9Categories,nPtCategories,nVtxCategories,VtxEvtMVA_);
+	/// cout << "category "<< category << " " << diphoton_index.first<< " " << diphoton_index.second<< " " << Higgs.Pt()<< " " << nEtaCategories<< " " 
+	///      << nR9Categories<< " " << nPtCategories<< " " << nVtxCategories<< " " << VtxEvtMVA_ << endla; 
 	int selectioncategory = l.DiphotonCategory(diphoton_index.first,diphoton_index.second,Higgs.Pt(),nEtaCategories,nR9Categories,0);
 	if( cur_type != 0 && doMCSmearing ) {
 	    float pth = Higgs.Pt();
@@ -640,7 +635,7 @@ void StatAnalysis::Analysis(LoopAll& l, Int_t jentry)
 		if( vi>0 ) { l.FillHist(Form("vtx_dz_%d",vi),category+1,dZ_[vi],evweight); }
         }
 	l.FillHist("vtx_evt_mva",0,VtxEvtMVA_,evweight);
-	l.FillHist("vtx_evt_mva",category % 4 + 1,VtxEvtMVA_,evweight);
+	l.FillHist("vtx_evt_mva",category+1,VtxEvtMVA_,evweight);
 
 	l.FillCounter( "Accepted", weight );
 	l.FillCounter( "Smeared", evweight );
@@ -787,7 +782,7 @@ void StatAnalysis::Analysis(LoopAll& l, Int_t jentry)
 		    if( syst_shift == 0. ) { continue; } // skip the central value
 		    TLorentzVector Higgs = lead_p4 + sublead_p4; 	
 	     
-		    int category = l.DiphotonCategory(diphoton_index.first,diphoton_index.second,Higgs.Pt(),nEtaCategories,nR9Categories,nPtCategories);
+		    int category = l.DiphotonCategory(diphoton_index.first,diphoton_index.second,Higgs.Pt(),nEtaCategories,nR9Categories,nPtCategories,nVtxCategories,VtxEvtMVA_);
 		    double genLevWeightSyst=1; 
 	     
 		    for(std::vector<BaseGenLevelSmearer *>::iterator sj=genLevelSmearers_.begin(); sj!= genLevelSmearers_.end(); ++sj ) {
@@ -848,7 +843,7 @@ void StatAnalysis::Analysis(LoopAll& l, Int_t jentry)
 		    float evweight = weight * smeared_pho_weight[diphoton_index.first] * smeared_pho_weight[diphoton_index.second] * genLevWeight;
 			       
 		    // FIXME pass smeared R9 and di-photon
-		    int category = l.DiphotonCategory(diphoton_index.first,diphoton_index.second,Higgs.Pt(),nEtaCategories,nR9Categories,nPtCategories);
+		    int category = l.DiphotonCategory(diphoton_index.first,diphoton_index.second,Higgs.Pt(),nEtaCategories,nR9Categories,nPtCategories,nVtxCategories,VtxEvtMVA_);
 		    int selectioncategory = l.DiphotonCategory(diphoton_index.first,diphoton_index.second,Higgs.Pt(),nEtaCategories,nR9Categories,0);
 		    for(std::vector<BaseDiPhotonSmearer *>::iterator sj=diPhotonSmearers_.begin(); sj!= diPhotonSmearers_.end(); ++sj ) {
 			float swei=1.;
@@ -943,7 +938,7 @@ void StatAnalysis::Analysis(LoopAll& l, Int_t jentry)
 		    TVector3 * vtx = (TVector3*)l.vtx_std_xyz->At(l.dipho_vtxind[diphoton_id]);
 		    TLorentzVector Higgs = lead_p4 + sublead_p4; 	
 		   
-		    int category = l.DiphotonCategory(diphoton_index.first,diphoton_index.second,Higgs.Pt(),nEtaCategories,nR9Categories,nPtCategories);
+		    int category = l.DiphotonCategory(diphoton_index.first,diphoton_index.second,Higgs.Pt(),nEtaCategories,nR9Categories,nPtCategories,nVtxCategories,VtxEvtMVA_);
 		    int selectioncategory = l.DiphotonCategory(diphoton_index.first,diphoton_index.second,Higgs.Pt(),nEtaCategories,nR9Categories,0);
 		    if( cur_type != 0 && doMCSmearing ) {
 			for(std::vector<BaseDiPhotonSmearer *>::iterator si=diPhotonSmearers_.begin(); si!= diPhotonSmearers_.end(); ++si ) {

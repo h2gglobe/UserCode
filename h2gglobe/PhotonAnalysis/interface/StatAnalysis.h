@@ -15,7 +15,6 @@
 #include <fstream>
 #include "math.h"
 
-#include "TMVA/Reader.h"
 
 // ------------------------------------------------------------------------------------
 class StatAnalysis : public PhotonAnalysis 
@@ -70,8 +69,6 @@ public:
 	int nMasses;
 
 	//tmva-related variables for vertexing
-	std::string tmvaPerVtxMethod;
-	std::string tmvaPerVtxWeights;
 	std::string tmvaPerEvtMethod;
 	std::string tmvaPerEvtWeights;
 	Int_t useNVert;
@@ -107,8 +104,6 @@ protected:
 	TFile *kfacFile;
 	
 	//tmva-related variables
-	vector<string> tmvaPerVtxVariables_;
-	TMVA::Reader *tmvaPerVtxReader_;
 	vector<string> tmvaPerEvtVariables_;
 	TMVA::Reader *tmvaPerEvtReader_;
 	Float_t	nVert_;
