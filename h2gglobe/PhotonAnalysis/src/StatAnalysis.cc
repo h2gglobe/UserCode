@@ -575,6 +575,7 @@ void StatAnalysis::Analysis(LoopAll& l, Int_t jentry)
         // TODO dipho selection should match the Higgs truth (not just the best dipho)
         vtxAna_.setPairID(diphoton_id);
         nVert_ = l.vtx_std_n;
+	l.FillHist("vtx_n",0,nVert_,evweight);
 
         //put stupid values in vectors
         MVA_.assign(useNVert,-10);
@@ -635,10 +636,11 @@ void StatAnalysis::Analysis(LoopAll& l, Int_t jentry)
         for (size_t vi=0;vi<rankedVtxs.size();vi++) {
         	if(vi>=useNVert) break;
 		l.FillHist(Form("vtx_mva_%d",vi),0,MVA_[vi],evweight);
-		l.FillHist(Form("vtx_mva_%d",vi),category % 4 + 1,MVA_[vi],evweight);
+		l.FillHist(Form("vtx_mva_%d",vi),category+1,MVA_[vi],evweight);
+		if( vi>0 ) { l.FillHist(Form("vtx_dz_%d",vi),category+1,dZ_[vi],evweight); }
         }
-	l.FillHist("evt_vtx_mva",0,VtxEvtMVA_,evweight);
-	l.FillHist("evt_vtx_mva",category % 4 + 1,VtxEvtMVA_,evweight);
+	l.FillHist("vtx_evt_mva",0,VtxEvtMVA_,evweight);
+	l.FillHist("vtx_evt_mva",category % 4 + 1,VtxEvtMVA_,evweight);
 
 	l.FillCounter( "Accepted", weight );
 	l.FillCounter( "Smeared", evweight );

@@ -124,7 +124,7 @@ int DiphotonCategory(Int_t leadind, Int_t subleadind, float pTh, int n_r9cat=3, 
   Int_t etacat =  TMath::Max(PhotonEtaCategory(leadind,n_etacat),PhotonEtaCategory(subleadind,n_etacat));
   Int_t pThcat =  DiphotonPtCategory(pTh,n_pThcat);
   Int_t vtxThcat =  DiphotonVtxCategory(vtxMva,nVtxCategories);
-  return  (r9cat + n_r9cat*etacat + (n_r9cat*n_etacat)*pThcat) + (n_r9cat*n_etacat*nVtxCategories)*vtxThcat;  // (n_r9cat*c_etacat*n_pThcat) categories
+  return  (r9cat + n_r9cat*etacat + (n_r9cat*n_etacat)*pThcat) + (n_r9cat*n_etacat*(n_pThcat>0?n_pThcat:1))*vtxThcat;  // (n_r9cat*c_etacat*n_pThcat) categories
 }
 
 int DiphotonVtxCategory(float vtxMva, int nVtxCategories)
