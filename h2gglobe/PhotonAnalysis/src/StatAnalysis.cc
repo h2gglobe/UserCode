@@ -12,7 +12,8 @@ using namespace std;
 // ----------------------------------------------------------------------------------------------------
 StatAnalysis::StatAnalysis()  : 
     name_("StatAnalysis"),
-    vtxAna_(vtxAlgoParams), vtxConv_(vtxAlgoParams),
+    vtxAna_(vtxAlgoParams),
+//    vtxConv_(vtxAlgoParams),
 	tmvaPerEvtMethod("evtBTG"),
 	tmvaPerEvtWeights(""),
 	useNVert(3)

@@ -94,7 +94,7 @@ protected:
 	int diPhoCounter_;
 	// Vertex analysis
 	HggVertexAnalyzer vtxAna_;
-	HggVertexFromConversions vtxConv_;
+//	HggVertexFromConversions vtxConv_;
 	
 	// RooStuff
 	RooContainer *rooContainer;

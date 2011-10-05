@@ -43,6 +43,7 @@ protected:
 	TFile *uFile_;
 
 	//Variables for the tree
+	// All floats because that's what TMVA likes
 	TTree *uTree_;
 	UShort_t	nVert_;
 	UShort_t	nPU_;
@@ -56,6 +57,10 @@ protected:
 	Float_t dZtoClosest_;
 	Float_t	evWeight_;
 	Bool_t isClosestToGen_;
+	Float_t nConv_;
+	Float_t convCompat_;
+	Float_t dZToConv_;
+	Float_t pullToConv_;
 
 
 	// TMVA reader
@@ -76,6 +81,8 @@ protected:
 	vector<float> diphoCosTheta_;
 	vector<float> diphoCosDeltaPhi_;
 	vector<float> diphoPt_;
+	vector<float> dZToConvV_;
+	vector<float> pullToConvV_;
 	
 	RooGenFunction * vtxProb_, * sigProb_, * bkgProb_;
 	TFile * rooFile_;
