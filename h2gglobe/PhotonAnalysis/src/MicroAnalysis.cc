@@ -419,7 +419,7 @@ void MicroAnalysis::Analysis(LoopAll& l, Int_t jentry)
 	TVector3 caloPosSubLead = ( * (TVector3*) l.pho_calopos->At(  l.dipho_subleadind[diphoton_id] ) ) ;
 	TVector3 currentVertex  = ( * (TVector3*)l.vtx_std_xyz->At(vi) );
 	tofCorrTdiff_          += getDeltaTof(caloPosLead, caloPosSubLead, currentVertex);
-	//	std::cout << "position: " << caloPosLead.PseudoRapidity() << " eta: " << pho1_->PseudoRapidity() << " sublead: " << caloPosSubLead.PseudoRapidity() << " eta2: " << pho2_->PseudoRapidity()  << " vertex: " << currentVertex.Z() << " tofCorrTdiff_: " << tofCorrTdiff_ << std::endl; // DEBUG
+	//std::cout << "position: " << caloPosLead.PseudoRapidity() << " eta: " << pho1_->PseudoRapidity() << " sublead: " << caloPosSubLead.PseudoRapidity() << " eta2: " << pho2_->PseudoRapidity()  << " vertex: " << currentVertex.Z() << " tofCorrTdiff_: " << tofCorrTdiff_ << std::endl; // DEBUG
 
     	dZToConv_=-1;
     	pullToConv_=-1;
@@ -535,7 +535,7 @@ float MicroAnalysis::getTimeResol(float absDeltaEta, bool iseb1, bool iseb2){
     if(theBin>dtVSdEtaEBEE_->GetNbinsX()) theBin=dtVSdEtaEBEE_->GetNbinsX(); // relocate overflows into last real bin
     while (dtEBEE_[theBin-1].Integral()<5 && theBin>0 && theBin<dtVSdEtaEBEE_->GetNbinsX() ) {
       theBin++;}
-    std::cout << "Within MicroAnalysis::getTimeResol found an event which is neither EBEB nor EBEE. Should I bail out? " << iseb1 << "\t"<< iseb2<< " bin: " << theBin << std::endl;
+    //std::cout << "Within MicroAnalysis::getTimeResol found an event which is neither EBEB nor EBEE. Should I bail out? " << iseb1 << "\t"<< iseb2<< " bin: " << theBin << std::endl;
     return dtEBEE_[theBin-1].GetRandom();
   }
 }
