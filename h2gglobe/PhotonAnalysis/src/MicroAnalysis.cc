@@ -414,12 +414,12 @@ void MicroAnalysis::Analysis(LoopAll& l, Int_t jentry)
 	absDeltaEta_ = fabs( pho1_->PseudoRapidity() - pho2_->PseudoRapidity() );
 	
 	// tof-corrected difference (t_cluster_lead - t_cluster_sub), mimiking resolution effects
-	float    tofCorrTdiff_  = timeOptimismFactor * getTimeResol(absDeltaEta_, l.pho_isEB[l.dipho_leadind[diphoton_id]] , l.pho_isEB[l.dipho_subleadind[diphoton_id]] );
+	tofCorrTdiff_           = timeOptimismFactor * getTimeResol(absDeltaEta_, l.pho_isEB[l.dipho_leadind[diphoton_id]] , l.pho_isEB[l.dipho_subleadind[diphoton_id]] );
 	TVector3 caloPosLead    = ( * (TVector3*) l.pho_calopos->At(  l.dipho_leadind[diphoton_id] ) ) ;
 	TVector3 caloPosSubLead = ( * (TVector3*) l.pho_calopos->At(  l.dipho_subleadind[diphoton_id] ) ) ;
 	TVector3 currentVertex  = ( * (TVector3*)l.vtx_std_xyz->At(vi) );
-	tofCorrTdiff_ +=      getDeltaTof(caloPosLead, caloPosSubLead, currentVertex);
-	//std::cout << "position: " << caloPosLead.PseudoRapidity() << " eta: " << pho1_->PseudoRapidity() << " sublead: " << caloPosSubLead.PseudoRapidity() << " eta2: " << pho2_->PseudoRapidity()  << " vertex: " << currentVertex.X() << std::endl; // DEBUG
+	tofCorrTdiff_          += getDeltaTof(caloPosLead, caloPosSubLead, currentVertex);
+	//	std::cout << "position: " << caloPosLead.PseudoRapidity() << " eta: " << pho1_->PseudoRapidity() << " sublead: " << caloPosSubLead.PseudoRapidity() << " eta2: " << pho2_->PseudoRapidity()  << " vertex: " << currentVertex.Z() << " tofCorrTdiff_: " << tofCorrTdiff_ << std::endl; // DEBUG
 
     	dZToConv_=-1;
     	pullToConv_=-1;
@@ -537,7 +537,6 @@ float MicroAnalysis::getTimeResol(float absDeltaEta, bool iseb1, bool iseb2){
       theBin++;}
     std::cout << "Within MicroAnalysis::getTimeResol found an event which is neither EBEB nor EBEE. Should I bail out? " << iseb1 << "\t"<< iseb2<< " bin: " << theBin << std::endl;
     return dtEBEE_[theBin-1].GetRandom();
-    
   }
 }
 
@@ -559,6 +558,5 @@ float MicroAnalysis::getExtraTravelTime(TVector3 &posSC, TVector3 &posVertex){
   
   //std::cout << "posSC.X(): " << posSC.X() << " posVertex.X(): " << posVertex.X() << " posSC.Z(): " << posSC.Z() << " posVertex.Z(): " << posVertex.Z() << " travelled: " << travelled << " nominal: " << nominal << " \t return: " << ((travelled-nominal)/100./speedOfLight*1e9 ) << std::endl; // DEBUG
   
-  return (travelled-nominal)/100./speedOfLight*1e9;
-  
+  return (travelled-nominal)/100./speedOfLight*1.e9;
 }
