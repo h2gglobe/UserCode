@@ -1,4 +1,4 @@
-uFileName=/tmp/musella/uTree.root
+uFileName=uTree.root
 tmvaMethod=BDTG
 tmvaWeights=/afs/cern.ch/user/m/musella/public/higgs/vertex_likelihoods/TMVAClassification_BDTG.weights.xml
 roofitProbs=/afs/cern.ch/user/m/musella/public/higgs/vertex_likelihoods/RooFitBDTG.distributions.root
@@ -9,6 +9,10 @@ tmvaMethod=Likelihood
 tmvaWeights=/afs/cern.ch/user/m/musella/public/higgs/vertex_likelihoods/TMVAClassification_Likelihood.weights.xml
 roofitProbs=/afs/cern.ch/user/m/musella/public/higgs/vertex_likelihoods/RooFitLikelihood.distributions.root
 ->
+
+timePerfHist=/afs/cern.ch/user/f/franzoni/public/globe/TimePerf-plots-recalib-May10ReReco-sep30.BIS.root
+# shrink time resolution if you are optimist (<1) or blow it up if you're not (>1)
+timeOptimismFactor=1
 
 doEscaleSmear=0
 doEscaleSyst=0
