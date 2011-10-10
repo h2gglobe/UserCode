@@ -13,8 +13,13 @@
 #include "DiPhoEfficiencySmearer.h"
 #include "KFactorSmearer.h"
 #include "TTree.h"
+#include "TH2F.h"
+#include "TH1F.h"
 
 #include "TMVA/Reader.h"
+
+#define speedOfLight 299792458.
+
 
 // ------------------------------------------------------------------------------------
 class MicroAnalysis : public StatAnalysis
@@ -36,9 +41,16 @@ public:
 	std::string tmvaMethod;
 	std::string tmvaWeights;
 	TString roofitProbs;
-	Int_t storeNVert;
+	TString timePerfHist;
+	float   timeOptimismFactor;
+	Int_t   storeNVert;
 
 protected:
+	
+	float getTimeResol(float absDeltaEta, bool iseb1, bool iseb2);
+	float getDeltaTof(TVector3 &posLead, TVector3 &posSubLead, TVector3 &posVertex);
+	float getExtraTravelTime(TVector3 &posSC, TVector3 &posVertex);
+
 	std::string name_;
 	TFile *uFile_;
 
@@ -50,9 +62,11 @@ protected:
 	TLorentzVector *pho1_;
 	TLorentzVector *pho2_;
 	TLorentzVector *dipho_;
+	Float_t absDeltaEta_;
 	Float_t ptasym_;
 	Float_t ptbal_;
 	Float_t logsumpt2_;
+	Float_t tofCorrTdiff_;
 	Float_t dZToGen_;
 	Float_t dZtoClosest_;
 	Float_t	evWeight_;
@@ -86,6 +100,13 @@ protected:
 	
 	RooGenFunction * vtxProb_, * sigProb_, * bkgProb_;
 	TFile * rooFile_;
+	TFile * rooFileTime_;
+	
+	TH2F* dtVSdEtaEBEB_, * dtVSdEtaEBEE_;
+	std::vector<TH1F> dtEBEB_, dtEBEE_;
+
 };
+
+
 
 #endif
