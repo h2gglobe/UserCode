@@ -102,8 +102,8 @@ protected:
 	TFile * rooFile_;
 	TFile * rooFileTime_;
 	
-	TH2F* dtVSdEtaEBEB_, * dtVSdEtaEBEE_;
-	std::vector<TH1F> dtEBEB_, dtEBEE_;
+	TH2F* dtVSdEtaEBEB_, * dtVSdEtaEBEE_, * dtVSdEtaEEEE_;
+	std::vector<TH1F> dtEBEB_, dtEBEE_,  dtEEEE_;
 
 };
 
