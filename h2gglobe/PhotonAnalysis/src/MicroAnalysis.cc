@@ -42,6 +42,7 @@ void MicroAnalysis::Term(LoopAll& l)
 
 	dtEBEB_.erase(dtEBEB_.begin(),dtEBEB_.end());
 	dtEBEE_.erase(dtEBEE_.begin(),dtEBEE_.end());
+	dtEEEE_.erase(dtEEEE_.begin(),dtEEEE_.end());
 	rooFileTime_->Close(); 
 }
 
@@ -153,20 +154,23 @@ void MicroAnalysis::Init(LoopAll& l)
     rooFileTime_ = TFile::Open(timePerfHist);
     dtVSdEtaEBEB_ = (TH2F*) rooFileTime_->Get("EBEB/TOF-corr cluster time difference VS #Delta#eta RightVertex");
     dtVSdEtaEBEE_ = (TH2F*) rooFileTime_->Get("EBEE/TOF-corr cluster time difference VS #Delta#eta RightVertex");
-    cout << "histo: " << dtVSdEtaEBEB_->GetName() << " and " << dtVSdEtaEBEB_->GetName() << " gotten from the file; timeOptimismFactor is: " << timeOptimismFactor <<endl;
+    dtVSdEtaEEEE_ = (TH2F*) rooFileTime_->Get("EBEE/TOF-corr cluster time difference VS #Delta#eta RightVertex");
+    dtVSdEtaEEEE_ = (TH2F*) dtVSdEtaEEEE_->Clone("EEEE/TOF-corr cluster time difference VS #Delta#eta RightVertex"); // temporarily, make a clone
+    cout << "histo: " << dtVSdEtaEBEB_->GetName() << ", " << dtVSdEtaEBEB_->GetName() << " and " << dtVSdEtaEEEE_->GetName() << " gotten from the file; timeOptimismFactor is: " << timeOptimismFactor <<endl;
 
-    int numDeltaEtaBins = dtVSdEtaEBEB_->GetNbinsX(); 
-    int numDeltaTBins   = dtVSdEtaEBEB_->GetNbinsY();
+
     char tmpBuffer[10];
-
-    std::vector<TH2F*> dtVSdEtaS_;
-    dtVSdEtaS_.push_back(dtVSdEtaEBEB_); dtVSdEtaS_.push_back(dtVSdEtaEBEE_);
-    std::string type("EBEB");
+    std::vector<TH2F*>       dtVSdEtaS_;     dtVSdEtaS_.push_back(dtVSdEtaEBEB_); dtVSdEtaS_.push_back(dtVSdEtaEBEE_); dtVSdEtaS_.push_back(dtVSdEtaEEEE_);
+    std::vector<std::string> dtVSdEtaNameS_; dtVSdEtaNameS_.push_back("EBEB");    dtVSdEtaNameS_.push_back("EBEE");    dtVSdEtaNameS_.push_back("EEEE");
+    // project the 2d histo tof-corr-deltaT_VS_absDeltaEta into 1d slices at absDeltaEta==const
     for(int u=0; u<dtVSdEtaS_.size(); u++){
-      TH2F* the2dHistoRW = dtVSdEtaS_[u]; 
+      TH2F* the2dHistoRW    = dtVSdEtaS_[u];
+      int   numDeltaEtaBins = the2dHistoRW->GetNbinsX(); 
+      int   numDeltaTBins   = the2dHistoRW->GetNbinsY();
+      
       for(int theBinX=1; theBinX<=numDeltaEtaBins; theBinX++){ 
 	sprintf (tmpBuffer, "%d", theBinX);
-	std::string tmp1dHistoName = type + std::string(" TOF-corr cluster #Deltat bin ") + std::string(tmpBuffer); 
+	std::string tmp1dHistoName = dtVSdEtaNameS_[u] + std::string(" TOF-corr cluster #Deltat bin ") + std::string(tmpBuffer); 
 	TH1F theHisto(tmp1dHistoName.c_str(),tmp1dHistoName.c_str(),the2dHistoRW->GetNbinsY(),the2dHistoRW->GetYaxis()->GetBinLowEdge(1),the2dHistoRW->GetYaxis()->GetBinUpEdge(numDeltaTBins)); 
 	
 	for(int theBinY=1; theBinY<=numDeltaTBins; theBinY++){ 
@@ -176,12 +180,12 @@ void MicroAnalysis::Init(LoopAll& l)
 	
 	if     (dtVSdEtaEBEB_==the2dHistoRW) dtEBEB_.push_back(theHisto);
 	else if(dtVSdEtaEBEE_==the2dHistoRW) dtEBEE_.push_back(theHisto);
-	else  { std::cout << "the2dHistoRW " << the2dHistoRW << " does not match any of the foreseen; bailing out." << std::endl; assert(0); }
+	else if(dtVSdEtaEEEE_==the2dHistoRW) dtEEEE_.push_back(theHisto);
+	else  { std::cout << "the2dHistoRW " << the2dHistoRW << " does not match any of the foreseen. Bailing out." << std::endl; assert(0); }
 
-      }
-      type=std::string("EBEE");
-    }
-    if(PADEBUG)	cout << "dtEBEB_ has " << dtEBEB_.size() << " elements and dtEBEE_ has " << dtEBEE_.size() << " elements." <<endl;
+      }// loop on absDeltaEta==const bins
+    }// loop on type of events
+    if(PADEBUG)	cout << "dtEBEB_ has " << dtEBEB_.size() << " elements, dtEBEE_ has " << dtEBEE_.size() << " and dtEEEE_ has " << dtEEEE_.size() << " elements." <<endl;
 
     if(PADEBUG)	cout << "InitRealMicroAnalysis END"<<endl;
 }
@@ -413,12 +417,16 @@ void MicroAnalysis::Analysis(LoopAll& l, Int_t jentry)
 	// abs value of delta eta difference
 	absDeltaEta_ = fabs( pho1_->PseudoRapidity() - pho2_->PseudoRapidity() );
 	
-	// tof-corrected difference (t_cluster_lead - t_cluster_sub), mimiking resolution effects
-	tofCorrTdiff_           = timeOptimismFactor * getTimeResol(absDeltaEta_, l.pho_isEB[l.dipho_leadind[diphoton_id]] , l.pho_isEB[l.dipho_subleadind[diphoton_id]] );
+	// tofCorrTdiff_ is the difference (t_cluster_lead - t_cluster_sub), corrected for the tof difference assuming the current vertex
 	TVector3 caloPosLead    = ( * (TVector3*) l.pho_calopos->At(  l.dipho_leadind[diphoton_id] ) ) ;
 	TVector3 caloPosSubLead = ( * (TVector3*) l.pho_calopos->At(  l.dipho_subleadind[diphoton_id] ) ) ;
 	TVector3 currentVertex  = ( * (TVector3*)l.vtx_std_xyz->At(vi) );
-	tofCorrTdiff_          += getDeltaTof(caloPosLead, caloPosSubLead, currentVertex);
+	TVector3 closestVertex  = ( * (TVector3*)l.vtx_std_xyz->At(closest_idx) );
+	tofCorrTdiff_           = getDeltaTof(caloPosLead, caloPosSubLead, closestVertex); // "true" time difference, given SC and true_vtx positions
+	tofCorrTdiff_          -= getDeltaTof(caloPosLead, caloPosSubLead, currentVertex); //  tof correction: for current vtx;
+                                                                                           //  if current vtx is not true => residual, which is the discriminating variable
+	// at last adding smearing mimiking resolution effects; use "tof-corrected (t_cluster_lead - t_cluster_sub)" from Z data
+	tofCorrTdiff_          += timeOptimismFactor * getTimeResol(absDeltaEta_, l.pho_isEB[l.dipho_leadind[diphoton_id]] , l.pho_isEB[l.dipho_subleadind[diphoton_id]] );
 	//std::cout << "position: " << caloPosLead.PseudoRapidity() << " eta: " << pho1_->PseudoRapidity() << " sublead: " << caloPosSubLead.PseudoRapidity() << " eta2: " << pho2_->PseudoRapidity()  << " vertex: " << currentVertex.Z() << " tofCorrTdiff_: " << tofCorrTdiff_ << std::endl; // DEBUG
 
     	dZToConv_=-1;
@@ -528,15 +536,11 @@ float MicroAnalysis::getTimeResol(float absDeltaEta, bool iseb1, bool iseb2){
     return dtEBEE_[theBin-1].GetRandom();
   }
   else {
-    //assert(0);
-    //return 1.;
-
-    int theBin = dtVSdEtaEBEE_->GetXaxis()->FindBin(absDeltaEta_);
-    if(theBin>dtVSdEtaEBEE_->GetNbinsX()) theBin=dtVSdEtaEBEE_->GetNbinsX(); // relocate overflows into last real bin
-    while (dtEBEE_[theBin-1].Integral()<5 && theBin>0 && theBin<dtVSdEtaEBEE_->GetNbinsX() ) {
+    int theBin = dtVSdEtaEEEE_->GetXaxis()->FindBin(absDeltaEta_);
+    if(theBin>dtVSdEtaEEEE_->GetNbinsX()) theBin=dtVSdEtaEEEE_->GetNbinsX(); // relocate overflows into last real bin
+    while (dtEEEE_[theBin-1].Integral()<5 && theBin>0 && theBin<dtVSdEtaEEEE_->GetNbinsX() ) {
       theBin++;}
-    //std::cout << "Within MicroAnalysis::getTimeResol found an event which is neither EBEB nor EBEE. Should I bail out? " << iseb1 << "\t"<< iseb2<< " bin: " << theBin << std::endl;
-    return dtEBEE_[theBin-1].GetRandom();
+    return dtEEEE_[theBin-1].GetRandom();
   }
 }
 
