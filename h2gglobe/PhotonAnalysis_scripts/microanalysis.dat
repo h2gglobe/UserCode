@@ -1,8 +1,17 @@
-uFileName=uTree.root
-tmvaMethod=BDTG
-tmvaWeights=/afs/cern.ch/user/m/musella/public/higgs/vertex_likelihoods/TMVAClassification_BDTG.weights.xml
-roofitProbs=/afs/cern.ch/user/m/musella/public/higgs/vertex_likelihoods/RooFitBDTG.distributions.root
+## uFileName=/tmp/musella/uTree_timing_rprod.root
+uFileName=/tmp/musella/uTree_mva_vtxid.root
+
+tmvaMethod=BDTCat_conversions
+tmvaWeights=/afs/cern.ch/user/m/musella/public/higgs/vertex_likelihoods/TMVAClassification_BDTCat_conversions.weights.xml
+useMvaRanking=1
+addConversionToMva=1
+
+## tmvaMethod=BDTG
+## tmvaWeights=/afs/cern.ch/user/m/musella/public/higgs/vertex_likelihoods/TMVAClassification_BDTG.weights.xml
+## roofitProbs=/afs/cern.ch/user/m/musella/public/higgs/vertex_likelihoods/RooFitBDTG.distributions.root
 storeNVert=5
+
+
 
 ->
 tmvaMethod=Likelihood
@@ -17,7 +26,7 @@ timeOptimismFactor=1
 doEscaleSmear=0
 doEscaleSyst=0
 
-doEresolSmear=0
+doEresolSmear=1
 doEresolSyst=0
 
 doEcorrectionSmear=1
