@@ -128,10 +128,7 @@ public:
 #endif
 	std::vector<int> rank(TMVA::Reader &reader, const std::string & method);
 	void evaluate(TMVA::Reader &reader, const std::string & method);
-	std::vector<int> ranksum(const std::vector<std::string> & vars);
 	std::vector<int> rankprod(const std::vector<std::string> & vars);
-	////// std::vector<int> rankreciprocal(const std::vector<std::string> & vars);
-	////// std::vector<int> rankPairwise(const std::vector<std::string> & vars);
 
 	void analyze(const VertexInfoAdapter &, const PhotonInfo & pho1, const PhotonInfo & pho2);
 
@@ -143,7 +140,15 @@ public:
 	int ninvalid_idxs() const { return ninvalid_idxs_; };
 
 	float mva(int i)    const { return 	mva_[i]; };	
+	float rcomb(int i)    const { return 	rcomb_[i]; };	
 
+	void setPullToConv(int ivert, float pull, float lim=10.);
+	float pulltoconv(int i)    const { return pulltoconv_[ipair_][i]; };	
+	float limpulltoconv(int i)    const { return limpulltoconv_[ipair_][i]; };	
+
+	void setNConv(int n);
+	float nconv(int i)            const { return nconv_[ipair_]; };	
+	
 	float diphopt(int i)    const { return diphopt_[ipair_][i]; };	
 	float nch(int i)    const { return 	nch_[ipair_][i]; };	
 	float ptmax(int i)  const { return 	ptmax_[ipair_][i]; };	
@@ -173,7 +178,8 @@ public:
 	float sumtrv(int i) const { return 	sumtrv_[ipair_][i]; };	
 	float sumtwd(int i) const { return 	sumtwd_[ipair_][i]; };	
 	float awytwdasym(int i) const { return awytwdasym_[ipair_][i]; };
-
+	
+	// read and write info to plain ROOT TTree
 	void branches(TTree *, const std::string & );
 	void setBranchAdresses(TTree *, const std::string &);
 	void getBranches(TTree *, const std::string &, std::set<TBranch *>& );
@@ -200,12 +206,15 @@ private:
 	
 	std::vector<int> preselection_;
 
-	std::vector<float> mva_;
+	std::vector<float> mva_, rcomb_;
 	
 	// buffers
 	std::vector<std::vector<TLorentzVector> > diPhoton_;
 	std::vector<std::vector<float> > diphopt_;
 	
+	std::vector<float> nconv_;
+	std::vector<std::vector<float> > pulltoconv_;
+	std::vector<std::vector<float> > limpulltoconv_;
 	std::vector<std::vector<float> > ptbal_;
 	std::vector<std::vector<float> > thrust_;
 	std::vector<std::vector<float> > sumpt_;
@@ -313,7 +322,6 @@ public:
 
 	virtual ~VertexInfoAdapter();
 };
-
 
 // -------------------------------------------------------------------------------------------------------------------------------------------------------------
 class TupleVertexInfo : public VertexInfoAdapter

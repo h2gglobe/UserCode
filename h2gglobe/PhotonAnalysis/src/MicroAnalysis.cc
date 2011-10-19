@@ -19,6 +19,7 @@ MicroAnalysis::MicroAnalysis()  :
 	pho1_(0), pho2_(0), dipho_(0)
 {
 	cout << "Constructing MicroAnalysis" << endl;
+	useMvaRanking = false;
 }
 
 // ----------------------------------------------------------------------------------------------------
@@ -76,17 +77,26 @@ void MicroAnalysis::Init(LoopAll& l)
 	uTree_->Branch("dZToConv",&dZToConv_);
 	uTree_->Branch("pullToConv",&pullToConv_);
 	uTree_->Branch("convCompat",&convCompat_);
+	uTree_->Branch("rprod",&rprod_);
+	uTree_->Branch("convRprod",&convRprod_);
 
 	//todo add delta eta
 
 
 	//TMVA
 	tmvaVariables_.push_back("ptbal"), tmvaVariables_.push_back("ptasym"), tmvaVariables_.push_back("logsumpt2");
+	rankVariables_ = tmvaVariables_;
+	if( addConversionToMva ) {
+		tmvaVariables_.push_back("limPullToConv");
+		tmvaVariables_.push_back("nConv");
+	}
 	tmvaReader_ = new TMVA::Reader( "!Color:!Silent" );
 	HggVertexAnalyzer::bookVariables( *tmvaReader_, tmvaVariables_ );
 	tmvaReader_->BookMVA( tmvaMethod, tmvaWeights );
 
 	MVA_.resize(storeNVert);
+	rankprod_.resize(storeNVert);
+	convRankprod_.resize(storeNVert);
 	alpha_.resize(storeNVert);
 	prob_.resize(storeNVert);
 	corrProb_.resize(storeNVert);
@@ -115,10 +125,12 @@ void MicroAnalysis::Init(LoopAll& l)
 	evTree_->Branch("ConvCompat",&convCompat_);
 	for(int i=0;i<storeNVert; i++){
 		evTree_->Branch(Form("MVA%d",i),&MVA_[i]);
+		evTree_->Branch(Form("rankprod%d",i),&rankprod_[i]);
+		evTree_->Branch(Form("convRankprod%d",i),&convRankprod_[i]);
 		evTree_->Branch(Form("alpha%d",i),&alpha_[i]);
-		evTree_->Branch(Form("prob%d",i),&prob_[i]);
-		evTree_->Branch(Form("corrProb%d",i),&corrProb_[i]);
-		evTree_->Branch(Form("wrongProb%d",i),&wrongProb_[i]);
+		/// evTree_->Branch(Form("prob%d",i),&prob_[i]);
+		/// evTree_->Branch(Form("corrProb%d",i),&corrProb_[i]);
+		/// evTree_->Branch(Form("wrongProb%d",i),&wrongProb_[i]);
 		evTree_->Branch(Form("zRMSn%d",i),&zRMSn_[i]);
 		evTree_->Branch(Form("dZ%d",i),&dZ_[i]);
 		evTree_->Branch(Form("diphoM%d",i),&diphoM_[i]);
@@ -127,7 +139,6 @@ void MicroAnalysis::Init(LoopAll& l)
 		evTree_->Branch(Form("diphoPt%d",i),&diphoPt_[i]);
 		evTree_->Branch(Form("dZToConv%d",i),&dZToConvV_[i]);
 		evTree_->Branch(Form("pullToConv%d",i),&pullToConvV_[i]);
-
 	}
 	
 	vtxProb_ = 0;
@@ -403,11 +414,19 @@ void MicroAnalysis::Analysis(LoopAll& l, Int_t jentry)
     	}
     }
 
+    vector<int> & rankedVtxs = (*l.vtx_std_ranked_list)[diphoton_id];
+    vtxAna_.preselection(rankedVtxs);
+    vector<int> noConvRank = vtxAna_.rankprod(rankVariables_);
+    vtxAna_.setNConv(nConv_);
     for (int vi=0;vi<l.vtx_std_n;vi++){
     	ptasym_ = vtxAna_.ptasym(vi);
     	ptbal_ = vtxAna_.ptbal(vi);
     	logsumpt2_ = vtxAna_.logsumpt2(vi);
-
+	rprod_ = vtxAna_.rcomb(vi); 
+	convRprod_ = rprod_;
+	if( vi == rankedVtxs[0] && vi != noConvRank[0] ) {
+		convRprod_  = 0.;
+	}
     	TVector3 *curVtx = (TVector3*)l.vtx_std_xyz->At(vi);
     	dZToGen_ = (*curVtx-*genVtx).Mag();
     	dZtoClosest_ = closest_reco[vi];
@@ -436,14 +455,18 @@ void MicroAnalysis::Analysis(LoopAll& l, Int_t jentry)
         	pullToConv_ = dZToConv_/szconv;
         }
 
+	vtxAna_.setPullToConv( vi, pullToConv_ );
+	/// vtxAna_.setTofCorrTdiff( vi, tofCorrTdiff_ );
+	
     	uTree_->Fill();
     }
-
 
     //per event tree
 
     //put stupid values in vectors
     MVA_.assign(storeNVert,-10);
+    rankprod_.assign(storeNVert,-10);
+    convRankprod_.assign(storeNVert,-10);
     prob_.assign(storeNVert,0.);
     corrProb_.assign(storeNVert,0.);
     wrongProb_.assign(storeNVert,0.);
@@ -467,9 +490,11 @@ void MicroAnalysis::Analysis(LoopAll& l, Int_t jentry)
     alphaTrue_ = truevtx_lead_pho.Angle(truevtx_sublead_pho.Vect());
 
     //get list of vertices as ranked for the selected diphoton
-    vector<int> & rankedVtxs = (*l.vtx_std_ranked_list)[diphoton_id];
-    vtxAna_.preselection(rankedVtxs);
-    vtxAna_.evaluate(*tmvaReader_,tmvaMethod);
+    if( useMvaRanking ) {
+	    rankedVtxs = vtxAna_.rank(*tmvaReader_,tmvaMethod);
+    } else {
+	    vtxAna_.evaluate(*tmvaReader_,tmvaMethod);
+    }
     dZTrue_ = ( *(TVector3*)l.vtx_std_xyz->At(rankedVtxs[0]) - *genVtx).Z();
     Double_t vtxProbInputs[2];
     float wtot = 0.;
@@ -477,8 +502,10 @@ void MicroAnalysis::Analysis(LoopAll& l, Int_t jentry)
     for (size_t vi=0;vi<rankedVtxs.size();vi++) {
     	if(vi>=storeNVert) break;
     	MVA_[vi] = vtxAna_.mva(rankedVtxs[vi]);
+    	rankprod_[vi] = vtxAna_.rcomb(rankedVtxs[vi]);
+	convRankprod_[vi] = vi == 0 && rankedVtxs[0] != noConvRank[0] ? 0. : rankprod_[vi];
     	dZ_[vi] = ( *(TVector3*)l.vtx_std_xyz->At(rankedVtxs[vi]) - *(TVector3*)l.vtx_std_xyz->At(rankedVtxs[0])).Z();
-
+	
     	TLorentzVector lead_pho = l.get_pho_p4( l.dipho_leadind[diphoton_id], rankedVtxs[vi], &smeared_pho_energy[0]);
     	TLorentzVector sublead_pho = l.get_pho_p4( l.dipho_subleadind[diphoton_id], rankedVtxs[vi], &smeared_pho_energy[0]);
     	TLorentzVector dipho = lead_pho+sublead_pho;
@@ -488,15 +515,16 @@ void MicroAnalysis::Analysis(LoopAll& l, Int_t jentry)
 		diphoPt_[vi]			= dipho.Pt();
 		alpha_[vi] = lead_pho.Angle(sublead_pho.Vect());
 	
-		vtxProbInputs[0] = MVA_[vi];
-		vtxProbInputs[1] = nVert_;
-		prob_[vi] = (*vtxProb_)( vtxProbInputs );
-		corrProb_[vi] = (*sigProb_)( MVA_[vi] );
-		wrongProb_[vi] = (*bkgProb_)( MVA_[vi] );
-
+		if( vtxProb_ ) {
+			vtxProbInputs[0] = MVA_[vi];
+			vtxProbInputs[1] = nVert_;
+			prob_[vi] = (*vtxProb_)( vtxProbInputs );
+			corrProb_[vi] = (*sigProb_)( MVA_[vi] );
+			wrongProb_[vi] = (*bkgProb_)( MVA_[vi] );
+		}
 		TVector3 *curVtx = (TVector3*)l.vtx_std_xyz->At(rankedVtxs[vi]);
-	    dZToConvV_[vi]	= abs( curVtx->Z() - zconv );
-	    pullToConvV_[vi]= dZToConvV_[vi]/szconv;
+		dZToConvV_[vi]	= abs( curVtx->Z() - zconv );
+		pullToConvV_[vi]= dZToConvV_[vi]/szconv;
 
 		if( vi > 0 ) {
 			zRMSn_[vi] = zRMS_ + dZ_[vi]*dZ_[vi]*prob_[vi];
@@ -507,7 +535,8 @@ void MicroAnalysis::Analysis(LoopAll& l, Int_t jentry)
     }
     zRMS_ /= wtot;
     evTree_->Fill();
-
+    
+    vtxAna_.clear();
 }
 
 //http://root.cern.ch/root/html/TH1.html#TH1:GetRandom

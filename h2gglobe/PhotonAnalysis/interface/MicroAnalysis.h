@@ -44,6 +44,7 @@ public:
 	TString timePerfHist;
 	float   timeOptimismFactor;
 	Int_t   storeNVert;
+	bool    useMvaRanking,addConversionToMva;
 
 protected:
 	
@@ -75,10 +76,12 @@ protected:
 	Float_t convCompat_;
 	Float_t dZToConv_;
 	Float_t pullToConv_;
-
+	Float_t rprod_;
+	Float_t convRprod_;
+	
 
 	// TMVA reader
-	vector<string> tmvaVariables_;
+	vector<string> tmvaVariables_, rankVariables_;
 	TMVA::Reader *tmvaReader_;
 	TTree *evTree_;
 	Float_t dZTrue_, zRMS_, zTrue_, rTrue_, alphaTrue_;
@@ -86,6 +89,8 @@ protected:
 	Float_t mTrue_, mTrueVtx_;
 	vector<float> alpha_;
 	vector<float> MVA_;
+	vector<float> rankprod_;
+	vector<float> convRankprod_;
 	vector<float> prob_;
 	vector<float> corrProb_;
 	vector<float> wrongProb_;

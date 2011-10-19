@@ -39,8 +39,13 @@ HggVertexAnalyzer::dict_t & HggVertexAnalyzer::dictionary()
 // -------------------------------------------------------------------------------------------------------------------------------------------------------------
 void HggVertexAnalyzer::fillDictionary(HggVertexAnalyzer::dict_t& dictionary)
 {
-	//// dictionary_["mva"] =   make_pair(&HggVertexAnalyzer::mva,false);
-	
+	dictionary["nconv"]   = make_pair(&HggVertexAnalyzer::nconv,true);
+	dictionary["nConv"]   = make_pair(&HggVertexAnalyzer::nconv,true);
+	dictionary["pulltoconv"]   = make_pair(&HggVertexAnalyzer::pulltoconv,true);
+	dictionary["limpulltoconv"]   = make_pair(&HggVertexAnalyzer::limpulltoconv,true);
+	dictionary["pullToConv"]   = make_pair(&HggVertexAnalyzer::pulltoconv,true);
+	dictionary["limPullToConv"]   = make_pair(&HggVertexAnalyzer::limpulltoconv,true);
+
 	dictionary["diphopt"]   = make_pair(&HggVertexAnalyzer::diphopt,false);
 	dictionary["nch"]   = make_pair(&HggVertexAnalyzer::nch,false);
 	dictionary["ptmax"] = make_pair(&HggVertexAnalyzer::ptmax,false);
@@ -73,53 +78,8 @@ void HggVertexAnalyzer::fillDictionary(HggVertexAnalyzer::dict_t& dictionary)
 // -------------------------------------------------------------------------------------------------------------------------------------------------------------
 HggVertexAnalyzer::HggVertexAnalyzer(AlgoParameters & ap, int nvtx) :
 	params_(ap),
-	nvtx_(nvtx) /// ,
-	////// 
-	////// mva_(nvtx),
-	////// 
-	////// diPhoton_(nvtx),
-	////// diphopt_(nvtx),
-	////// 
-	////// ptbal_(nvtx,0.),
-	////// thrust_(nvtx,0.),
-	////// sumpt_(nvtx,0.),
-	////// sumpt2_(nvtx,0.),
-	////// sumawy_(nvtx,0.),
-	////// sumtwd_(nvtx,0.),
-	////// sumtrv_(nvtx,0.),
-	////// sumweight_(nvtx,0.),
-	////// ptmax_(nvtx,0.),
-	////// nchthr_(nvtx,0.),
-	////// nch_(nvtx,0.),
-	////// tksPt_(nvtx, vector<float>(1)),
-	////// sphers_(nvtx,TMatrixDSym(3)),
-	////// sumpr_(nvtx,0.),
-	////// spher_(nvtx,0.),
-	////// tspher_(nvtx,0.),
-	////// aplan_(nvtx,0.),
-	////// threejetC_(nvtx,0.),
-	////// fourjetD_(nvtx,0.),
-	////// 
-	////// vtxP_(nvtx,0.),
-	////// vtxPt_(nvtx),
-	////// ptvtx_(nvtx),
-	////// 
-	////// diPhotonPt_(nvtx),
-	////// diPhotonPz_(nvtx),
-	////// 
-	////// acosA_(nvtx),
-	////// ptasym_(nvtx),
-	////// 
-	////// ptmax3_(nvtx),
-	////// 
-	////// ptratio_(nvtx),
-	////// pzasym_(nvtx),
-	////// 
-	////// awytwdasym_(nvtx),
-	////// pho1_(-1),
-	////// pho2_(-1),
+	nvtx_(nvtx) 
 {
-
 	pdiphopt = &diphopt_;
 	pnch = &nch_;
 	pptmax = &ptmax_;
@@ -181,7 +141,6 @@ void HggVertexAnalyzer::branches(TTree * tree, const std::string & pfx)
 	tree->Branch((pfx+"sumtwd").c_str(), &sumtwd_ );
 	tree->Branch((pfx+"awytwdasym").c_str(), &awytwdasym_ );
 
-	/// tree->Branch((pfx+"ninvalid_idxs").c_str(), &ninvalid_idxs_, (pfx+"ninvalid_idxs/I").c_str() );
 	tree->Branch((pfx+"pho1").c_str(), &pho1_, (pfx+"pho1/I").c_str() );
 	tree->Branch((pfx+"pho2").c_str(), &pho2_, (pfx+"pho2/I").c_str() );
 }
@@ -216,7 +175,6 @@ void HggVertexAnalyzer::setBranchAdresses(TTree * tree, const std::string & pfx)
 	tree->SetBranchAddress((pfx+"sumtwd").c_str(), &psumtwd );
 	tree->SetBranchAddress((pfx+"awytwdasym").c_str(), &pawytwdasym );
 
-	/// tree->SetBranchAddress((pfx+"ninvalid_idxs").c_str(), &ninvalid_idxs_ );
 	tree->SetBranchAddress((pfx+"pho1").c_str(), &ppho1_ );
 	tree->SetBranchAddress((pfx+"pho2").c_str(), &ppho2_ );
 }
@@ -323,7 +281,7 @@ std::vector<int> HggVertexAnalyzer::rank(HggVertexAnalyzer::getter_t method, boo
 {
 	std::vector<int> vtxs = preselection_;
 	assert( ! vtxs.empty() );
-	assert( (size_t)ipair_ < pho1_.size() );
+	assert( (size_t)ipair_ < pho1_.size() ||  pho1_.empty() );
 	RankHelper helper(*this, method, sign );
 	sort(vtxs.begin(),vtxs.end(),helper);
 
@@ -362,135 +320,32 @@ void HggVertexAnalyzer::evaluate(TMVA::Reader &reader, const std::string & metho
 }
 
 // -------------------------------------------------------------------------------------------------------------------------------------------------------------
-std::vector<int> HggVertexAnalyzer::ranksum(const vector<string> & vars)
-{
-	std::vector<int> vtxs = preselection_;
-	assert( ! vtxs.empty() );
-	assert( (size_t)ipair_ < pho1_.size() );
-	mva_.clear(); mva_.resize(nvtx_,0.);
-	// fill the rank sum
-	std::vector<int> vrank(nvtx_);
-	std::vector<pair<HggVertexAnalyzer::getter_t, bool> > meths(1,make_pair(&HggVertexAnalyzer::mva,true));
-	for( vector<string>::const_iterator ivar=vars.begin(); ivar!=vars.end(); ++ivar) {
-		meths.push_back(dictionary()[*ivar]);
-		vrank = rank( *ivar );
-		for(size_t ii=0; ii<vtxs.size(); ++ii) {
-			int ivert = vtxs[ii];
-			mva_[ivert] += (float)(find( vrank.begin(), vrank.end(), ivert) - vrank.begin());
-		}
-	}
-	RankHelper helper(*this,meths);
-	sort(vtxs.begin(),vtxs.end(),helper);
-
-	return vtxs;
-}
-
-// -------------------------------------------------------------------------------------------------------------------------------------------------------------
 std::vector<int> HggVertexAnalyzer::rankprod(const vector<string> & vars)
 {
 	std::vector<int> vtxs = preselection_;
 	assert( ! vtxs.empty() );
-	assert( (size_t)ipair_ < pho1_.size() );
-	mva_.clear(); mva_.resize(nvtx_,1.);
+	assert( (size_t)ipair_ < pho1_.size() || pho1_.empty() );
+	rcomb_.clear(); rcomb_.resize(nvtx_,1.);
 	// fill the rank sum
 	std::vector<int> vrank(nvtx_);
-	std::vector<pair<HggVertexAnalyzer::getter_t, bool> > meths(1,make_pair(&HggVertexAnalyzer::mva,true));
+	std::vector<pair<HggVertexAnalyzer::getter_t, bool> > meths(1,make_pair(&HggVertexAnalyzer::rcomb,true));
 	for( vector<string>::const_iterator ivar=vars.begin(); ivar!=vars.end(); ++ivar) {
 		meths.push_back(dictionary()[*ivar]);
 		vrank = rank( *ivar );
 		for(size_t ii=0; ii<vtxs.size(); ++ii) {
 			int ivert = vtxs[ii];
 			int rank = find( vrank.begin(), vrank.end(), ivert) - vrank.begin(); 
-			mva_[ivert] *= 1. + (float)(rank);
-			/// if( mva_[ivert] < 0. ) {
-			/// 	cerr << "HggVertexAn  : negative rankprod " << ivert << " " << rank << " " << vrank.size() << " " << mva_[ivert] << endl;
-			/// }
+			rcomb_[ivert] *= 1. + (float)(rank);
 		}
 	}
 	for(int ii=0; ii<nvtx_; ++ii) {
-		mva_[ii] = pow( mva_[ii], 1./(float)vars.size() );
+		rcomb_[ii] = pow( rcomb_[ii], 1./(float)vars.size() );
 	}
 	RankHelper helper(*this,meths);
 	sort(vtxs.begin(),vtxs.end(),helper);
 
 	return vtxs;
 }
-
-////// // -------------------------------------------------------------------------------------------------------------------------------------------------------------
-////// std::vector<int> HggVertexAnalyzer::rankreciprocal(const vector<string> & vars)
-////// {
-////// 	std::vector<int> vtxs = preselection_;
-////// 	assert( ! vtxs.empty() );
-////// 	assert( (size_t)ipair_ < pho1_.size() );	
-////// 	mva_.clear(); mva_.resize(sumpt2_.size(),0.);
-////// 	// fill the rank sum
-////// 	std::vector<int> vrank(nvtx_);
-////// 	std::vector<pair<HggVertexAnalyzer::getter_t, bool> > meths(1,make_pair(&HggVertexAnalyzer::mva,false));
-////// 	for( vector<string>::const_iterator ivar=vars.begin(); ivar!=vars.end(); ++ivar) {
-////// 		meths.push_back(dictionary()[*ivar]);
-////// 		vrank = rank( *ivar );
-////// 		for(size_t ii=0; ii<vtxs.size(); ++ii) {
-////// 			int ivert = vtxs[ii];
-////// 			mva_[ivert] += pow((float)(1 + (find( vrank.begin(), vrank.end(), ivert) - vrank.begin())),-2);
-////// 		}
-////// 	}
-////// 	RankHelper helper(*this,meths);
-////// 	sort(vtxs.begin(),vtxs.end(),helper);
-////// 
-////// 	return vtxs;
-////// }
-////// 
-////// // -------------------------------------------------------------------------------------------------------------------------------------------------------------
-////// vector<int> HggVertexAnalyzer::rankPairwise(const vector<string> & vars)
-////// {
-////// 	vector<int> vtxs = preselection_;
-////// 	assert( ! vtxs.empty() );
-////// 	mva_.clear(); mva_.resize(sumpt2_.size(),0.);
-////// 	// fill the rank sum
-////// 	vector<int> vrank(nvtx_);
-////// 	vector<vector<int> > comp(nvtx_,vector<int>(nvtx_,0));
-////// 	vector<pair<HggVertexAnalyzer::getter_t, bool> > meths(1,make_pair(&HggVertexAnalyzer::mva,false));
-////// 	for( vector<string>::const_iterator ivar=vars.begin(); ivar!=vars.end(); ++ivar) {
-////// 		meths.push_back(dictionary()[*ivar]);
-////// 		vrank = rank( *ivar );
-////// 		for(size_t i=0; i<vtxs.size(); ++i) {
-////// 			int v1 = vtxs[i];
-////// 			for(size_t j=0; j<i; ++j) {
-////// 				int v2 = vtxs[j];
-////// 				int rankv1 = (int)(find( vrank.begin(), vrank.end(), v1) - vrank.begin());
-////// 				int rankv2 = (int)(find( vrank.begin(), vrank.end(), v2) - vrank.begin());
-////// 				if(rankv1 < rankv2){
-////// 					comp[v1][v2]++;
-////// 				}else{
-////// 					comp[v2][v1]++;
-////// 				}
-////// 			}
-////// 		}
-////// 	}
-////// 
-////// 	for(size_t i=0; i<vtxs.size(); ++i) {
-////// 		int v1 = vtxs[i];
-////// 		for(size_t j=0; j<i; ++j) {
-////// 			int v2 = vtxs[j];
-////// 			if( comp[v1][v2] > comp[v2][v1] ){
-////// 				mva_[v1] += 1.0;
-////// 			}else if ( comp[v1][v2] < comp[v2][v1] ) {
-////// 				mva_[v2] += 1.0;
-////// 			}else{
-////// 				mva_[v1] += 0.5;
-////// 				mva_[v2] += 0.5;
-////// 			}
-////// 		}
-////// 	}
-////// 
-////// 	RankHelper helper(*this,meths);
-////// 	sort(vtxs.begin(),vtxs.end(),helper);
-////// 
-////// 	return vtxs;
-////// }
-////// 
-////// 
-// -------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 // -------------------------------------------------------------------------------------------------------------------------------------------------------------
 int HggVertexAnalyzer::pairID(int pho1, int pho2)
@@ -509,6 +364,8 @@ void HggVertexAnalyzer::clear()
 	pho1_.clear();
 	pho2_.clear();
 
+	pulltoconv_.clear();
+	limpulltoconv_.clear();
 	ptbal_.clear();
 	thrust_.clear();
 	sumpt_.clear();
@@ -551,6 +408,29 @@ void HggVertexAnalyzer::clear()
 }
 
 // -------------------------------------------------------------------------------------------------------------------------------------------------------------
+void HggVertexAnalyzer::setPullToConv(int ivert, float pull, float lim) 
+{ 
+	if( pulltoconv_.size() <= ipair_ ) { 
+		int nvtx = nch_[ipair_].size();
+		pulltoconv_.resize(ipair_+1); pulltoconv_[ipair_].resize(nvtx,1000.);
+		limpulltoconv_.resize(ipair_+1); limpulltoconv_[ipair_].resize(nvtx,1000.);
+	}
+	
+	pulltoconv_[ipair_][ivert]=pull; 
+	limpulltoconv_[ipair_][ivert]= pull < lim ? pull : lim; 
+}
+
+// -------------------------------------------------------------------------------------------------------------------------------------------------------------
+void HggVertexAnalyzer::setNConv(int n)
+{ 
+	if( nconv_.size() <= ipair_ ) { 
+		nconv_.resize(ipair_+1,0);
+	}
+	
+	nconv_[ipair_]=n;
+}
+
+// -------------------------------------------------------------------------------------------------------------------------------------------------------------
 void HggVertexAnalyzer::analyze(const VertexInfoAdapter & e, const PhotonInfo & p1, const PhotonInfo & p2)
 {
 	int const nvtx = e.nvtx();
@@ -567,6 +447,8 @@ void HggVertexAnalyzer::analyze(const VertexInfoAdapter & e, const PhotonInfo & 
 		ninvalid_idxs_=0;
 
 		// initilise
+		pulltoconv_.resize(ipair_+1); pulltoconv_[ipair_].resize(nvtx,1000.);
+		limpulltoconv_.resize(ipair_+1); limpulltoconv_[ipair_].resize(nvtx,1000.);
 		ptbal_.resize(ipair_+1); ptbal_[ipair_].resize(nvtx,0.);
 		thrust_.resize(ipair_+1); thrust_[ipair_].resize(nvtx,0.);
 		sumpt_.resize(ipair_+1); sumpt_[ipair_].resize(nvtx,0.);
@@ -632,7 +514,6 @@ void HggVertexAnalyzer::analyze(const VertexInfoAdapter & e, const PhotonInfo & 
 		
 		const unsigned short * vtxTracks = e.hasVtxTracks() ? e.vtxTracks(vid) : &vtxTracksBuf[ vid*e.ntracks() ];
 		int ntracks = e.hasVtxTracks() ? e.vtxNTracks(vid) : vtxTracksSizeBuf[ vid ];
-		//// std::cerr << "vertexAnalysis  vid " << vid << " ntracks " <<  ntracks << " : ";
 
 		//calculating loop over tracks
 		for(int it=0; it<ntracks; ++it) {
@@ -644,30 +525,20 @@ void HggVertexAnalyzer::analyze(const VertexInfoAdapter & e, const PhotonInfo & 
 			}
 			if( tid >= e.ntracks() ) {
 				++ninvalid_idxs_;
-				//// std::cerr << "skipping [line" << __LINE__ << "] ";
 				continue;
 			}
 			float tkWeight = e.tkWeight(tid,vid);			
-			//// std::cerr << tid << ", "; 
 			
 			if( ( params_.highPurityOnly && !e.tkIsHighPurity(tid)  ) 
 			    /// || fabs(e.tkd0(tid,vid)/e.tkd0Err(tid,vid)) > params_.maxD0Signif 
 			    /// || fabs(e.tkdz(tid,vid)/e.tkdzErr(tid,vid)) > params_.maxDzSignif ) 
 				) {
-				//// std::cerr << "skipping [line" << __LINE__ << "] ";
-				//// std::cerr << (params_.highPurityOnly && !e.tkIsHighPurity(tid)  )
-				//// 	  << " " 
-				//// 	  << (fabs(e.tkd0(tid,vid)/e.tkd0Err(tid,vid)) > params_.maxD0Signif )
-				//// 	  << " " 
-				//// 	  << (fabs(e.tkdz(tid,vid)/e.tkdzErr(tid,vid)) > params_.maxDzSignif) << std::endl;
 				continue; 
 			}
 			
 
 			const TVector3 tkPVec(e.tkpx(tid),e.tkpy(tid),e.tkpz(tid));
 			assert(vid >= 0 && vid < nvtx);
-
-			//// std::cerr << "( " << e.tkpx(tid) << " " << e.tkpy(tid) << " " << e.tkpz(tid) << ")";
 
 			TVector2 tkPtVec = tkPVec.XYvector();
 			float tkPt = tkPtVec.Mod();
@@ -676,7 +547,6 @@ void HggVertexAnalyzer::analyze(const VertexInfoAdapter & e, const PhotonInfo & 
 			// correct track pt a la POG
 			if( params_.rescaleTkPtByError ) {
 				if( modpt == 0. ) { 
-					/// std::cerr << "skipping [line" << __LINE__ << "] ";
 					continue; 
 				}
 				const float ptcorr = modpt/tkPt;
@@ -692,12 +562,11 @@ void HggVertexAnalyzer::analyze(const VertexInfoAdapter & e, const PhotonInfo & 
 						
 			// remove tracks in a cone around the photon direction to compute kinematic propeties
 			if ( params_.removeTracksInCone ) {
-			  float dr1 = tkPVec.DeltaR(p1.p4(e.vtxx(vid),e.vtxy(vid),e.vtxz(vid)).Vect()); 
-			  float dr2 = tkPVec.DeltaR(p2.p4(e.vtxx(vid),e.vtxy(vid),e.vtxz(vid)).Vect()); 
-			  if ( dr1 < params_.coneSize  || dr2 < params_.coneSize) {
-				  //// std::cerr << "skipping [line" << __LINE__ << "] ";
-				  continue;
-			  }
+				float dr1 = tkPVec.DeltaR(p1.p4(e.vtxx(vid),e.vtxy(vid),e.vtxz(vid)).Vect()); 
+				float dr2 = tkPVec.DeltaR(p2.p4(e.vtxx(vid),e.vtxy(vid),e.vtxz(vid)).Vect()); 
+				if ( dr1 < params_.coneSize  || dr2 < params_.coneSize) {
+					continue;
+				}
 			}
 		
 
@@ -724,7 +593,6 @@ void HggVertexAnalyzer::analyze(const VertexInfoAdapter & e, const PhotonInfo & 
 			}
 			sumpr_[ipair_][vid] += pow(tkPVec.Mag(),spherPwr_);
 		}
-		//// std::cerr << " nch_[ipair_][vid] " << nch_[ipair_][vid] << " sumpt2_[ipair_][vid] " << sumpt2_[ipair_][vid] << std::endl;
 		
 		sphers_[ipair_][vid] *= 1./sumpr_[ipair_][vid];
 		

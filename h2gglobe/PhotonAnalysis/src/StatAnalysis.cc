@@ -569,7 +569,6 @@ void StatAnalysis::Analysis(LoopAll& l, Int_t jentry)
         // TODO dipho selection should match the Higgs truth (not just the best dipho)
         vtxAna_.setPairID(diphoton_id);
         nVert_ = l.vtx_std_n;
-	l.FillHist("vtx_n",0,nVert_,evweight);
 
         //put stupid values in vectors
         MVA_.assign(useNVert,-10);
@@ -592,9 +591,7 @@ void StatAnalysis::Analysis(LoopAll& l, Int_t jentry)
         }
         VtxEvtMVA_ = tmvaPerEvtReader_->EvaluateMVA(tmvaPerEvtMethod);
 	
-        // cout << "VtxEvtMVA: " << VtxEvtMVA_ << endl;
         //TODO microanalysis imported stuff
-
 	l.countersred[diPhoCounter_]++;
 
 	TLorentzVector lead_p4 = l.get_pho_p4( l.dipho_leadind[diphoton_id], l.dipho_vtxind[diphoton_id], &smeared_pho_energy[0]);
@@ -605,11 +602,7 @@ void StatAnalysis::Analysis(LoopAll& l, Int_t jentry)
 	TVector3 * vtx = (TVector3*)l.vtx_std_xyz->At(l.dipho_vtxind[diphoton_id]);
 
 	bool CorrectVertex;
-	// FIXME pass smeared R9
-	/// int category = l.DiphotonCategory(diphoton_index.first,diphoton_index.second,Higgs.Pt(),nEtaCategories,nR9Categories,nPtCategories);
 	int category = l.DiphotonCategory(diphoton_index.first,diphoton_index.second,Higgs.Pt(),nEtaCategories,nR9Categories,nPtCategories,nVtxCategories,VtxEvtMVA_);
-	/// cout << "category "<< category << " " << diphoton_index.first<< " " << diphoton_index.second<< " " << Higgs.Pt()<< " " << nEtaCategories<< " " 
-	///      << nR9Categories<< " " << nPtCategories<< " " << nVtxCategories<< " " << VtxEvtMVA_ << endla; 
 	int selectioncategory = l.DiphotonCategory(diphoton_index.first,diphoton_index.second,Higgs.Pt(),nEtaCategories,nR9Categories,0);
 	if( cur_type != 0 && doMCSmearing ) {
 	    float pth = Higgs.Pt();
@@ -629,15 +622,42 @@ void StatAnalysis::Analysis(LoopAll& l, Int_t jentry)
 	
 	assert( evweight >= 0. ); 
 	
+	// Monitor vertex per-event MVA inputs
         for (size_t vi=0;vi<rankedVtxs.size();vi++) {
         	if(vi>=useNVert) break;
+		
 		l.FillHist(Form("vtx_mva_%d",vi),0,MVA_[vi],evweight);
 		l.FillHist(Form("vtx_mva_%d",vi),category+1,MVA_[vi],evweight);
-		if( vi>0 ) { l.FillHist(Form("vtx_dz_%d",vi),category+1,dZ_[vi],evweight); }
+		if( vi>0 ) { 
+			l.FillHist(Form("vtx_dz_%d",vi),0,dZ_[vi],evweight); 
+			l.FillHist(Form("vtx_dz_%d",vi),category+1,dZ_[vi],evweight); 
+		}
         }
+	l.FillHist("vtx_n",0,nVert_,evweight);
+	l.FillHist("vtx_n",category+1,nVert_,evweight);
 	l.FillHist("vtx_evt_mva",0,VtxEvtMVA_,evweight);
 	l.FillHist("vtx_evt_mva",category+1,VtxEvtMVA_,evweight);
 
+	// Monitor correlations 
+	std::vector<std::pair<std::string,float> > mva_input_corr;
+	mva_input_corr.push_back( std::make_pair("vtx_n",nVert_) );
+	mva_input_corr.push_back( std::make_pair("dipho_pt",ptHiggs) );
+	for (size_t vi=0;vi<rankedVtxs.size();vi++) {
+		mva_input_corr.push_back( std::make_pair(Form("vtx_mva_%d",vi),MVA_[vi]) );
+	}
+	for (size_t vi=1;vi<rankedVtxs.size();vi++) {
+		mva_input_corr.push_back( std::make_pair(Form("vtx_dz_%d",vi),dZ_[vi]) );
+	}
+	for( size_t ivar=0; ivar<mva_input_corr.size(); ++ivar ) {
+		for( size_t jvar=ivar+1; jvar<mva_input_corr.size(); ++jvar ) {
+			std::string name = mva_input_corr[ivar].first+"_vs_"+mva_input_corr[jvar].first;
+			float & ival = mva_input_corr[ivar].second;
+			float & jval = mva_input_corr[jvar].second;
+			l.FillHist2D( name, 0,          ival, jval, evweight );
+			l.FillHist2D( name, category+1, ival, jval, evweight );
+		}
+	}
+	
 	l.FillCounter( "Accepted", weight );
 	l.FillCounter( "Smeared", evweight );
 	sumaccept += weight;
