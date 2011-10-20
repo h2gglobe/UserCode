@@ -58,7 +58,7 @@ DICTS = LoopAll.h BaseAnalysis.h BaseSmearer.h EnergySmearer.h EfficiencySmearer
 
 
 ROOFIT_BASE=$(ROOFITSYS)
-LDFLAGS+=-L$(ROOFIT_BASE)/lib -lRooFitCore -lTMVA
+LDFLAGS+=-L$(ROOFIT_BASE)/lib $(ROOTLIBS) -lRooFitCore -lTMVA
 CXXFLAGS+=-I$(ROOFIT_BASE)/include 
 
 all: $(LOOPALL)
@@ -71,7 +71,7 @@ clean:
 CXXFLAGS+=-I$(shell pwd)
 
 $(LOOPALL):  $(LOOPALLO)
-	$(LD) $(SOFLAGS) $(LDFLAGS) $(ROOTLIBS)  $(LOOPALLO) $(OutPutOpt) $(LOOPALLSO)
+	$(LD) $(SOFLAGS) $(LDFLAGS)  $(LOOPALLO) $(OutPutOpt) $(LOOPALLSO)
 	@echo "$(LOOPALLSO) done"
 
 LoopAll.$(ObjSuf): CommonParameters.h LoopAll.h Tools.h \

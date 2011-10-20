@@ -38,9 +38,76 @@ htyp=0 plot=-1  ncat=9  xbins=200   ybins=0    xmin=-1  xmax=1   ymin=0       ym
 htyp=0 plot=-1  ncat=9  xbins=200   ybins=0    xmin=-1  xmax=1   ymin=0       ymax=0       name=vtx_mva_3
 htyp=0 plot=-1  ncat=9  xbins=200   ybins=0    xmin=-1  xmax=1   ymin=0       ymax=0       name=vtx_mva_4
 
-htyp=0 plot=-1  ncat=1  xbins=50    ybins=0    xmin=0.5  xmax=50.5   ymin=0       ymax=0       name=vtx_n
+htyp=0 plot=-1  ncat=9  xbins=50    ybins=0    xmin=0.5  xmax=50.5   ymin=0       ymax=0       name=vtx_n
 
-htyp=0 plot=-1  ncat=9  xbins=200   ybins=0    xmin=-1  xmax=1   ymin=0       ymax=0       name=vtx_dz_1
-htyp=0 plot=-1  ncat=9  xbins=200   ybins=0    xmin=-1  xmax=1   ymin=0       ymax=0       name=vtx_dz_2
-htyp=0 plot=-1  ncat=9  xbins=200   ybins=0    xmin=-1  xmax=1   ymin=0       ymax=0       name=vtx_dz_3
-htyp=0 plot=-1  ncat=9  xbins=200   ybins=0    xmin=-1  xmax=1   ymin=0       ymax=0       name=vtx_dz_4
+htyp=0 plot=-1  ncat=9  xbins=200   ybins=0    xmin=-10  xmax=10   ymin=0       ymax=0       name=vtx_dz_1
+htyp=0 plot=-1  ncat=9  xbins=200   ybins=0    xmin=-10  xmax=10   ymin=0       ymax=0       name=vtx_dz_2
+htyp=0 plot=-1  ncat=9  xbins=200   ybins=0    xmin=-10  xmax=10   ymin=0       ymax=0       name=vtx_dz_3
+htyp=0 plot=-1  ncat=9  xbins=200   ybins=0    xmin=-10  xmax=10   ymin=0       ymax=0       name=vtx_dz_4
+
+
+htyp=1 plot=-1  ncat=9  xbins=50   ybins=20    xmin=0.5  xmax=50.5  ymin=0     ymax=200     name=vtx_n_vs_dipho_pt
+htyp=1 plot=-1  ncat=9  xbins=50   ybins=20    xmin=0.5  xmax=50.5  ymin=-1    ymax=1       name=vtx_n_vs_vtx_mva_0
+htyp=1 plot=-1  ncat=9  xbins=50   ybins=20    xmin=0.5  xmax=50.5  ymin=-1    ymax=1       name=vtx_n_vs_vtx_mva_1
+htyp=1 plot=-1  ncat=9  xbins=50   ybins=20    xmin=0.5  xmax=50.5  ymin=-1    ymax=1       name=vtx_n_vs_vtx_mva_2
+htyp=1 plot=-1  ncat=9  xbins=50   ybins=20    xmin=0.5  xmax=50.5  ymin=-1    ymax=1       name=vtx_n_vs_vtx_mva_3
+htyp=1 plot=-1  ncat=9  xbins=50   ybins=20    xmin=0.5  xmax=50.5  ymin=-1    ymax=1       name=vtx_n_vs_vtx_mva_4
+htyp=1 plot=-1  ncat=9  xbins=50   ybins=20    xmin=0.5  xmax=50.5  ymin=-10   ymax=10      name=vtx_n_vs_vtx_dz_1
+htyp=1 plot=-1  ncat=9  xbins=50   ybins=20    xmin=0.5  xmax=50.5  ymin=-10   ymax=10      name=vtx_n_vs_vtx_dz_2
+htyp=1 plot=-1  ncat=9  xbins=50   ybins=20    xmin=0.5  xmax=50.5  ymin=-10   ymax=10      name=vtx_n_vs_vtx_dz_3
+htyp=1 plot=-1  ncat=9  xbins=50   ybins=20    xmin=0.5  xmax=50.5  ymin=-10   ymax=10      name=vtx_n_vs_vtx_dz_4
+
+htyp=1 plot=-1  ncat=9  xbins=20   ybins=20    xmin=0  xmax=200   ymin=-1    ymax=1        name=dipho_pt_vs_vtx_mva_0
+htyp=1 plot=-1  ncat=9  xbins=20   ybins=20    xmin=0  xmax=200   ymin=-1    ymax=1        name=dipho_pt_vs_vtx_mva_1
+htyp=1 plot=-1  ncat=9  xbins=20   ybins=20    xmin=0  xmax=200   ymin=-1    ymax=1        name=dipho_pt_vs_vtx_mva_2
+htyp=1 plot=-1  ncat=9  xbins=20   ybins=20    xmin=0  xmax=200   ymin=-1    ymax=1        name=dipho_pt_vs_vtx_mva_3
+htyp=1 plot=-1  ncat=9  xbins=20   ybins=20    xmin=0  xmax=200   ymin=-1    ymax=1        name=dipho_pt_vs_vtx_mva_4
+htyp=1 plot=-1  ncat=9  xbins=20   ybins=20    xmin=0  xmax=200   ymin=-10   ymax=10       name=dipho_pt_vs_vtx_dz_1
+htyp=1 plot=-1  ncat=9  xbins=20   ybins=20    xmin=0  xmax=200   ymin=-10   ymax=10       name=dipho_pt_vs_vtx_dz_2
+htyp=1 plot=-1  ncat=9  xbins=20   ybins=20    xmin=0  xmax=200   ymin=-10   ymax=10       name=dipho_pt_vs_vtx_dz_3
+htyp=1 plot=-1  ncat=9  xbins=20   ybins=20    xmin=0  xmax=200   ymin=-10   ymax=10       name=dipho_pt_vs_vtx_dz_4
+
+htyp=1 plot=-1  ncat=9  xbins=20   ybins=20    xmin=-1  xmax=1    ymin=-1    ymax=1       name=vtx_mva_0_vs_vtx_mva_1
+htyp=1 plot=-1  ncat=9  xbins=20   ybins=20    xmin=-1  xmax=1    ymin=-1    ymax=1       name=vtx_mva_0_vs_vtx_mva_2
+htyp=1 plot=-1  ncat=9  xbins=20   ybins=20    xmin=-1  xmax=1    ymin=-1    ymax=1       name=vtx_mva_0_vs_vtx_mva_3
+htyp=1 plot=-1  ncat=9  xbins=20   ybins=20    xmin=-1  xmax=1    ymin=-1    ymax=1       name=vtx_mva_0_vs_vtx_mva_4
+htyp=1 plot=-1  ncat=9  xbins=20   ybins=20    xmin=-1  xmax=1    ymin=-10   ymax=10      name=vtx_mva_0_vs_vtx_dz_1
+htyp=1 plot=-1  ncat=9  xbins=20   ybins=20    xmin=-1  xmax=1    ymin=-10   ymax=10      name=vtx_mva_0_vs_vtx_dz_2
+htyp=1 plot=-1  ncat=9  xbins=20   ybins=20    xmin=-1  xmax=1    ymin=-10   ymax=10      name=vtx_mva_0_vs_vtx_dz_3
+htyp=1 plot=-1  ncat=9  xbins=20   ybins=20    xmin=-1  xmax=1    ymin=-10   ymax=10      name=vtx_mva_0_vs_vtx_dz_4
+
+htyp=1 plot=-1  ncat=9  xbins=20   ybins=20    xmin=-1  xmax=1    ymin=-1    ymax=1       name=vtx_mva_1_vs_vtx_mva_2
+htyp=1 plot=-1  ncat=9  xbins=20   ybins=20    xmin=-1  xmax=1    ymin=-1    ymax=1       name=vtx_mva_1_vs_vtx_mva_3
+htyp=1 plot=-1  ncat=9  xbins=20   ybins=20    xmin=-1  xmax=1    ymin=-1    ymax=1       name=vtx_mva_1_vs_vtx_mva_4
+htyp=1 plot=-1  ncat=9  xbins=20   ybins=20    xmin=-1  xmax=1    ymin=-10   ymax=10      name=vtx_mva_1_vs_vtx_dz_1
+htyp=1 plot=-1  ncat=9  xbins=20   ybins=20    xmin=-1  xmax=1    ymin=-10   ymax=10      name=vtx_mva_1_vs_vtx_dz_2
+htyp=1 plot=-1  ncat=9  xbins=20   ybins=20    xmin=-1  xmax=1    ymin=-10   ymax=10      name=vtx_mva_1_vs_vtx_dz_3
+htyp=1 plot=-1  ncat=9  xbins=20   ybins=20    xmin=-1  xmax=1    ymin=-10   ymax=10      name=vtx_mva_1_vs_vtx_dz_4
+
+htyp=1 plot=-1  ncat=9  xbins=20   ybins=20    xmin=-1  xmax=1    ymin=-1    ymax=1       name=vtx_mva_2_vs_vtx_mva_3
+htyp=1 plot=-1  ncat=9  xbins=20   ybins=20    xmin=-1  xmax=1    ymin=-1    ymax=1       name=vtx_mva_2_vs_vtx_mva_4
+htyp=1 plot=-1  ncat=9  xbins=20   ybins=20    xmin=-1  xmax=1    ymin=-10   ymax=10      name=vtx_mva_2_vs_vtx_dz_1
+htyp=1 plot=-1  ncat=9  xbins=20   ybins=20    xmin=-1  xmax=1    ymin=-10   ymax=10      name=vtx_mva_2_vs_vtx_dz_2
+htyp=1 plot=-1  ncat=9  xbins=20   ybins=20    xmin=-1  xmax=1    ymin=-10   ymax=10      name=vtx_mva_2_vs_vtx_dz_3
+htyp=1 plot=-1  ncat=9  xbins=20   ybins=20    xmin=-1  xmax=1    ymin=-10   ymax=10      name=vtx_mva_2_vs_vtx_dz_4
+
+htyp=1 plot=-1  ncat=9  xbins=20   ybins=20    xmin=-1  xmax=1    ymin=-1    ymax=1       name=vtx_mva_3_vs_vtx_mva_4
+htyp=1 plot=-1  ncat=9  xbins=20   ybins=20    xmin=-1  xmax=1    ymin=-10   ymax=10      name=vtx_mva_3_vs_vtx_dz_1
+htyp=1 plot=-1  ncat=9  xbins=20   ybins=20    xmin=-1  xmax=1    ymin=-10   ymax=10      name=vtx_mva_3_vs_vtx_dz_2
+htyp=1 plot=-1  ncat=9  xbins=20   ybins=20    xmin=-1  xmax=1    ymin=-10   ymax=10      name=vtx_mva_3_vs_vtx_dz_3
+htyp=1 plot=-1  ncat=9  xbins=20   ybins=20    xmin=-1  xmax=1    ymin=-10   ymax=10      name=vtx_mva_3_vs_vtx_dz_4
+
+htyp=1 plot=-1  ncat=9  xbins=20   ybins=20    xmin=-1  xmax=1    ymin=-10   ymax=10      name=vtx_mva_4_vs_vtx_dz_1
+htyp=1 plot=-1  ncat=9  xbins=20   ybins=20    xmin=-1  xmax=1    ymin=-10   ymax=10      name=vtx_mva_4_vs_vtx_dz_2
+htyp=1 plot=-1  ncat=9  xbins=20   ybins=20    xmin=-1  xmax=1    ymin=-10   ymax=10      name=vtx_mva_4_vs_vtx_dz_3
+htyp=1 plot=-1  ncat=9  xbins=20   ybins=20    xmin=-1  xmax=1    ymin=-10   ymax=10      name=vtx_mva_4_vs_vtx_dz_4
+
+htyp=1 plot=-1  ncat=9  xbins=20   ybins=20    xmin=-10  xmax=10    ymin=-10   ymax=10      name=vtx_dz_1_vs_vtx_dz_2
+htyp=1 plot=-1  ncat=9  xbins=20   ybins=20    xmin=-10  xmax=10    ymin=-10   ymax=10      name=vtx_dz_1_vs_vtx_dz_3
+htyp=1 plot=-1  ncat=9  xbins=20   ybins=20    xmin=-10  xmax=10    ymin=-10   ymax=10      name=vtx_dz_1_vs_vtx_dz_4
+
+htyp=1 plot=-1  ncat=9  xbins=20   ybins=20    xmin=-10  xmax=10    ymin=-10   ymax=10      name=vtx_dz_2_vs_vtx_dz_3
+htyp=1 plot=-1  ncat=9  xbins=20   ybins=20    xmin=-10  xmax=10    ymin=-10   ymax=10      name=vtx_dz_2_vs_vtx_dz_4
+
+htyp=1 plot=-1  ncat=9  xbins=20   ybins=20    xmin=-10  xmax=10    ymin=-10   ymax=10      name=vtx_dz_3_vs_vtx_dz_4
+
