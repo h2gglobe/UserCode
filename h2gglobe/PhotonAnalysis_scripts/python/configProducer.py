@@ -551,7 +551,9 @@ class configProducer:
 	  self.file_processed_events_[fi_name] = nEventsInFile
           map_c["tot"] = nEventsInFile;
 	  
-	else:  map_c["tot"] = self.file_processed_events_[fi_name]
+	else:  
+	  if fi_name in self.file_processed_events_:map_c["tot"] = self.file_processed_events_[fi_name]
+	  else: (sys.exit("No Entry for %s found in %s, Please Delete %s and re-run with option --dryRun to regenerate %s")%(fi_name,self.sample_weights_file_,self.sample_weights_file_))
 
 	map_c["addnevents"] = int(1)
       self.conf_.confs.append(map_c.copy())
@@ -579,7 +581,8 @@ class configProducer:
                 map_c["tot"] = map_c["tot"] + nEventsInFile
 		self.file_processed_events_[file_s[0]] = nEventsInFile
 	      else:
-		map_c["tot"] = map_c["tot"] + self.file_processed_events_[file_s[0]]
+		if file_s[0] in self.file_processed_events_: map_c["tot"] = map_c["tot"] + self.file_processed_events_[file_s[0]]
+		else: (sys.exit("No Entry for %s found in %s, Please Delete %s and re-run with option --dryRun to regenerate %s")%(file_s[0],self.sample_weights_file_,self.sample_weights_file_))
 
       for file_s in files:
 	  if file_s[1]: self.conf_.files.append((file_s[0],fi_type))
