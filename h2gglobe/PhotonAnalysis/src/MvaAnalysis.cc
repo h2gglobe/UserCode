@@ -521,10 +521,18 @@ void MvaAnalysis::Analysis(LoopAll& l, Int_t jentry)
     int cur_type = l.itype[l.current];
     float weight = l.sampleContainer[l.current_sample_index].weight;
 
-    if (!doTraining && splitSignalSample && jentry%2!=0 && cur_type < 0) return;
-    if (splitSignalSample && cur_type < 0) weight*=2;
-    if (!doTraining && splitBackgroundSample && jentry%2!=0 && cur_type > 0) return;
-    if (splitBackgroundSample && cur_type > 0) weight*=2;
+    if (!doTraining){
+	if (splitSignalSample  && cur_type < 0) {
+	  if (jentry%2!=0) return;
+	  else weight*=2;
+	}
+
+	if (splitBackgroundSample && cur_type > 0) {
+	  if (jentry%2!=0) return;
+	  else weight*=2;
+	}
+    }
+	
  
     l.FillCounter( "Processed", 1. );
     assert( weight > 0. );  
@@ -617,16 +625,12 @@ void MvaAnalysis::Analysis(LoopAll& l, Int_t jentry)
 		pweight *= sweight;
 	    }
 	} else if(cur_type == 0 ) {          // if it's data
+	    float sweight = 1.; 
 	    if (doEcorrectionSmear){
-	      float sweight = 1.; 
 	      eCorrSmearer->smearPhoton(phoInfo,sweight,l.run,0.);     // This Smearer is the same as for MC so can just re-use it
-	      pweight *= sweight;	
 	    }
- 	    if (doEscaleSmear){
-	      float sweight = 1.; 
-	      eScaleDataSmearer->smearPhoton(phoInfo,sweight,l.run,0.);
-	      pweight *= sweight;
-	    }
+	    eScaleDataSmearer->smearPhoton(phoInfo,sweight,l.run,0.);
+	    pweight *= sweight;	
 	}
 
 	smeared_pho_energy[ipho] = phoInfo.energy();
