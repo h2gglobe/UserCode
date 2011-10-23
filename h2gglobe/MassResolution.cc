@@ -36,7 +36,7 @@ void MassResolution::Setup(LoopAll &l, TLorentzVector *in_lead_p4, TLorentzVecto
     lead_Eres = l.pho_residCorrResn[lead_index];
     sublead_Eres = l.pho_residCorrResn[sublead_index];
   } else if (energyCorrectionMethod=="Bendavid"){
-    lead_Eres = l.pho_regr_energy[lead_index];
+    lead_Eres = l.pho_regr_energyerr[lead_index];
     sublead_Eres = l.pho_regr_energyerr[sublead_index];
   }
 //	lead_r9 = l.pho_r9[lead_index];
