@@ -817,17 +817,6 @@ int LoopAll::FillAndReduce(int jentry) {
 
   //count all events
   countersred[0]++;
-
-  // 
-  // call skimming methods before reading data
-  // 
-  for (size_t i=0; i<analyses.size(); i++) {
-    if( ! analyses[i]->SkimEvents(*this, jentry) ) {
-      return hasoutputfile;
-    }
-  }
-  countersred[1]++;
-  
   //
   // read all inputs 
   //
@@ -836,6 +825,17 @@ int LoopAll::FillAndReduce(int jentry) {
   if(!CheckLumiSelection(run,lumis)){
 	  return hasoutputfile;
   }
+
+  countersred[1]++;
+  // 
+  // call skimming methods before reading data
+  // 
+  for (size_t i=0; i<analyses.size(); i++) {
+    if( ! analyses[i]->SkimEvents(*this, jentry) ) {
+      return hasoutputfile;
+    }
+  }
+  
   countersred[2]++;
 
   //
