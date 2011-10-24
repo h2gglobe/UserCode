@@ -1,3 +1,4 @@
+
 #!/usr/bin/env python
 # @(#)root/tmva $Id: MVAClassification.py,v 1.1.2.2 2011/09/09 11:39:09 mjarvis Exp $
 # ------------------------------------------------------------------------------
@@ -18,15 +19,9 @@ DEFAULT_INFNAME  = "TMVA_input.root"
 DEFAULT_TREESIG  = "sig"
 DEFAULT_TREEBKG  = "bkg"
 DEFAULT_METHODS  = "BDT"
+DEFAULT_BACKGROUND = 1 # 1 uses the sidebands, 2 uses all
 DEFAULT_MASS     = 120
-DEFAULT_TREES    = 128
-DEFAULT_DEPTH    = 4
-DEFAULT_PRUNE    = "NoPruning"
-DEFAULT_NODES    = 16
-DEFAULT_ADA      = 1.
-#tree_list = [128,256]
-#depth_list= [4,8,16,32,64,128]
-#prune_list = ["NoPruning","CostComplexity"]
+DEFAULT_CAT      = -1
 
 # Print usage help
 def usage():
@@ -34,10 +29,8 @@ def usage():
     print "Usage: python %s [options]" % sys.argv[0]
     print "  -m | --methods    : gives methods to be run (default: '%s')" % DEFAULT_METHODS  
     print "  -M | --mass       : gives Higgs Mass to train (default: '%i')" % DEFAULT_MASS  
-    print "  -T | --trees      : gives number of trees to train (default: '%i')" % DEFAULT_TREES  
-    print "  -D | --depth      : gives max depth to trees (default: '%i')" % DEFAULT_DEPTH  
-    print "  -P | --pruning    : gives pruning method (default: '%i')" % DEFAULT_PRUNE  
-    print "  -N | --nodes       : gives max nodes (default: '%i')" % DEFAULT_NODES  
+    print "  -C | --cat        : Diphoton selection cat to run over (default: '%i')" % DEFAULT_MASS  
+    print "  -B | --background : define which background samples to use (default: '%i' [sidebands])" % DEFAULT_BACKGROUND  
     print "  -i | --inputfile  : name of input ROOT file (default: '%s')" % DEFAULT_INFNAME
     print "  -o | --outputfile : name of output ROOT file containing results (default: '%s')" % DEFAULT_OUTFNAME
     print "  -t | --inputtrees : input ROOT Trees for signal and background (default: '%s %s')" % (DEFAULT_TREESIG, DEFAULT_TREEBKG)
@@ -51,10 +44,8 @@ def main():
 
     try:
         # retrive command line options
-        shortopts  = "m:M:T:D:P:N:A:i:t:o:vh?"
-        longopts   = ["methods=","mass=","trees=","depth=","pruning=","nodes=","ada=", "inputfile=", "inputtrees=", "outputfile=",
-"verbose", "help", "usage"]
-        opts, args = getopt.getopt( sys.argv[1:], shortopts, longopts )
+        shortopts  = "m:M:C:B:i:t:o:vh?"
+        opts, args = getopt.getopt( sys.argv[1:], shortopts )
 
     except getopt.GetoptError:
         # print help information and exit:
@@ -65,14 +56,11 @@ def main():
     infname     = DEFAULT_INFNAME
     methods     = DEFAULT_METHODS
     mass        = DEFAULT_MASS
-    tree        = DEFAULT_TREES
-    depth       = DEFAULT_DEPTH
-    prune       = DEFAULT_PRUNE
-    nodes       = DEFAULT_NODES
-    ada         = DEFAULT_ADA
+    cat         = DEFAULT_CAT
     outfname    = DEFAULT_OUTFNAME
     treeNameSig = DEFAULT_TREESIG
     treeNameBkg = DEFAULT_TREEBKG
+    bkg_method  = DEFAULT_BACKGROUND
     verbose     = False
     for o, a in opts:
         if o in ("-?", "-h", "--help", "--usage"):
@@ -82,16 +70,10 @@ def main():
             methods = a
         elif o in ("-M", "--mass"):
             mass = int(a)
-        elif o in ("-T", "--tree"):
-            tree = int(a)
-        elif o in ("-D", "--depth"):
-            depth = int(a)
-        elif o in ("-P", "--prune"):
-            prune = str(a)
-        elif o in ("-N", "--nodes"):
-            nodes = int(a)
-        elif o in ("-A", "--ada"):
-            ada = float(a)
+        elif o in ("-C", "--cat"):
+            cat = int(a)
+        elif o in ("-B", "--background"):
+            bkg_method = int(a)
         elif o in ("-i", "--inputfile"):
             infname = a
         elif o in ("-o", "--outputfile"):
@@ -111,9 +93,12 @@ def main():
             verbose = True
 
     mass_str    = "_"+str(mass)
-    outfname    = outfname+"_ada"+mass_str+"_"+str(tree)+"_"+str(depth)+"_"+str(prune)+"_"+str(ada)+".root"
-    treeNameSig = treeNameSig + mass_str  
-    treeNameBkg = treeNameBkg + mass_str  
+    cat_str    = "_"+str(cat)
+    if cat<0:
+        cat_str    = "_all"
+    outfname    = outfname+mass_str+cat_str+".root"
+    #treeNameSig = treeNameSig + mass_str 
+    #treeNameBkg = treeNameBkg + mass_str  
 
     # Print methods
     mlist = methods.replace(' ',',').split(',')
@@ -136,8 +121,8 @@ def main():
     # Logon not automatically loaded through PyROOT (logon loads TMVA library)
     # load also GUI
     gROOT.SetMacroPath( "./" )
-    gROOT.Macro       ( "./TMVAlogon.C" )    
-    gROOT.LoadMacro   ( "./TMVAGui.C" )
+    #gROOT.Macro       ( "./TMVAlogon.C" )    
+    #gROOT.LoadMacro   ( "./TMVAGui.C" )
     
     # Import TMVA classes from ROOT
     from ROOT import TMVA
@@ -185,15 +170,26 @@ def main():
     input = TFile.Open( infname )
 
     # Get the signal and background trees for training
-    signal      = input.Get( treeNameSig)
-    background  = input.Get( treeNameBkg)
+    signal_train      = input.Get( treeNameSig+"_train"+mass_str+".0")
+    signal_test      = input.Get( treeNameSig+"_test"+mass_str+".0")
+    if bkg_method == 1 :#sidebands
+        print "Training with background from the signal region and two sidebands"
+        background_train  = input.Get( treeNameBkg+"_train"+mass_str+".0")
+        background_test  = input.Get( treeNameBkg+"_test"+mass_str+".0")
+    if bkg_method == 2 :#sidebands
+        print "Training with background taken from the complete range"
+        background_train  = input.Get( treeNameBkg+"_train_all")
+        background_test  = input.Get( treeNameBkg+"_test_all")
+
     # Global event weights (see below for setting event-wise weights)
     signalWeight     = 1.0
     backgroundWeight = 1.0
 
     # ====== register trees ====================================================
-    factory.AddSignalTree    ( signal,     signalWeight     )
-    factory.AddBackgroundTree( background, backgroundWeight )
+    factory.AddSignalTree    ( signal_train,    signalWeight     ,"train")
+    factory.AddBackgroundTree( background_train,backgroundWeight ,"train")
+    factory.AddSignalTree    ( signal_test,     signalWeight     ,"test")
+    factory.AddBackgroundTree( background_test, backgroundWeight ,"test")
             
     # Set individual event weights (the variables must exist in the original
     # TTree)
@@ -202,38 +198,26 @@ def main():
 
     # Apply additional cuts on the signal and background sample. 
     # example for cut: mycut = TCut( "abs(var1)<0.5 && abs(var2-0.5)<1" )
-    mycutSig = TCut( "mgg<="+str(mass*1.07)+" && mgg>="+str(mass*0.93))#
-    mycutBkg = TCut( "mgg<="+str(mass*1.07)+" && mgg>="+str(mass*0.93))#
+    mycutSig = TCut( "cat == "+ str(cat))#
+    mycutBkg = TCut( "cat == "+ str(cat))#
     
+    if cat<0:
+        mycutSig = TCut( "")#
+        mycutBkg = TCut( "")#
     # Here, the relevant variables are copied over in new, slim trees that are
     # used for TMVA training and testing
-    # "SplitMode=Random" means that the input events are randomly shuffled
-    # before
-    # splitting them into training and test samples
-    factory.PrepareTrainingAndTestTree( mycutSig, mycutBkg,
-                                        "nTrain_Signal=0:nTrain_Background=0:SplitMode=Random:NormMode=NumEvents:!V"
-)
-    # ---- Book MVA methods
+    factory.PrepareTrainingAndTestTree( mycutSig, mycutBkg, "nTrain_Signal=0:nTrain_Background=0:NormMode=NumEvents:!V")
     # Boosted Decision Trees
-    #if "BDT" in mlist:
-    #    factory.BookMethod( TMVA.Types.kBDT, "BDT_ada"+mass_str,"!H:!V:NTrees=512:nEventsMin=150:MaxDepth=3:BoostType=AdaBoost:AdaBoostBeta=0.5:SeparationType=GiniIndex:nCuts=20:PruneMethod=NoPruning")
-    #    factory.BookMethod( TMVA.Types.kBDT, "BDT_grad"+mass_str,"!H:!V:NTrees=128:nEventsMin=150:MaxDepth=6:BoostType=Grad:Shrinkage=0.30:SeparationType=GiniIndex:nCuts=20:PruneMethod=NoPruning:UseBaggedGrad:GradBaggingFraction=0.6")
-    #tree_list = [128,256]
-    #depth_list= [4,8,16,32,64,128]
-    #prune_list = ["NoPruning","CostComplexity"]
-    #for tree in tree_list:
-    #    for depth in depth_list:
-    #        for prune in prune_list:
-    #            factory.BookMethod( TMVA.Types.kBDT, "BDT_ada"+mass_str+"_"+str(tree)+"_"+str(depth)+"_"+prune,"!H:!V:NTrees="+str(tree)+":nEventsMin=150:MaxDepth="+str(depth)+":BoostType=AdaBoost:AdaBoostBeta=0.5:SeparationType=GiniIndex:nCuts=-1:PruneMethod="+str(prune))
-    #factory.BookMethod(TMVA.Types.kBDT,"BDT_grad"+mass_str+"_"+str(tree)+"_"+str(depth)+"_"+prune,"!H:!V:NTrees="+str(tree)+":nEventsMin=150:MaxDepth="+str(depth)+":BoostType=Grad:Shrinkage=0.30:SeparationType=GiniIndex:nCuts=200:PruneMethod="+str(prune)+":UseBaggedGrad:GradBaggingFraction=0.6:NNodesMax="+str(nodes))
-    factory.BookMethod(TMVA.Types.kBDT, "BDT_ada"+mass_str+"_"+str(tree)+"_"+str(depth)+"_"+prune+"_"+str(ada),"!H:!V:NTrees="+str(tree)+":nEventsMin=150:MaxDepth="+str(depth)+":BoostType=AdaBoost:AdaBoostBeta="+str(ada)+":SeparationType=GiniIndex:nCuts=-1:PruneMethod="+str(prune))
-            
-
-
-    #   factory.BookMethod( TMVA.Types.kBDT, "BDT_ada7_50"+mass_str,"!H:!V:NTrees=50:nEventsMin=150:MaxDepth=7:BoostType=AdaBoo st:AdaBoostBeta=.5:SeparationType=GiniIndex:PruneMethod=CostComplexity:PruneStrength=-1") 
+    # NEW PARAMETERS
+    factory.BookMethod( TMVA.Types.kBDT, "BDT_ada"+mass_str+cat_str,"!H:!V:NTrees=384:nEventsMin=150:MaxDepth=3:BoostType=AdaBoost:AdaBoostBeta=0.2:SeparationType=GiniIndex:nCuts=50:PruneMethod=NoPruning")
+    factory.BookMethod( TMVA.Types.kBDT, "BDT_grad"+mass_str+cat_str,"!H:!V:NTrees=128:nEventsMin=150:MaxDepth=6:BoostType=Grad:Shrinkage=0.30:SeparationType=GiniIndex:nCuts=50:PruneMethod=NoPruning:UseBaggedGrad:GradBaggingFraction=0.6")
+    opt_string = "H:!V:VarTransform=G:!TransformOutput:NSmooth=0:PDFInterpol=Spline2:NAvEvtPerBin=12"
+    #factory.BookMethod( TMVA.Types.kLikelihood, "Likelihood"+mass_str+cat_str,opt_string)
+    #OLD PARAMETERS
+    #    factory.BookMethod( TMVA.Types.kBDT,"BDT_ada"+mass_str,"!H:!V:NTrees=512:nEventsMin=150:MaxDepth=3:BoostType=AdaBoost:AdaBoostBeta=0.5:SeparationType=GiniIndex:nCuts=20:PruneMethod=NoPruning")
+    #factory.BookMethod( TMVA.Types.kBDT,"BDT_grad"+mass_str,"!H:!V:NTrees=128:nEventsMin=150:MaxDepth=6:BoostType=Grad:Shrinkage=0.30:SeparationType=GiniIndex:nCuts=20:PruneMethod=NoPruning:UseBaggedGrad:GradBaggingFraction=0.6")
 
     # --------------------------------------------------------------------------------------------------
-            
     # ---- Now you can tell the factory to train, test, and evaluate the MVAs. 
 
     # Train MVAs
