@@ -1,5 +1,5 @@
 {
-TFile *oldFILE = new TFile("./sig_reweighing_v10.root");
+TFile *oldFILE = new TFile("/vols/cms02/h2g/aux/sig_reweighing_v10.root");
 
 oldFILE->Print();
 oldFILE->ls();
@@ -41,9 +41,11 @@ int nphocats=4;
 Double_t ratioTP_[nphocats] 	    	    = {0.995,1.022,1.004,1.045} ;
 Double_t ratioTP_low_err_[nphocats] 	    = {0.003,0.011,0.014,0.038} ;
 Double_t ratioTP_high_err_[nphocats] 	    = {0.003,0.010,0.010,0.035} ;
-TString iDLabels_[nphocats] 		    = {"EBHighR9","EBLowR9","EEHighR9","EELowR9"};
+std::string iDLabels_[nphocats] 		    = {"EBHighR9","EBLowR9","EEHighR9","EELowR9"};
 
 for (int cat=0;cat<nphocats;cat++){
+   cout << "cat - "<<cat<<endl;
+   cout << " n pho cat - "<<nphocats<<endl;
    Int_t n=2;  
    Double_t ratioTP_EBHighR9_x[n]   = {0, 10000};
    Double_t ratioTP_EBHighR9_y[n]   = {ratioTP_[cat],ratioTP_[cat]};
@@ -52,12 +54,15 @@ for (int cat=0;cat<nphocats;cat++){
    Double_t ratioTP_EBHighR9_eyl[n] = {ratioTP_low_err_[cat],ratioTP_low_err_[cat]};
    Double_t ratioTP_EBHighR9_eyh[n] = {ratioTP_high_err_[cat],ratioTP_high_err_[cat]};
    TGraphAsymmErrors* gr = new TGraphAsymmErrors(n,ratioTP_EBHighR9_x,ratioTP_EBHighR9_y,ratioTP_EBHighR9_exl,ratioTP_EBHighR9_exh,ratioTP_EBHighR9_eyl,ratioTP_EBHighR9_eyh);
-   gr->SetTitle(Form("ratioTP_%s",iDLabels_[cat]));
-   gr->SetName(Form("ratioTP_%s",iDLabels_[cat]));
+   cout << "cat pre doanything - "<<cat<<endl;
+   gr->SetTitle(Form("ratioTP_%s",iDLabels_[cat].c_str()));
+   gr->SetName(Form("ratioTP_%s",iDLabels_[cat].c_str()));
    gr->SetMarkerColor(4);
    gr->SetMarkerStyle(21);
    gr->Draw("ALP");
+   cout << "cat pre write - "<<cat<<endl;
    gr->Write();
+   cout << "catEnd - "<<cat<<endl;
 }
 
 // ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
