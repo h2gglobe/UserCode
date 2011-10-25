@@ -11,9 +11,10 @@ Original Author - D. Futyan
 #include "TLegend.h"
 #include <iomanip>
 #include <string>
+#include <vector>
 
 
-void bkgShapeSyst_mass(TFile *f_in,std::string mode, double mass, int cat,bool equalBinWidths=false) {
+void bkgShapeSyst_mass(TFile *f_in,std::string mode, double mass, int cat,bool equalBinWidths=false,int nSidebands=2) {
 
 
   TH1* hist_data[4];
@@ -30,38 +31,43 @@ void bkgShapeSyst_mass(TFile *f_in,std::string mode, double mass, int cat,bool e
 
 //  TFile *f_out = TFile::Open(Form(var+"_%d.root","recreate");
 
-  f_in->cd();
-
-  if (!equalBinWidths) {
-    hist_data[1] = (TH1*)f_in->Get(Form("th1f_bkg_1low_%s_%3.1f_cat%d",mode.c_str(),mass,cat))->Clone();
-    hist_data[2] = (TH1*)f_in->Get(Form("th1f_bkg_%s_%3.1f_cat%d",mode.c_str(),mass,cat))->Clone();
-    hist_data[3] = (TH1*)f_in->Get(Form("th1f_bkg_1high_%s_%3.1f_cat%d",mode.c_str(),mass,cat))->Clone();
+//  f_in->cd();
+  std::vector<TH1 *> hist_sidebands;
+  for (int s_i=1;s_i<=nSidebands;s_i++){
+	TH1* hist_h =(TH1*) f_in->Get(Form("th1f_bkg_%dhigh_%s_%3.1f_cat%d",s_i,mode.c_str(),mass,cat));
+	TH1* hist_l =(TH1*) f_in->Get(Form("th1f_bkg_%dlow_%s_%3.1f_cat%d",s_i,mode.c_str(),mass,cat));
+	hist_sidebands.push_back((TH1*)hist_l->Clone());
+	hist_sidebands.push_back((TH1*)hist_h->Clone());
+  }
+  // Now we have the sidebands in the vector
+//  if (!equalBinWidths) {
+ //   hist_data[1] = (TH1*)f_in->Get(Form("th1f_bkg_1low_%s_%3.1f_cat%d",mode.c_str(),mass,cat))->Clone();
+ //   hist_data[2] =  //   hist_data[3] = (TH1*)f_in->Get(Form("th1f_bkg_1high_%s_%3.1f_cat%d",mode.c_str(),mass,cat))->Clone();
   //  hist_data[2] = (TH1*)th1f_bkg_ada_120_cat0->Clone();
   //  hist_data[3] = (TH1*)th1f_bkg_high_ada_120_cat0->Clone();
-  } else {
-    TH1 *th1f_bkg_ada_120_cat0 = (TH1*) f_in->Get(Form("th1f_bkg_%s_%3.1f_cat%d",mode.c_str(),mass,cat));
-    TH1 *th1f_bkg_high_ada_120_cat0 = (TH1*) f_in->Get(Form("th1f_bkg_1high_%s_%3.1f_cat%d",mode.c_str(),mass,cat));
-    TH1 *th1f_bkg_low_ada_120_cat0 = (TH1*) f_in->Get(Form("th1f_bkg_1low_%s_%3.1f_cat%d",mode.c_str(),mass,cat));
-    int nbins=th1f_bkg_ada_120_cat0->GetNbinsX();
-    hist_data[1] = new TH1F(Form("hist_data_low_%s_%3.1f_cat%d",mode.c_str(),mass,cat),"hist_data_low",nbins,0,float(nbins));
-    hist_data[2] = new TH1F(Form("hist_data_sig_%s_%3.1f_cat%d",mode.c_str(),mass,cat),"hist_data_sig",nbins,0,float(nbins));
-    hist_data[3] = new TH1F(Form("hist_data_high_%s_%3.1f_cat%d",mode.c_str(),mass,cat),"hist_data_high",nbins,0,float(nbins));
-    for (int ibin=0; ibin<nbins+1; ibin++) {
-      hist_data[1]->SetBinContent(ibin,th1f_bkg_low_ada_120_cat0->GetBinContent(ibin));
-      hist_data[1]->SetBinError(ibin,th1f_bkg_low_ada_120_cat0->GetBinError(ibin));
-      hist_data[2]->SetBinContent(ibin,th1f_bkg_ada_120_cat0->GetBinContent(ibin));
-      hist_data[2]->SetBinError(ibin,th1f_bkg_ada_120_cat0->GetBinError(ibin));
-      hist_data[3]->SetBinContent(ibin,th1f_bkg_high_ada_120_cat0->GetBinContent(ibin));
-      hist_data[3]->SetBinError(ibin,th1f_bkg_high_ada_120_cat0->GetBinError(ibin));
-    }
-  }
+ // } else { 
+//	std::cout << "Cannot work in equalBinWidths" <<std::endl;
+//	return 0;
+  //  }
+//  }
 
+  hist_data[1]=(TH1*)hist_sidebands[0]->Clone();
+  hist_data[2]=(TH1*)f_in->Get(Form("th1f_bkg_%s_%3.1f_cat%d",mode.c_str(),mass,cat))->Clone();
+  hist_data[3]=(TH1*)hist_sidebands[1]->Clone();
+
+  // Add the other sidebands:
+  for (int s_i=2;s_i<2*nSidebands;s_i+=2){
+	hist_data[1]->Add(hist_sidebands[s_i]);
+	hist_data[3]->Add(hist_sidebands[s_i+1]);
+  }
+  
   for (int i=1; i<4; i++) {
     hist_data[i]->SetMarkerStyle(20);
     hist_data[i]->SetMarkerSize(.8);
     hist_data[i]->GetXaxis()->SetTitle(title);
     hist_data[i]->GetXaxis()->SetTitleSize(0.04);
     hist_data[i]->GetYaxis()->SetTitle("");
+    hist_data[i]->GetYaxis()->SetRangeUser(0,100);
   }
 
   for (int i=1; i<4; i++) {
@@ -114,7 +120,7 @@ void bkgShapeSyst_mass(TFile *f_in,std::string mode, double mass, int cat,bool e
 
 }
 
-void bkgShapeSyst(std::string FileName, int ncat=1,bool equalBinWidths=false){
+void bkgShapeSyst(std::string FileName, int ncat=1,bool equalBinWidths=false,int nSidebands=2){
 
   gStyle->SetOptTitle(0);
   gStyle->SetOptStat(0);
@@ -130,8 +136,8 @@ void bkgShapeSyst(std::string FileName, int ncat=1,bool equalBinWidths=false){
   //for (int m=0;m<nmasses;m++){
   for (double m=115.;m<=150.;m+=0.5){
     for (int cat=0;cat<ncat;cat++){
-       bkgShapeSyst_mass(f_in,"ada",m,cat,equalBinWidths);
-       bkgShapeSyst_mass(f_in,"grad",m,cat,equalBinWidths);
+       bkgShapeSyst_mass(f_in,"ada",m,cat,equalBinWidths,nSidebands);
+       bkgShapeSyst_mass(f_in,"grad",m,cat,equalBinWidths,nSidebands);
     }
   }
 
