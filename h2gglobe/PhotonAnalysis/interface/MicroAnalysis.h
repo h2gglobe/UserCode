@@ -78,8 +78,9 @@ protected:
 	Float_t pullToConv_;
 	Float_t rprod_;
 	Float_t convRprod_;
+	std::vector<std::string> vtxVarNames_;
+	std::vector<float> vtxVars_;
 	
-
 	// TMVA reader
 	vector<string> tmvaVariables_, rankVariables_;
 	TMVA::Reader *tmvaReader_;

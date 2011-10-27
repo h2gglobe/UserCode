@@ -143,12 +143,13 @@ public:
 	float rcomb(int i)    const { return 	rcomb_[i]; };	
 
 	void setPullToConv(int ivert, float pull, float lim=10.);
+	void setNConv(int n);
+	double vtxdZ(const PhotonInfo & pho);
+	double vtxZ(const PhotonInfo & pho);
+	
+	float nconv(int i)            const { return nconv_[ipair_]; };	
 	float pulltoconv(int i)    const { return pulltoconv_[ipair_][i]; };	
 	float limpulltoconv(int i)    const { return limpulltoconv_[ipair_][i]; };	
-
-	void setNConv(int n);
-	float nconv(int i)            const { return nconv_[ipair_]; };	
-	
 	float diphopt(int i)    const { return diphopt_[ipair_][i]; };	
 	float nch(int i)    const { return 	nch_[ipair_][i]; };	
 	float ptmax(int i)  const { return 	ptmax_[ipair_][i]; };	
@@ -255,7 +256,10 @@ private:
 	std::vector<int> pho1_, pho2_;
 	std::vector<int> * ppho1_, * ppho2_;
 	int ninvalid_idxs_;
-
+	
+	std::vector<float>               * pnconv ;
+	std::vector<std::vector<float> > * ppulltoconv ;
+	std::vector<std::vector<float> > * plimpulltoconv ;
 	std::vector<std::vector<float> > * pdiphopt ;
 	std::vector<std::vector<float> > * pnch ;
 	std::vector<std::vector<float> > * pptmax ;

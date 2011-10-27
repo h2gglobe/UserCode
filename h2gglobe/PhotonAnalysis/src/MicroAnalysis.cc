@@ -16,7 +16,7 @@ MicroAnalysis::MicroAnalysis()  :
 	tmvaWeights(""),
 	storeNVert(3),
 	name_("MicroAnalysis"),
-	pho1_(0), pho2_(0), dipho_(0)
+    pho1_(0), pho2_(0), dipho_(0), vtxVars_(100)
 {
 	cout << "Constructing MicroAnalysis" << endl;
 	useMvaRanking = false;
@@ -55,31 +55,38 @@ void MicroAnalysis::Init(LoopAll& l)
 	cout << "Initializing MicroAnalysis" << endl;
 	if(PADEBUG) cout << "InitRealMicroAnalysis START"<<endl;
 	uFile_ = TFile::Open(uFileName,"recreate");
+	uFile_->cd(); 
 
 	// per vertex tree
 	uTree_ = new TTree("utree","MicroAnalysis per Vertex Tree");
 	//LINK http://root.cern.ch/root/html/TTree.html
 	uTree_->Branch("dZToGen",&dZToGen_);
-	uTree_->Branch("dZToClosest",&dZtoClosest_);
+	/// uTree_->Branch("dZToClosest",&dZtoClosest_);
 	uTree_->Branch("nVert",&nVert_);
 	uTree_->Branch("nPU",&nPU_);
 	uTree_->Branch("evWeight",&evWeight_);
 	uTree_->Branch("pho1",&pho1_,32000,0);
 	uTree_->Branch("pho2",&pho2_,32000,0);
 	uTree_->Branch("dipho",&dipho_,32000,0);
-	uTree_->Branch("ptasym",&ptasym_);
-	uTree_->Branch("ptbal",&ptbal_);
-	uTree_->Branch("logsumpt2",&logsumpt2_);
+	/// uTree_->Branch("ptasym",&ptasym_);
+	/// uTree_->Branch("ptbal",&ptbal_);
+	/// uTree_->Branch("logsumpt2",&logsumpt2_);
 	uTree_->Branch("absDeltaEta",&absDeltaEta_);
 	uTree_->Branch("tofCorrTdiff",&tofCorrTdiff_);
 	uTree_->Branch("isClosestToGen",&isClosestToGen_);
 	uTree_->Branch("nConv",&nConv_);
-	uTree_->Branch("dZToConv",&dZToConv_);
+	/// uTree_->Branch("dZToConv",&dZToConv_);
 	uTree_->Branch("pullToConv",&pullToConv_);
-	uTree_->Branch("convCompat",&convCompat_);
+	/// uTree_->Branch("convCompat",&convCompat_);
 	uTree_->Branch("rprod",&rprod_);
 	uTree_->Branch("convRprod",&convRprod_);
 
+	vtxVarNames_.push_back("ptvtx"), vtxVarNames_.push_back("ptasym"), vtxVarNames_.push_back("ptratio"), vtxVarNames_.push_back("ptbal"), vtxVarNames_.push_back("logsumpt2"), vtxVarNames_.push_back("ptmax3"), vtxVarNames_.push_back("ptmax"), vtxVarNames_.push_back("nchthr"), vtxVarNames_.push_back("sumtwd"); 
+	assert( vtxVars_.size() >= vtxVarNames_.size());
+	for( size_t iv=0; iv<vtxVarNames_.size(); ++iv ){
+		uTree_->Branch(vtxVarNames_[iv].c_str(),&vtxVars_[iv]);
+	}
+	uTree_->Print();
 	//todo add delta eta
 
 
@@ -204,6 +211,13 @@ void MicroAnalysis::Init(LoopAll& l)
 // ----------------------------------------------------------------------------------------------------
 void MicroAnalysis::Analysis(LoopAll& l, Int_t jentry) 
 {
+	static std::vector<HggVertexAnalyzer::getter_t> varMeths_(0);
+	if( varMeths_.empty() ) {
+		for( size_t iv=0; iv<vtxVarNames_.size(); ++iv ){
+			varMeths_.push_back(HggVertexAnalyzer::dictionary()[vtxVarNames_[iv]].first);
+		}
+	}
+
     if(PADEBUG)	cout << "Analysis START; cur_type is: " << l.itype[l.current] <<endl;
    
     int cur_type = l.itype[l.current];
@@ -457,8 +471,15 @@ void MicroAnalysis::Analysis(LoopAll& l, Int_t jentry)
 
 	vtxAna_.setPullToConv( vi, pullToConv_ );
 	/// vtxAna_.setTofCorrTdiff( vi, tofCorrTdiff_ );
-	
+	for( size_t ivar=0; ivar<vtxVarNames_.size(); ++ivar ){
+		vtxVars_[ivar] = (vtxAna_.*(varMeths_[ivar]))(vi);
+	}
+
     	uTree_->Fill();
+	if( jentry % 1000 == 0 ) {
+		uFile_->cd();
+		uTree_->Write(0,TObject::kWriteDelete);
+	}
     }
 
     //per event tree

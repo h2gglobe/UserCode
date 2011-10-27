@@ -9,9 +9,9 @@ if (int(options.nJobs > 0)) and (int(options.jobId) >= int(options.nJobs)):
 
 ROOT.gSystem.Load("libTree.so");
 ROOT.gSystem.Load("libTMVA.so");
-ROOT.gSystem.Load("libPhysics.so");
-ROOT.gSystem.Load("libCore.so");
-ROOT.gSystem.Load("libRooFit.so");
+## ROOT.gSystem.Load("libPhysics.so");
+## ROOT.gSystem.Load("libCore.so");
+## ROOT.gSystem.Load("libRooFit.so");
 ROOT.gSystem.Load("../libLoopAll.so");
 
 ROOT.gBenchmark.Start("Analysis");

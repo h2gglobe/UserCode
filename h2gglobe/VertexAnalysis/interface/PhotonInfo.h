@@ -33,7 +33,7 @@ public:
 	const int iDet() const {return iDet_;}
 	const float      energy()       const { return energy_; }
 	TLorentzVector p4(float vtxx, float vtxy, float vtxz) const;
-	bool isAConversion();
+	bool isAConversion() const;
 	
 protected:
 	int id_;

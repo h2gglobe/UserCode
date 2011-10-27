@@ -80,6 +80,7 @@ HggVertexAnalyzer::HggVertexAnalyzer(AlgoParameters & ap, int nvtx) :
 	params_(ap),
 	nvtx_(nvtx) 
 {
+	pnconv = &nconv_;
 	pdiphopt = &diphopt_;
 	pnch = &nch_;
 	pptmax = &ptmax_;
@@ -114,6 +115,9 @@ HggVertexAnalyzer::HggVertexAnalyzer(AlgoParameters & ap, int nvtx) :
 // -------------------------------------------------------------------------------------------------------------------------------------------------------------
 void HggVertexAnalyzer::branches(TTree * tree, const std::string & pfx)
 {
+	tree->Branch((pfx+"nconv").c_str(), &nconv_ );
+	tree->Branch((pfx+"pulltoconv").c_str(), &pulltoconv_ );
+	tree->Branch((pfx+"limpulltoconv").c_str(), &limpulltoconv_ );
 	tree->Branch((pfx+"diphopt").c_str(), &diphopt_ );
 	tree->Branch((pfx+"nch").c_str(), &nch_ )  ;
 	tree->Branch((pfx+"ptmax").c_str(), &ptmax_ );
@@ -148,6 +152,9 @@ void HggVertexAnalyzer::branches(TTree * tree, const std::string & pfx)
 // -------------------------------------------------------------------------------------------------------------------------------------------------------------
 void HggVertexAnalyzer::setBranchAdresses(TTree * tree, const std::string & pfx)
 {
+	tree->SetBranchAddress((pfx+"nconv").c_str(), &pnconv );
+	tree->SetBranchAddress((pfx+"pulltoconv").c_str(), &ppulltoconv );
+	tree->SetBranchAddress((pfx+"limpulltoconv").c_str(), &plimpulltoconv );
 	tree->SetBranchAddress((pfx+"diphopt").c_str(), &pdiphopt );
 	tree->SetBranchAddress((pfx+"nch").c_str(), &pnch )  ;
 	tree->SetBranchAddress((pfx+"ptmax").c_str(), &pptmax );
@@ -182,6 +189,9 @@ void HggVertexAnalyzer::setBranchAdresses(TTree * tree, const std::string & pfx)
 // -------------------------------------------------------------------------------------------------------------------------------------------------------------
 void HggVertexAnalyzer::getBranches(TTree * tree, const std::string & pfx, std::set<TBranch *> &ret)
 {
+	ret.insert(tree->GetBranch((pfx+"nconv").c_str()));
+	ret.insert(tree->GetBranch((pfx+"pulltoconv").c_str()));
+	ret.insert(tree->GetBranch((pfx+"limpulltoconv").c_str()));
 	ret.insert(tree->GetBranch((pfx+"diphopt").c_str()));
 	ret.insert(tree->GetBranch((pfx+"nch").c_str()));
 	ret.insert(tree->GetBranch((pfx+"ptmax").c_str()));
@@ -209,7 +219,6 @@ void HggVertexAnalyzer::getBranches(TTree * tree, const std::string & pfx, std::
 	ret.insert(tree->GetBranch((pfx+"sumtwd").c_str()));
 	ret.insert(tree->GetBranch((pfx+"awytwdasym").c_str()));
 
-	/// ret.insert(tree->GetBranch((pfx+"ninvalid_idxs").c_str()));
 	ret.insert(tree->GetBranch((pfx+"pho1").c_str()));
 	ret.insert(tree->GetBranch((pfx+"pho2").c_str()));
 }
@@ -234,7 +243,6 @@ void HggVertexAnalyzer::bookSpectators(TMVA::Reader & reader,const std::vector<s
 		varmeths_.push_back( dictionary()[order[ivar]].first );
 	}
 }
-
 
 // -------------------------------------------------------------------------------------------------------------------------------------------------------------
 void HggVertexAnalyzer::fillVariables(int iv)
@@ -364,6 +372,7 @@ void HggVertexAnalyzer::clear()
 	pho1_.clear();
 	pho2_.clear();
 
+	nconv_.clear();
 	pulltoconv_.clear();
 	limpulltoconv_.clear();
 	ptbal_.clear();
@@ -435,7 +444,6 @@ void HggVertexAnalyzer::analyze(const VertexInfoAdapter & e, const PhotonInfo & 
 {
 	int const nvtx = e.nvtx();
 	nvtx_ = nvtx;
-	mva_.clear(); mva_.resize(nvtx,0.);
 	/// std::cerr << "HggVertexAnalyzer::analyze " << nvtx_ << std::endl;
 	int pho1 = p1.id();
 	int pho2 = p2.id();
@@ -447,6 +455,7 @@ void HggVertexAnalyzer::analyze(const VertexInfoAdapter & e, const PhotonInfo & 
 		ninvalid_idxs_=0;
 
 		// initilise
+		/// mva_.resize(ipair_+1); mva_[ipair_].resize(nvtx,0.);
 		pulltoconv_.resize(ipair_+1); pulltoconv_[ipair_].resize(nvtx,1000.);
 		limpulltoconv_.resize(ipair_+1); limpulltoconv_[ipair_].resize(nvtx,1000.);
 		ptbal_.resize(ipair_+1); ptbal_[ipair_].resize(nvtx,0.);
@@ -509,11 +518,47 @@ void HggVertexAnalyzer::analyze(const VertexInfoAdapter & e, const PhotonInfo & 
 	}
 	
 	preselection_.clear();
+	
+	// vertex position esitmated with conversions
+	setNConv(0);
+	float zconv=0., szconv=0.;
+	if ( (p1.isAConversion() || p2.isAConversion() ) )  {
+		setNConv(1);
+		if (p1.isAConversion()  && !p2.isAConversion() ){
+			zconv  = vtxZ (p1);
+			szconv = vtxdZ(p1);
+		}
+		if (p2.isAConversion() && !p1.isAConversion()){
+			zconv  = vtxZ (p2);
+			szconv = vtxdZ(p2);
+		}
+		
+		if (p1.isAConversion() && p2.isAConversion()){
+			setNConv(2);
+			float z1  = vtxZ (p1);
+			float sz1 = vtxdZ(p1);
+			
+			float z2  = vtxZ (p2);
+			float sz2 = vtxdZ(p2);
+			
+			zconv  = (z1/sz1/sz1 + z2/sz2/sz2)/(1./sz1/sz1 + 1./sz2/sz2 );  // weighted average
+			szconv = sqrt( 1./(1./sz1/sz1 + 1./sz2/sz2)) ;
+			
+		}
+	}
+	
+	
 	// filling loop over vertexes
 	for(int vid=0; vid<e.nvtx(); ++vid) {
 		
 		const unsigned short * vtxTracks = e.hasVtxTracks() ? e.vtxTracks(vid) : &vtxTracksBuf[ vid*e.ntracks() ];
 		int ntracks = e.hasVtxTracks() ? e.vtxNTracks(vid) : vtxTracksSizeBuf[ vid ];
+		
+		if( nconv(vid) > 0 ) {
+			setPullToConv( vid, abs( curVtx->Z() - zconv ) / szconv );
+		} else {
+			setPullToConv( vid, -1. );
+		}
 
 		//calculating loop over tracks
 		for(int it=0; it<ntracks; ++it) {
@@ -629,6 +674,59 @@ void HggVertexAnalyzer::analyze(const VertexInfoAdapter & e, const PhotonInfo & 
 		
 		preselection_.push_back(vid);
 	}
+}
+
+
+double HggVertexAnalyzer::vtxdZ(const PhotonInfo & pho)
+{
+
+
+  // attribute the error depending on the tracker region
+  double dz=-99999;
+
+  if ( pho.iDet() ==1 ) { // barrel
+    if ( pho.conversionVertex().Perp() <=15 ) {
+      dz=params_.sigmaPix;
+    } else if ( pho.conversionVertex().Perp() > 15 && pho.conversionVertex().Perp() <=60 ) {
+      dz=params_.sigmaTib;
+    } else {
+      dz=params_.sigmaTob;
+    }
+
+  } else { // endcap
+
+
+    if ( fabs(pho.conversionVertex().Z() ) <=50 ) {
+      dz=params_.sigmaFwd1;
+    } else if ( fabs(pho.conversionVertex().Z() ) > 50 && fabs(pho.conversionVertex().Z()) <= 100 ) {
+      dz=params_.sigmaFwd2;
+    } else {
+      dz=params_.sigmaFwd3;
+    }
+  }
+
+  return dz;
+
+}
+
+
+double HggVertexAnalyzer::vtxZ(const PhotonInfo & pho)
+{
+
+  // get the z from conversions
+  double deltaX1 =  pho.caloPosition().X()- pho.conversionVertex().X();
+  double deltaY1 =  pho.caloPosition().Y()- pho.conversionVertex().Y();
+  double deltaZ1 =  pho.caloPosition().Z()- pho.conversionVertex().Z();
+  double R1 = sqrt(deltaX1*deltaX1+deltaY1*deltaY1);
+  double tantheta = R1/deltaZ1;
+  
+  double deltaX2 = pho.conversionVertex().X()-pho.beamSpot().X();
+  double deltaY2 = pho.conversionVertex().Y()-pho.beamSpot().Y();
+  double R2 = sqrt(deltaX2*deltaX2+deltaY2*deltaY2);
+  double deltaZ2 = R2/tantheta;
+  double higgsZ =  pho.caloPosition().Z()-deltaZ1-deltaZ2;
+  return higgsZ;
+
 }
 
 

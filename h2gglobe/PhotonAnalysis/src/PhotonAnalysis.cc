@@ -192,6 +192,10 @@ void PhotonAnalysis::Init(LoopAll& l)
 	
 	if( tmvaPerVtxWeights != ""  ) {
 		tmvaPerVtxVariables_.push_back("ptbal"), tmvaPerVtxVariables_.push_back("ptasym"), tmvaPerVtxVariables_.push_back("logsumpt2");
+		//// if( addConversionToMva ) {
+		//// 	tmvaVariables_.push_back("limPullToConv");
+		//// 	tmvaVariables_.push_back("nConv");
+		//// }
 		tmvaPerVtxReader_ = new TMVA::Reader( "!Color:!Silent" );
 		HggVertexAnalyzer::bookVariables( *tmvaPerVtxReader_, tmvaPerVtxVariables_ );
 		tmvaPerVtxReader_->BookMVA( tmvaPerVtxMethod, tmvaPerVtxWeights );
