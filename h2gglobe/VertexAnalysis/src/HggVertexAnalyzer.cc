@@ -599,6 +599,10 @@ void HggVertexAnalyzer::analyze(const VertexInfoAdapter & e, const PhotonInfo & 
 				tkPt = modpt;
 			}
 			
+			// to study algorithm in photon+jet sample
+			if( p1.isFake() && tkPVec.DeltaR(p1.p4(e.vtxx(vid),e.vtxy(vid),e.vtxz(vid)).Vect()) < 0.5 ){ continue; }
+			if( p2.isFake() && tkPVec.DeltaR(p2.p4(e.vtxx(vid),e.vtxy(vid),e.vtxz(vid)).Vect()) < 0.5 ){ continue; }
+			
 			// vertex properties
 			sumpt2_[ipair_][vid] += tkPtVec.Mod2();
 			sumpt_[ipair_][vid] += tkPt;

@@ -54,7 +54,6 @@ class TTree;
  *     float phocalox_[30], phocaloy_[30], phocaloz_[30], phoen_[30];
  *     
  *     void init() {
- *           vtxAlgoParams_.rescaleTkPtByError = true;}
  *           // variables order matters to resolve ties
  *           rankVariables_.push_back("ptbal"), rankVariables.push_back("ptasym"), rankVariables.push_back("logsumpt2");
  *                    
@@ -107,7 +106,6 @@ public:
 
 	HggVertexAnalyzer(AlgoParameters & ap, int nvtx=40);
 
-
 // CINT doesn't like function pointers
 #ifndef __CINT__ 
 	typedef float (HggVertexAnalyzer::*getter_t) (int) const;
@@ -117,11 +115,24 @@ public:
 #endif
 	static const float spherPwr_;
 	
+	// interface to  TMVA
 	static void bookVariables(TMVA::Reader & reader, const std::vector<std::string> & vars);
 	static void bookSpectators(TMVA::Reader & reader, const std::vector<std::string> & vars);
 	void fillVariables(int iv);
+
+	// Analyze di-photon - tracks correlations and fill algorithm input variables  
+	void analyze(const VertexInfoAdapter &, const PhotonInfo & pho1, const PhotonInfo & pho2);
+
+	// clear all the calculated values
+	void clear();
 	
-	// Rank vertexes
+	// Choose the di-photon pair
+	int  pairID(int pho1, int pho2);
+	void setPairID(int x) { ipair_ = x; };
+	void setPairID(int pho1, int pho2) { setPairID( pairID(pho1,pho2) ); };
+	
+	// Vertex selection
+	void preselection(const std::vector<int> &ps) { preselection_ = ps; }
 	std::vector<int> rank(std::string method);
 #ifndef __CINT__	
 	std::vector<int> rank(getter_t method, bool sign);
@@ -130,23 +141,23 @@ public:
 	void evaluate(TMVA::Reader &reader, const std::string & method);
 	std::vector<int> rankprod(const std::vector<std::string> & vars);
 
-	void analyze(const VertexInfoAdapter &, const PhotonInfo & pho1, const PhotonInfo & pho2);
-
-	void preselection(const std::vector<int> &ps) { preselection_ = ps; }
-
+	// Conversion-related methods 
+	double vtxdZ(const PhotonInfo & pho);
+	double vtxZ(const PhotonInfo & pho);
+	void setPullToConv(int ivert, float pull, float lim=10.);
+	void setNConv(int n);
+	
 	// getters
 	int pho1() const { return pho1_[ipair_]; };
 	int pho2() const { return pho2_[ipair_]; };
 	int ninvalid_idxs() const { return ninvalid_idxs_; };
-
-	float mva(int i)    const { return 	mva_[i]; };	
-	float rcomb(int i)    const { return 	rcomb_[i]; };	
-
-	void setPullToConv(int ivert, float pull, float lim=10.);
-	void setNConv(int n);
-	double vtxdZ(const PhotonInfo & pho);
-	double vtxZ(const PhotonInfo & pho);
 	
+	// MVA output per vertex
+	float mva(int i)    const { return 	mva_[i]; };	
+	// Rank combination (product or sum)
+	float rcomb(int i)    const { return 	rcomb_[i]; };	
+	
+	// algorithm input variables
 	float nconv(int i)            const { return nconv_[ipair_]; };	
 	float pulltoconv(int i)    const { return pulltoconv_[ipair_][i]; };	
 	float limpulltoconv(int i)    const { return limpulltoconv_[ipair_][i]; };	
@@ -184,11 +195,6 @@ public:
 	void branches(TTree *, const std::string & );
 	void setBranchAdresses(TTree *, const std::string &);
 	void getBranches(TTree *, const std::string &, std::set<TBranch *>& );
-
-	void clear();
-	int  pairID(int pho1, int pho2);
-	void setPairID(int x) { ipair_ = x; };
-	void setPairID(int pho1, int pho2) { setPairID( pairID(pho1,pho2) ); };
 
 private:
 #ifndef __CINT__	
