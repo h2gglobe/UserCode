@@ -555,7 +555,7 @@ void HggVertexAnalyzer::analyze(const VertexInfoAdapter & e, const PhotonInfo & 
 		int ntracks = e.hasVtxTracks() ? e.vtxNTracks(vid) : vtxTracksSizeBuf[ vid ];
 		
 		if( nconv(vid) > 0 ) {
-			setPullToConv( vid, abs( curVtx->Z() - zconv ) / szconv );
+			setPullToConv( vid, fabs(  e.vtxz(vid) - zconv ) / szconv );
 		} else {
 			setPullToConv( vid, -1. );
 		}
