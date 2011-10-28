@@ -12,6 +12,7 @@
 #include "TVector2.h"
 #include "TVector3.h"
 #include "TMatrixDSym.h"
+#include "TF1.h"
 
 namespace TMVA { class Reader; }
 
@@ -118,7 +119,7 @@ public:
 	// interface to  TMVA
 	static void bookVariables(TMVA::Reader & reader, const std::vector<std::string> & vars);
 	static void bookSpectators(TMVA::Reader & reader, const std::vector<std::string> & vars);
-	void fillVariables(int iv);
+	static void bookPerEventVariables(TMVA::Reader & reader, int nMvas=3, bool useNconv=true);
 
 	// Analyze di-photon - tracks correlations and fill algorithm input variables  
 	void analyze(const VertexInfoAdapter &, const PhotonInfo & pho1, const PhotonInfo & pho2);
@@ -142,10 +143,14 @@ public:
 	std::vector<int> rankprod(const std::vector<std::string> & vars);
 
 	// Conversion-related methods 
-	double vtxdZ(const PhotonInfo & pho);
-	double vtxZ(const PhotonInfo & pho);
+	double vtxdZFromConv(const PhotonInfo & pho);
+	double vtxZFromConv(const PhotonInfo & pho);
 	void setPullToConv(int ivert, float pull, float lim=10.);
 	void setNConv(int n);
+	
+	// Per-event MVA
+	float perEventMva(TMVA::Reader & reader,const  std::string & method, const std::vector<int> & rankedVertexes );
+	float vertexProbability(float perEventMva);
 	
 	// getters
 	int pho1() const { return pho1_[ipair_]; };
@@ -153,11 +158,12 @@ public:
 	int ninvalid_idxs() const { return ninvalid_idxs_; };
 	
 	// MVA output per vertex
-	float mva(int i)    const { return 	mva_[i]; };	
+	float mva(int i)    const { return 	mva_[ipair_][i]; };	
 	// Rank combination (product or sum)
-	float rcomb(int i)    const { return 	rcomb_[i]; };	
+	float rcomb(int i)    const { return 	rcomb_[ipair_][i]; };	
 	
 	// algorithm input variables
+	float vertexz(int i)            const { return vertexz_[i]; };	
 	float nconv(int i)            const { return nconv_[ipair_]; };	
 	float pulltoconv(int i)    const { return pulltoconv_[ipair_][i]; };	
 	float limpulltoconv(int i)    const { return limpulltoconv_[ipair_][i]; };	
@@ -204,6 +210,8 @@ private:
 	static std::vector<getter_t> varmeths_;
 	static std::vector<float> vars_;
 #endif
+	void fillVariables(int iv);
+	
 	std::vector<int> preselection();
 	void newpair(int ipair);
 
@@ -213,12 +221,13 @@ private:
 	
 	std::vector<int> preselection_;
 
-	std::vector<float> mva_, rcomb_;
+	std::vector<std::vector<float> > mva_, rcomb_;
 	
 	// buffers
 	std::vector<std::vector<TLorentzVector> > diPhoton_;
 	std::vector<std::vector<float> > diphopt_;
 	
+	std::vector<float> vertexz_;
 	std::vector<float> nconv_;
 	std::vector<std::vector<float> > pulltoconv_;
 	std::vector<std::vector<float> > limpulltoconv_;
@@ -263,6 +272,8 @@ private:
 	std::vector<int> * ppho1_, * ppho2_;
 	int ninvalid_idxs_;
 	
+	std::vector<std::vector<float> > * pmva, * prcomb ;
+	std::vector<float>               * pvertexz ;
 	std::vector<float>               * pnconv ;
 	std::vector<std::vector<float> > * ppulltoconv ;
 	std::vector<std::vector<float> > * plimpulltoconv ;
@@ -293,6 +304,11 @@ private:
 	std::vector<std::vector<float> > * psumtwd ;
 	std::vector<std::vector<float> > * pawytwdasym ;
 
+	// per-event MVA
+	static float evt_diphoPt, evt_nvert, evt_nconv;
+	static std::vector<float> evt_mva, evt_dz;
+	TF1 * vertexProbability_;
+	
 };
 
 // -------------------------------------------------------------------------------------------------------------------------------------------------------------

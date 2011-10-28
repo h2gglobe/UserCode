@@ -39,6 +39,10 @@ HggVertexAnalyzer::dict_t & HggVertexAnalyzer::dictionary()
 // -------------------------------------------------------------------------------------------------------------------------------------------------------------
 void HggVertexAnalyzer::fillDictionary(HggVertexAnalyzer::dict_t& dictionary)
 {
+	dictionary["mva"]   = make_pair(&HggVertexAnalyzer::mva,true);
+	dictionary["rcomb"]   = make_pair(&HggVertexAnalyzer::rcomb,true);
+	
+	dictionary["vertexz"]   = make_pair(&HggVertexAnalyzer::vertexz,true);
 	dictionary["nconv"]   = make_pair(&HggVertexAnalyzer::nconv,true);
 	dictionary["nConv"]   = make_pair(&HggVertexAnalyzer::nconv,true);
 	dictionary["pulltoconv"]   = make_pair(&HggVertexAnalyzer::pulltoconv,true);
@@ -78,8 +82,17 @@ void HggVertexAnalyzer::fillDictionary(HggVertexAnalyzer::dict_t& dictionary)
 // -------------------------------------------------------------------------------------------------------------------------------------------------------------
 HggVertexAnalyzer::HggVertexAnalyzer(AlgoParameters & ap, int nvtx) :
 	params_(ap),
-	nvtx_(nvtx) 
+	nvtx_(nvtx),
+	vertexProbability_(0)
 {
+	if( params_.vtxProbFormula != "" ) {
+		vertexProbability_ = new TF1("vtxProb",params_.vtxProbFormula.c_str());
+	}
+	
+	pmva = &mva_;
+	prcomb = &rcomb_;
+	pvertexz = &vertexz_;
+	pvertexz = &vertexz_;
 	pnconv = &nconv_;
 	pdiphopt = &diphopt_;
 	pnch = &nch_;
@@ -115,6 +128,9 @@ HggVertexAnalyzer::HggVertexAnalyzer(AlgoParameters & ap, int nvtx) :
 // -------------------------------------------------------------------------------------------------------------------------------------------------------------
 void HggVertexAnalyzer::branches(TTree * tree, const std::string & pfx)
 {
+	tree->Branch((pfx+"mva").c_str(), &mva_ );
+	
+	tree->Branch((pfx+"vertexz").c_str(), &vertexz_ );
 	tree->Branch((pfx+"nconv").c_str(), &nconv_ );
 	tree->Branch((pfx+"pulltoconv").c_str(), &pulltoconv_ );
 	tree->Branch((pfx+"limpulltoconv").c_str(), &limpulltoconv_ );
@@ -152,6 +168,9 @@ void HggVertexAnalyzer::branches(TTree * tree, const std::string & pfx)
 // -------------------------------------------------------------------------------------------------------------------------------------------------------------
 void HggVertexAnalyzer::setBranchAdresses(TTree * tree, const std::string & pfx)
 {
+	tree->SetBranchAddress((pfx+"mva").c_str(), &pmva );
+
+	tree->SetBranchAddress((pfx+"vertexz").c_str(), &pvertexz );
 	tree->SetBranchAddress((pfx+"nconv").c_str(), &pnconv );
 	tree->SetBranchAddress((pfx+"pulltoconv").c_str(), &ppulltoconv );
 	tree->SetBranchAddress((pfx+"limpulltoconv").c_str(), &plimpulltoconv );
@@ -189,6 +208,9 @@ void HggVertexAnalyzer::setBranchAdresses(TTree * tree, const std::string & pfx)
 // -------------------------------------------------------------------------------------------------------------------------------------------------------------
 void HggVertexAnalyzer::getBranches(TTree * tree, const std::string & pfx, std::set<TBranch *> &ret)
 {
+	ret.insert(tree->GetBranch((pfx+"mva").c_str()));
+
+	ret.insert(tree->GetBranch((pfx+"vertexz").c_str()));
 	ret.insert(tree->GetBranch((pfx+"nconv").c_str()));
 	ret.insert(tree->GetBranch((pfx+"pulltoconv").c_str()));
 	ret.insert(tree->GetBranch((pfx+"limpulltoconv").c_str()));
@@ -234,6 +256,28 @@ void HggVertexAnalyzer::bookVariables(TMVA::Reader & reader,const std::vector<st
 	}
 }
 
+float HggVertexAnalyzer::evt_diphoPt(0.);
+float HggVertexAnalyzer::evt_nvert(0.);
+float HggVertexAnalyzer::evt_nconv(0.);
+std::vector<float> HggVertexAnalyzer::evt_mva(0);
+std::vector<float>  HggVertexAnalyzer::evt_dz(0);
+
+// -------------------------------------------------------------------------------------------------------------------------------------------------------------
+void HggVertexAnalyzer::bookPerEventVariables(TMVA::Reader & reader, int nMvas, bool useNconv)
+{
+	evt_mva.resize(nMvas);
+	evt_dz.resize(nMvas);
+	reader.AddVariable("diphoPt0", &evt_diphoPt );
+	reader.AddVariable("nVert", &evt_nvert );
+	for(int ii=0; ii<nMvas; ++ii) {
+		reader.AddVariable( Form("MVA%d",ii), &evt_mva[ii] );
+		if( ii>0 ) { reader.AddVariable( Form("dZ%d",ii), &evt_dz[ii] );} 
+	}
+	if( useNconv ) {
+		reader.AddVariable( "nConv", &evt_nconv ) ; 
+	}
+}
+	
 // -------------------------------------------------------------------------------------------------------------------------------------------------------------
 void HggVertexAnalyzer::bookSpectators(TMVA::Reader & reader,const std::vector<std::string> & order)
 {
@@ -250,6 +294,32 @@ void HggVertexAnalyzer::fillVariables(int iv)
 	for(size_t ivar=0; ivar<varmeths_.size(); ++ivar) {
 		vars_[ivar] = ((*this).*(varmeths_[ivar]))(iv);
 	}
+}
+
+// -------------------------------------------------------------------------------------------------------------------------------------------------------------
+float HggVertexAnalyzer::perEventMva(TMVA::Reader & reader,const  std::string & method, const std::vector<int> & rankedVertexes )
+{
+	int v0      = rankedVertexes[0];
+	float z0    = vertexz(v0);
+	evt_diphoPt = diphopt(v0);
+	evt_nconv   = nconv(v0);
+	evt_nvert   = rankedVertexes.size();
+	for(int vi=0; vi<rankedVertexes.size() && vi<evt_mva.size(); ++vi ) {
+		int vtxid = rankedVertexes[vi];
+		evt_mva[vi] = mva(vtxid);
+		evt_dz[vi]  = vertexz(vtxid) - z0;
+	}
+	return reader.EvaluateMVA(method);
+}
+
+// -------------------------------------------------------------------------------------------------------------------------------------------------------------
+float HggVertexAnalyzer::vertexProbability(float perEventMva)
+{
+	if( vertexProbability_ == 0 && params_.vtxProbFormula != "" ) {
+		vertexProbability_ = new TF1("vtxProb",params_.vtxProbFormula.c_str());
+	}
+	assert(vertexProbability_!=0);
+	return vertexProbability_->Eval(perEventMva);
 }
 
 // -------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -319,11 +389,11 @@ std::vector<int> HggVertexAnalyzer::rank(TMVA::Reader &reader, const std::string
 void HggVertexAnalyzer::evaluate(TMVA::Reader &reader, const std::string & method)
 {
 	/// assert( (size_t)ipair_ < pho1_.size() );
-	mva_.clear(); mva_.resize(sumpt2_[ipair_].size(),0.);
-	nvtx_ = mva_.size();
+	nvtx_ = sumpt2_[ipair_].size();
+	mva_.resize(ipair_+1); mva_[ipair_].resize(nvtx_,0.);
 	for(int ii=0; ii<nvtx_; ++ii) {
 		fillVariables(ii);
-		mva_[ii] = reader.EvaluateMVA(method);
+		mva_[ipair_][ii] = reader.EvaluateMVA(method);
 	}
 }
 
@@ -333,7 +403,7 @@ std::vector<int> HggVertexAnalyzer::rankprod(const vector<string> & vars)
 	std::vector<int> vtxs = preselection_;
 	assert( ! vtxs.empty() );
 	assert( (size_t)ipair_ < pho1_.size() || pho1_.empty() );
-	rcomb_.clear(); rcomb_.resize(nvtx_,1.);
+	rcomb_.resize(ipair_+1); rcomb_[ipair_].resize(nvtx_,0.);
 	// fill the rank sum
 	std::vector<int> vrank(nvtx_);
 	std::vector<pair<HggVertexAnalyzer::getter_t, bool> > meths(1,make_pair(&HggVertexAnalyzer::rcomb,true));
@@ -343,11 +413,11 @@ std::vector<int> HggVertexAnalyzer::rankprod(const vector<string> & vars)
 		for(size_t ii=0; ii<vtxs.size(); ++ii) {
 			int ivert = vtxs[ii];
 			int rank = find( vrank.begin(), vrank.end(), ivert) - vrank.begin(); 
-			rcomb_[ivert] *= 1. + (float)(rank);
+			rcomb_[ipair_][ivert] *= 1. + (float)(rank);
 		}
 	}
 	for(int ii=0; ii<nvtx_; ++ii) {
-		rcomb_[ii] = pow( rcomb_[ii], 1./(float)vars.size() );
+		rcomb_[ipair_][ii] = pow( rcomb_[ipair_][ii], 1./(float)vars.size() );
 	}
 	RankHelper helper(*this,meths);
 	sort(vtxs.begin(),vtxs.end(),helper);
@@ -369,6 +439,9 @@ int HggVertexAnalyzer::pairID(int pho1, int pho2)
 // -------------------------------------------------------------------------------------------------------------------------------------------------------------
 void HggVertexAnalyzer::clear()
 {
+	mva_.clear();
+	rcomb_.clear();
+	
 	pho1_.clear();
 	pho2_.clear();
 
@@ -455,7 +528,9 @@ void HggVertexAnalyzer::analyze(const VertexInfoAdapter & e, const PhotonInfo & 
 		ninvalid_idxs_=0;
 
 		// initilise
-		/// mva_.resize(ipair_+1); mva_[ipair_].resize(nvtx,0.);
+		rcomb_.resize(ipair_+1); rcomb_[ipair_].resize(nvtx,0.);
+		mva_.resize(ipair_+1); mva_[ipair_].resize(nvtx,0.);
+		vertexz_.resize(nvtx,0.);
 		pulltoconv_.resize(ipair_+1); pulltoconv_[ipair_].resize(nvtx,1000.);
 		limpulltoconv_.resize(ipair_+1); limpulltoconv_[ipair_].resize(nvtx,1000.);
 		ptbal_.resize(ipair_+1); ptbal_[ipair_].resize(nvtx,0.);
@@ -525,21 +600,21 @@ void HggVertexAnalyzer::analyze(const VertexInfoAdapter & e, const PhotonInfo & 
 	if ( (p1.isAConversion() || p2.isAConversion() ) )  {
 		setNConv(1);
 		if (p1.isAConversion()  && !p2.isAConversion() ){
-			zconv  = vtxZ (p1);
-			szconv = vtxdZ(p1);
+			zconv  = vtxZFromConv (p1);
+			szconv = vtxdZFromConv(p1);
 		}
 		if (p2.isAConversion() && !p1.isAConversion()){
-			zconv  = vtxZ (p2);
-			szconv = vtxdZ(p2);
+			zconv  = vtxZFromConv (p2);
+			szconv = vtxdZFromConv(p2);
 		}
 		
 		if (p1.isAConversion() && p2.isAConversion()){
 			setNConv(2);
-			float z1  = vtxZ (p1);
-			float sz1 = vtxdZ(p1);
+			float z1  = vtxZFromConv (p1);
+			float sz1 = vtxdZFromConv(p1);
 			
-			float z2  = vtxZ (p2);
-			float sz2 = vtxdZ(p2);
+			float z2  = vtxZFromConv (p2);
+			float sz2 = vtxdZFromConv(p2);
 			
 			zconv  = (z1/sz1/sz1 + z2/sz2/sz2)/(1./sz1/sz1 + 1./sz2/sz2 );  // weighted average
 			szconv = sqrt( 1./(1./sz1/sz1 + 1./sz2/sz2)) ;
@@ -553,7 +628,8 @@ void HggVertexAnalyzer::analyze(const VertexInfoAdapter & e, const PhotonInfo & 
 		
 		const unsigned short * vtxTracks = e.hasVtxTracks() ? e.vtxTracks(vid) : &vtxTracksBuf[ vid*e.ntracks() ];
 		int ntracks = e.hasVtxTracks() ? e.vtxNTracks(vid) : vtxTracksSizeBuf[ vid ];
-		
+
+		vertexz_[vid] = e.vtxz(vid);
 		if( nconv(vid) > 0 ) {
 			setPullToConv( vid, fabs(  e.vtxz(vid) - zconv ) / szconv );
 		} else {
@@ -678,13 +754,12 @@ void HggVertexAnalyzer::analyze(const VertexInfoAdapter & e, const PhotonInfo & 
 		
 		preselection_.push_back(vid);
 	}
+	
 }
 
-
-double HggVertexAnalyzer::vtxdZ(const PhotonInfo & pho)
+// -------------------------------------------------------------------------------------------------------------------------------------------------------------
+double HggVertexAnalyzer::vtxdZFromConv(const PhotonInfo & pho)
 {
-
-
   // attribute the error depending on the tracker region
   double dz=-99999;
 
@@ -714,7 +789,8 @@ double HggVertexAnalyzer::vtxdZ(const PhotonInfo & pho)
 }
 
 
-double HggVertexAnalyzer::vtxZ(const PhotonInfo & pho)
+// -------------------------------------------------------------------------------------------------------------------------------------------------------------
+double HggVertexAnalyzer::vtxZFromConv(const PhotonInfo & pho)
 {
 
   // get the z from conversions
