@@ -14,8 +14,6 @@ StatAnalysis::StatAnalysis()  :
     name_("StatAnalysis"),
     vtxAna_(vtxAlgoParams),
 //    vtxConv_(vtxAlgoParams),
-	tmvaPerEvtMethod("evtBTG"),
-	tmvaPerEvtWeights(""),
 	useNVert(3)
 {
     reRunCiC = false;
@@ -434,17 +432,18 @@ void StatAnalysis::Init(LoopAll& l)
 	
 
     //vertex-related TMVAs
-    tmvaPerEvtReader_ = new TMVA::Reader( "!Color:!Silent" );
-    MVA_.resize(useNVert);
-    dZ_.resize(useNVert);
-    tmvaPerEvtReader_->AddVariable( "diphoPt0", &diphoRelPt_ );
-    tmvaPerEvtReader_->AddVariable( "nVert"	 , &nVert_ 		);
-    tmvaPerEvtReader_->AddVariable( "MVA0" 	 , &MVA_[0]		);
-    tmvaPerEvtReader_->AddVariable( "MVA1"    , &MVA_[1]		);
-    tmvaPerEvtReader_->AddVariable( "dZ1"     , &dZ_[1]		);
-    tmvaPerEvtReader_->AddVariable( "MVA2"    , &MVA_[2]		);
-    tmvaPerEvtReader_->AddVariable( "dZ2"     , &dZ_[2]		);
-    tmvaPerEvtReader_->BookMVA( tmvaPerEvtMethod, tmvaPerEvtWeights );
+    //// tmvaPerEvtReader_ = new TMVA::Reader( "!Color:!Silent" );
+    //// MVA_.resize(useNVert);
+    //// dZ_.resize(useNVert);
+    //// tmvaPerEvtReader_->AddVariable( "diphoPt0", &diphoRelPt_ );
+    //// tmvaPerEvtReader_->AddVariable( "nVert"	 , &nVert_ 		);
+    //// tmvaPerEvtReader_->AddVariable( "MVA0" 	 , &MVA_[0]		);
+    //// tmvaPerEvtReader_->AddVariable( "MVA1"    , &MVA_[1]		);
+    //// tmvaPerEvtReader_->AddVariable( "dZ1"     , &dZ_[1]		);
+    //// tmvaPerEvtReader_->AddVariable( "MVA2"    , &MVA_[2]		);
+    //// tmvaPerEvtReader_->AddVariable( "dZ2"     , &dZ_[2]		);
+    //// /// tmvaPerEvtReader_->AddVariable( "nConv"     , &nConv_		);
+    //// tmvaPerEvtReader_->BookMVA( tmvaPerEvtMethod, tmvaPerEvtWeights );
 
     // FIXME book of additional variables
 }
@@ -577,7 +576,11 @@ void StatAnalysis::Analysis(LoopAll& l, Int_t jentry)
         //get list of vertices as ranked for the selected diphoton
         vector<int> & rankedVtxs = (*l.vtx_std_ranked_list)[diphoton_id];
         vtxAna_.preselection(rankedVtxs);
-        vtxAna_.evaluate(*tmvaPerVtxReader_,tmvaPerVtxMethod);
+	if( useMvaRanking ) {
+		rankedVtxs = vtxAna_.rank(*tmvaPerVtxReader_,tmvaPerVtxMethod);
+	} else {
+		vtxAna_.evaluate(*tmvaPerVtxReader_,tmvaPerVtxMethod);
+	}
         for (size_t vi=0;vi<rankedVtxs.size();vi++) {
         	if(vi>=useNVert) break;
         	MVA_[vi] = vtxAna_.mva(rankedVtxs[vi]);
@@ -589,8 +592,10 @@ void StatAnalysis::Analysis(LoopAll& l, Int_t jentry)
         	/// if(vi==0) diphoRelPt_ = dipho.Pt()/dipho.M();
         	if(vi==0) diphoRelPt_ = dipho.Pt();
         }
-        VtxEvtMVA_ = tmvaPerEvtReader_->EvaluateMVA(tmvaPerEvtMethod);
-	
+        // VtxEvtMVA_ = tmvaPerEvtReader_->EvaluateMVA(tmvaPerEvtMethod);
+	VtxEvtMVA_ = vtxAna_.perEventMva( *tmvaPerEvtReader_, tmvaPerEvtMethod, rankedVtxs );
+	VtxProb_ = vtxAna_.vertexProbability( VtxEvtMVA_ ); 
+
         //TODO microanalysis imported stuff
 	l.countersred[diPhoCounter_]++;
 
@@ -637,6 +642,8 @@ void StatAnalysis::Analysis(LoopAll& l, Int_t jentry)
 	l.FillHist("vtx_n",category+1,nVert_,evweight);
 	l.FillHist("vtx_evt_mva",0,VtxEvtMVA_,evweight);
 	l.FillHist("vtx_evt_mva",category+1,VtxEvtMVA_,evweight);
+	l.FillHist2D("vtx_prob_vs_pt",0,ptHiggs,VtxProb_,evweight);
+	l.FillHist2D("vtx_prob_vtx_n",category+1,nVert_,VtxProb_,evweight);
 
 	// Monitor correlations 
 	std::vector<std::pair<std::string,float> > mva_input_corr;

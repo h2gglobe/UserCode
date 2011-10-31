@@ -69,8 +69,8 @@ public:
 	int nMasses;
 
 	//tmva-related variables for vertexing
-	std::string tmvaPerEvtMethod;
-	std::string tmvaPerEvtWeights;
+	/// std::string tmvaPerEvtMethod;
+	/// std::string tmvaPerEvtWeights;
 	Int_t useNVert;
 
 protected:
@@ -104,13 +104,13 @@ protected:
 	TFile *kfacFile;
 	
 	//tmva-related variables
-	vector<string> tmvaPerEvtVariables_;
-	TMVA::Reader *tmvaPerEvtReader_;
+	/// vector<string> tmvaPerEvtVariables_;
+	// TMVA::Reader *tmvaPerEvtReader_;
 	Float_t	nVert_;
 	vector<float> MVA_;
 	vector<float> dZ_;
 	Float_t diphoRelPt_;
-	Float_t VtxEvtMVA_;
+	Float_t VtxEvtMVA_, VtxProb_;
 
 };
 

@@ -83,7 +83,11 @@ public:
 
 	std::string tmvaPerVtxMethod;
 	std::string tmvaPerVtxWeights;
+	std::string tmvaPerEvtMethod;
+	std::string tmvaPerEvtWeights;
 
+	bool useMvaRanking, addConversionToMva;
+	
 protected:
 	void PreselectPhotons(LoopAll& l, int jentry);
 	void StatAnalysis(LoopAll &l, int jentry);
@@ -106,6 +110,7 @@ protected:
 	
 	vector<string> tmvaPerVtxVariables_;
 	TMVA::Reader *tmvaPerVtxReader_;
+	TMVA::Reader *tmvaPerEvtReader_;
 
 };
 
