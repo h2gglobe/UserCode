@@ -92,8 +92,9 @@ HggVertexAnalyzer::HggVertexAnalyzer(AlgoParameters & ap, int nvtx) :
 	pmva = &mva_;
 	prcomb = &rcomb_;
 	pvertexz = &vertexz_;
-	pvertexz = &vertexz_;
 	pnconv = &nconv_;
+	ppulltoconv = &pulltoconv_;
+	plimpulltoconv = &limpulltoconv_;
 	pdiphopt = &diphopt_;
 	pnch = &nch_;
 	pptmax = &ptmax_;
