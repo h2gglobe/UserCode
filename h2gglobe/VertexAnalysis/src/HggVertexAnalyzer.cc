@@ -168,12 +168,17 @@ void HggVertexAnalyzer::branches(TTree * tree, const std::string & pfx)
 // -------------------------------------------------------------------------------------------------------------------------------------------------------------
 void HggVertexAnalyzer::setBranchAdresses(TTree * tree, const std::string & pfx)
 {
-	tree->SetBranchAddress((pfx+"mva").c_str(), &pmva );
-
-	tree->SetBranchAddress((pfx+"vertexz").c_str(), &pvertexz );
-	tree->SetBranchAddress((pfx+"nconv").c_str(), &pnconv );
-	tree->SetBranchAddress((pfx+"pulltoconv").c_str(), &ppulltoconv );
-	tree->SetBranchAddress((pfx+"limpulltoconv").c_str(), &plimpulltoconv );
+	if( tree->GetBranch((pfx+"mva").c_str()) != 0 ) {
+		tree->SetBranchAddress((pfx+"mva").c_str(), &pmva );
+	}
+	if( tree->GetBranch((pfx+"vertexz").c_str() ) ) {
+		tree->SetBranchAddress((pfx+"vertexz").c_str(), &pvertexz );
+	}
+	if( tree->GetBranch((pfx+"nconv").c_str() ) ) {
+		tree->SetBranchAddress((pfx+"nconv").c_str(), &pnconv );
+		tree->SetBranchAddress((pfx+"pulltoconv").c_str(), &ppulltoconv );
+		tree->SetBranchAddress((pfx+"limpulltoconv").c_str(), &plimpulltoconv );
+	}
 	tree->SetBranchAddress((pfx+"diphopt").c_str(), &pdiphopt );
 	tree->SetBranchAddress((pfx+"nch").c_str(), &pnch )  ;
 	tree->SetBranchAddress((pfx+"ptmax").c_str(), &pptmax );
@@ -208,12 +213,17 @@ void HggVertexAnalyzer::setBranchAdresses(TTree * tree, const std::string & pfx)
 // -------------------------------------------------------------------------------------------------------------------------------------------------------------
 void HggVertexAnalyzer::getBranches(TTree * tree, const std::string & pfx, std::set<TBranch *> &ret)
 {
-	ret.insert(tree->GetBranch((pfx+"mva").c_str()));
-
-	ret.insert(tree->GetBranch((pfx+"vertexz").c_str()));
-	ret.insert(tree->GetBranch((pfx+"nconv").c_str()));
-	ret.insert(tree->GetBranch((pfx+"pulltoconv").c_str()));
-	ret.insert(tree->GetBranch((pfx+"limpulltoconv").c_str()));
+	if( tree->GetBranch((pfx+"mva").c_str()) != 0 ) {
+		ret.insert(tree->GetBranch((pfx+"mva").c_str()));
+	}
+	if( tree->GetBranch((pfx+"vertexz").c_str() ) ) {
+		ret.insert(tree->GetBranch((pfx+"vertexz").c_str()));
+	}
+	if( tree->GetBranch((pfx+"nconv").c_str() ) ) {
+		ret.insert(tree->GetBranch((pfx+"nconv").c_str()));
+		ret.insert(tree->GetBranch((pfx+"pulltoconv").c_str()));
+		ret.insert(tree->GetBranch((pfx+"limpulltoconv").c_str()));
+	}
 	ret.insert(tree->GetBranch((pfx+"diphopt").c_str()));
 	ret.insert(tree->GetBranch((pfx+"nch").c_str()));
 	ret.insert(tree->GetBranch((pfx+"ptmax").c_str()));
