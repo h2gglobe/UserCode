@@ -44,7 +44,7 @@ public:
 	TString timePerfHist;
 	float   timeOptimismFactor;
 	Int_t   storeNVert;
-	// bool    useMvaRanking,addConversionToMva;
+	// bool    mvaVertexSelection,addConversionToMva;
 
 protected:
 	

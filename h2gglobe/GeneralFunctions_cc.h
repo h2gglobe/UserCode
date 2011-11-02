@@ -345,7 +345,8 @@ std::vector<int> LoopAll::vertexSelection(HggVertexAnalyzer & vtxAna, HggVertexF
 	int p1 = pho1.id(), p2 = pho2.id();
 	// assert( p1 == vtxAna.pho1() && p2 == vtxAna.pho2() );
 	vtxAna.setPairID(p1,p2);
-
+	if( useMva ) { return vtxAna.rank(*tmvaReader,tmvaMethod); }
+	
 	// preselect vertices : all vertices
         std::vector<int> preselAll;
         for(int i=0; i<vtx_std_n ; i++) {
@@ -545,7 +546,7 @@ int  LoopAll::matchPhotonToConversion( int lpho) {
     TVector3 refittedPairMomentum= *((TVector3*) conv_refitted_momentum->At(iconv));
     conv_pt =  refittedPairMomentum.Pt();
     if (conv_pt < 1 ) continue;    
-    if ( ! conv_validvtx[iconv] ) continue;
+    if ( !conv_validvtx[iconv] || conv_ntracks[iconv]!=2 || conv_chi2_probability[iconv]<0.000001) continue;
 
     phi  = ((TVector3 *) conv_refitted_momentum->At(iconv))->Phi();
     conv_phi  = phiNorm(phi);
@@ -1489,6 +1490,7 @@ void LoopAll::DefineUserBranches()
 	
 	BRANCH_DICT(vtx_std_sel);
 	BRANCH_DICT(vtx_std_ranked_list);
+	BRANCH_DICT(vtx_std_evt_mva);
 
 	BRANCH_DICT(pho_tkiso_recvtx_030_002_0000_10_01);
 	BRANCH_DICT(pho_tkiso_badvtx_040_002_0000_10_01);

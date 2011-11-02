@@ -211,6 +211,7 @@ TBranch * b_dipho_sumpt;
 int vtx_std_sel;
 std::vector<int> *  dipho_vtx_std_sel;
 std::vector<std::vector<int> > * vtx_std_ranked_list;
+std::vector<float> * vtx_std_evt_mva;
 // std::vector<int> * vtx_std_ranked_list;
 
 // CiC inputs
@@ -251,6 +252,7 @@ TBranch *b_pu_ntrks_highpt;
 
 TBranch *b_vtx_std_sel;
 TBranch *b_vtx_std_ranked_list;
+TBranch *b_vtx_std_evt_mva;
 
 TBranch * b_pho_tkiso_recvtx_030_002_0000_10_01;
 TBranch * b_pho_tkiso_badvtx_040_002_0000_10_01;
@@ -277,11 +279,13 @@ void DefineUserBranches();
 //
 // vertex branches
 void Branch_vtx_std_sel(TTree * tree) { tree->Branch("vtx_std_sel", &vtx_std_sel, "vtx_std_sel/I"); }; 
+void Branch_vtx_std_evt_mva(TTree * tree) { tree->Branch("vtx_std_evt_mva", "std::vector<float>", &vtx_std_evt_mva); }; 
 void Branch_vtx_std_ranked_list(TTree * tree) { tree->Branch("vtx_std_ranked_list", "std::vector<std::vector<int> >", &vtx_std_ranked_list); }; 
 void Branch_pho_matchingConv(TTree * tree) { tree->Branch("pho_matchingConv", "std::vector<int>", &pho_matchingConv); }; 
 
 
 void SetBranchAddress_vtx_std_sel(TTree * tree) { tree->SetBranchAddress("vtx_std_sel", &vtx_std_sel, &b_vtx_std_sel); }; 
+void SetBranchAddress_vtx_std_evt_mva(TTree * tree) { tree->SetBranchAddress("vtx_std_evt_mva", &vtx_std_evt_mva, &b_vtx_std_evt_mva); };
 void SetBranchAddress_vtx_std_ranked_list(TTree * tree) { tree->SetBranchAddress("vtx_std_ranked_list", &vtx_std_ranked_list, &b_vtx_std_ranked_list); };
 void SetBranchAddress_pho_matchingConv(TTree * tree) { tree->SetBranchAddress("pho_matchingConv", &pho_matchingConv, &b_pho_matchingConv); }; 
 

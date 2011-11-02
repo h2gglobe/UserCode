@@ -21,7 +21,8 @@ PhotonAnalysis::PhotonAnalysis()  :
 	tmvaPerVtxMethod("BDTG"),
 	tmvaPerVtxWeights(""),
 	tmvaPerEvtMethod("evtBTG"),
-	tmvaPerEvtWeights("")
+	tmvaPerEvtWeights(""),
+	energyCorrectionMethod("DaunceyAndKenzie"), energyCorrected(0), energyCorrectedError(0)
 {
 	addConversionToMva=true;
 	useDefaultVertex=false;
@@ -47,21 +48,25 @@ void readEnergyScaleOffsets(const std::string &fname, EnergySmearer::energySmear
 	std::fstream in(fname.c_str());
 	assert( in );
 	char line[200];
-	float EBHighR9, EBLowR9, EEHighR9, EELowR9; 
+	float EBHighR9, EBLowR9, EBm4HighR9, EBm4LowR9, EEHighR9, EELowR9; 
 	int  first, last;
 	do {
 		in.getline( line, 200, '\n' );
 
-		if( sscanf(line,"%d %d %f %f %f %f",&first, &last, &EBHighR9, &EBLowR9, &EEHighR9, &EELowR9) != 6 ) { continue; } 
-		std::cerr << "Energy scale by run " <<  first<< " " <<  last<< " " <<  EBHighR9<< " " <<  EBLowR9<< " " <<  EEHighR9<< " " <<  EELowR9 << std::endl;
+		if( sscanf(line,"%d %d %f %f %f %f",&first, &last, &EBHighR9, &EBLowR9, &EBm4HighR9, &EBm4LowR9, &EEHighR9, &EELowR9) != 6 ) { continue; } 
+		std::cerr << "Energy scale by run " <<  first<< " " <<  last<< " " <<  EBHighR9<< " " <<  EBLowR9 << " " <<  EBm4HighR9<< " " <<  EBm4LowR9<< " " <<  EEHighR9<< " " <<  EELowR9 << std::endl;
 
 		escaleOffsets.push_back(EnergyScaleOffset(first,last));
 		escaleOffsets.back().scale_offset["EBHighR9"] = -1.*EBHighR9;
 		escaleOffsets.back().scale_offset["EBLowR9"]  = -1.*EBLowR9;
+		escaleOffsets.back().scale_offset["EBm4HighR9"] = -1.*EBm4HighR9;
+		escaleOffsets.back().scale_offset["EBm4LowR9"]  = -1.*EBm4LowR9;
 		escaleOffsets.back().scale_offset["EEHighR9"] = -1.*EEHighR9;
 		escaleOffsets.back().scale_offset["EELowR9"]  = -1.*EELowR9;
 		escaleOffsets.back().scale_offset_error["EBHighR9"] = 0.;
 		escaleOffsets.back().scale_offset_error["EBLowR9"]  = 0.;
+		escaleOffsets.back().scale_offset_error["EBm4HighR9"] = 0.;
+		escaleOffsets.back().scale_offset_error["EBm4LowR9"]  = 0.;
 		escaleOffsets.back().scale_offset_error["EEHighR9"] = 0.;
 		escaleOffsets.back().scale_offset_error["EELowR9"]  = 0.;
 
@@ -129,6 +134,19 @@ void PhotonAnalysis::Init(LoopAll& l)
 {
 	if(PADEBUG) 
 		cout << "InitRealPhotonAnalysis START"<<endl;
+
+	if(energyCorrectionMethod=="DaunceyAndKenzie"){
+		energyCorrected		= (l.pho_residCorrEnergy);
+		energyCorrectedError= (l.pho_residCorrResn);
+	}else if(energyCorrectionMethod=="Bendavid"){
+		energyCorrected		= (l.pho_regr_energy);
+		energyCorrectedError= (l.pho_regr_energyerr);
+//	}else if(energyCorrectionMethod=="PFRegression"){
+	}else{
+		assert(doEcorrectionSmear==false);
+	}
+	if (doEcorrectionSmear) std::cout << "using energy correction type: " << energyCorrectionMethod << std::endl;
+	else                    std::cout << "NOT using energy correction (sbattogiu)"<< std::endl;
 
 	if( vtxVarNames.empty() ) {
 		vtxVarNames.push_back("ptbal"), vtxVarNames.push_back("ptasym"), vtxVarNames.push_back("logsumpt2");
@@ -236,30 +254,24 @@ void PhotonAnalysis::Init(LoopAll& l)
 		tmvaPerEvtReader_ = 0;
 	}
 
-	eSmearDataPars.categoryType = "2CatR9_EBEE";
+	eSmearDataPars.categoryType = "2CatR9_EBEBm4EE";
 	eSmearDataPars.byRun = true;
-	eSmearDataPars.n_categories = 4;
+	//eSmearDataPars.n_categories = 4; //GF
+	eSmearDataPars.n_categories = 6;
 	std::cerr << "Reading energy scale offsets " << scale_offset_file << std::endl;
 	readEnergyScaleOffsets(scale_offset_file, eSmearDataPars.scale_offset_byrun);
-        ///// // initialize smearer specific to energy shifts in DATA; use opposite of energy scale shift
-	///// eSmearDataPars.scale_offset_byrun.push_back(EnergyScaleOffset(0,-1));
-	///// eSmearDataPars.scale_offset_byrun.back().scale_offset["EBHighR9"] = -1*scale_offset_EBHighR9;
-	///// eSmearDataPars.scale_offset_byrun.back().scale_offset["EBLowR9"]  = -1*scale_offset_EBLowR9;
-	///// eSmearDataPars.scale_offset_byrun.back().scale_offset["EEHighR9"] = -1*scale_offset_EEHighR9;
-	///// eSmearDataPars.scale_offset_byrun.back().scale_offset["EELowR9"]  = -1*scale_offset_EELowR9;
-	///// // no energy scale systematics applied to data
-	///// eSmearDataPars.scale_offset_byrun.back().scale_offset_error["EBHighR9"] = 0.;
-	///// eSmearDataPars.scale_offset_byrun.back().scale_offset_error["EBLowR9"]  = 0.;
-	///// eSmearDataPars.scale_offset_byrun.back().scale_offset_error["EEHighR9"] = 0.;
-	///// eSmearDataPars.scale_offset_byrun.back().scale_offset_error["EELowR9"]  = 0.;
 	// E resolution smearing NOT applied to data 
 	eSmearDataPars.smearing_sigma["EBHighR9"] = 0.;
 	eSmearDataPars.smearing_sigma["EBLowR9"]  = 0.;
+	eSmearDataPars.smearing_sigma["EBm4HighR9"] = 0.;
+	eSmearDataPars.smearing_sigma["EBm4LowR9"]  = 0.;
 	eSmearDataPars.smearing_sigma["EEHighR9"] = 0.;
 	eSmearDataPars.smearing_sigma["EELowR9"]  = 0.;
 	// E resolution systematics NOT applied to data 
 	eSmearDataPars.smearing_sigma_error["EBHighR9"] = 0.;
 	eSmearDataPars.smearing_sigma_error["EBLowR9"]  = 0.;
+	eSmearDataPars.smearing_sigma_error["EBm4HighR9"] = 0.;
+	eSmearDataPars.smearing_sigma_error["EBm4LowR9"]  = 0.;
 	eSmearDataPars.smearing_sigma_error["EEHighR9"] = 0.;
 	eSmearDataPars.smearing_sigma_error["EELowR9"]  = 0.;
 	
@@ -269,27 +281,37 @@ void PhotonAnalysis::Init(LoopAll& l)
 	eScaleDataSmearer->doEnergy(true);
 	eScaleDataSmearer->scaleOrSmear(true);
 	
-	eSmearPars.categoryType = "2CatR9_EBEE";
+	//eSmearPars.categoryType = "2CatR9_EBEE"; //GF
+	eSmearPars.categoryType = "2CatR9_EBEBm4EE";
 	eSmearPars.byRun = false;
-	eSmearPars.n_categories = 4;
+	//eSmearPars.n_categories = 4; //GF
+	eSmearPars.n_categories = 6;
 	// E scale is shifted for data, NOT for MC 
 	eSmearPars.scale_offset["EBHighR9"] = 0.;
 	eSmearPars.scale_offset["EBLowR9"]  = 0.;
+	eSmearPars.scale_offset["EBm4HighR9"] = 0.;
+	eSmearPars.scale_offset["EBm4LowR9"]  = 0.;
 	eSmearPars.scale_offset["EEHighR9"] = 0.;
 	eSmearPars.scale_offset["EELowR9"]  = 0.;
 	// E scale systematics are applied to MC, NOT to data
 	eSmearPars.scale_offset_error["EBHighR9"] = scale_offset_error_EBHighR9;
 	eSmearPars.scale_offset_error["EBLowR9"]  = scale_offset_error_EBLowR9;
+	eSmearPars.scale_offset_error["EBm4HighR9"] = scale_offset_error_EBHighR9;
+	eSmearPars.scale_offset_error["EBm4LowR9"]  = scale_offset_error_EBLowR9;
 	eSmearPars.scale_offset_error["EEHighR9"] = scale_offset_error_EEHighR9;
 	eSmearPars.scale_offset_error["EELowR9"]  = scale_offset_error_EELowR9;
 	// E resolution smearing applied to MC 
 	eSmearPars.smearing_sigma["EBHighR9"] = smearing_sigma_EBHighR9;
 	eSmearPars.smearing_sigma["EBLowR9"]  = smearing_sigma_EBLowR9;
+	eSmearPars.smearing_sigma["EBm4HighR9"] = smearing_sigma_EBm4HighR9;
+	eSmearPars.smearing_sigma["EBm4LowR9"]  = smearing_sigma_EBm4LowR9;
 	eSmearPars.smearing_sigma["EEHighR9"] = smearing_sigma_EEHighR9;
 	eSmearPars.smearing_sigma["EELowR9"]  = smearing_sigma_EELowR9;
 	// E resolution systematics applied to MC 
 	eSmearPars.smearing_sigma_error["EBHighR9"] = smearing_sigma_error_EBHighR9;
 	eSmearPars.smearing_sigma_error["EBLowR9"]  = smearing_sigma_error_EBLowR9;
+	eSmearPars.smearing_sigma_error["EBm4HighR9"] = smearing_sigma_error_EBm4HighR9;
+	eSmearPars.smearing_sigma_error["EBm4LowR9"]  = smearing_sigma_error_EBm4LowR9;
 	eSmearPars.smearing_sigma_error["EEHighR9"] = smearing_sigma_error_EEHighR9;
 	eSmearPars.smearing_sigma_error["EELowR9"]  = smearing_sigma_error_EELowR9;
 	// error on photon corrections set to a fraction of the correction itself; number below is tentative (GF: push it to .dat)  
@@ -427,7 +449,7 @@ void PhotonAnalysis::Analysis(LoopAll& l, Int_t jentry)
         }
 
 	//Apply diphoton CiC selection
-	int dipho_id = l.DiphotonCiCSelection((LoopAll::phoCiCIDLevel) leadLevel, (LoopAll::phoCiCIDLevel) subLevel, 40.0, 30.0, 4, false, &corrected_pho_energy[0]);
+	int dipho_id = l.DiphotonCiCSelection((LoopAll::phoCiCIDLevel) leadLevel, (LoopAll::phoCiCIDLevel) subLevel, 40., 30.0, 4, applyPtoverM, &corrected_pho_energy[0]);
 
         if (dipho_id > -1){
 	  std::pair<int,int> diphoton_index = std::make_pair(l.dipho_leadind[dipho_id],l.dipho_subleadind[dipho_id]);
@@ -692,18 +714,25 @@ void PhotonAnalysis::PreselectPhotons(LoopAll& l, int jentry)
 
 	for(int ipho=0; ipho<l.pho_n; ++ipho ) { 
 		std::vector<std::vector<bool> > p;
-		PhotonReducedInfo phoInfo ( *((TVector3*)l.pho_calopos->At(ipho)), 
-					    ((TLorentzVector*)l.pho_p4->At(ipho))->Energy(), l.pho_residCorrEnergy[ipho],
-					    l.pho_isEB[ipho], l.pho_r9[ipho],
-					    false );
+		PhotonReducedInfo phoInfo (
+				*((TVector3*)l.pho_calopos->At(ipho)),
+				((TLorentzVector*)l.pho_p4->At(ipho))->Energy(),
+				energyCorrected[ipho],
+				l.pho_isEB[ipho],
+				l.pho_r9[ipho],
+				false,
+				(energyCorrectedError!=0?energyCorrectedError[ipho]:0)
+					    );
 		float pweight = 1.;
 		float sweight = 1.;
+		if( doEcorrectionSmear )  { 
+		  eCorrSmearer->smearPhoton(phoInfo,sweight,l.run,0.); 
+		}
 		if( cur_type == 0 ) {          // correct energy scale in data
 		  eScaleDataSmearer->smearPhoton(phoInfo,sweight,l.run,0.);
 		  pweight *= sweight;
 		}
 		// apply mc-derived photon corrections, to data and MC alike
-		if( doEcorrectionSmear )  eCorrSmearer->smearPhoton(phoInfo,sweight,l.run,0.); 
 		corrected_pho_energy[ipho] = phoInfo.energy();
 	}
 
@@ -866,7 +895,12 @@ bool PhotonAnalysis::SelectEventsReduction(LoopAll& l, int jentry)
 			// make sure that vertex analysis indexes are in synch 
 			assert( (int)id == vtxAna_.pairID(ipho1,ipho2) );
 			
-			l.vtx_std_ranked_list->push_back( l.vertexSelection(vtxAna_, vtxConv_, pho1, pho2, vtxVarNames) );
+			l.vtx_std_ranked_list->push_back( l.vertexSelection(vtxAna_, vtxConv_, pho1, pho2, vtxVarNames, mvaVertexSelection, 
+									    tmvaPerVtxReader_, tmvaPerVtxMethod) );
+			if( tmvaPerEvtReader_ ) {
+				float vtxEvtMva = vtxAna_.perEventMva( *tmvaPerEvtReader_, tmvaPerEvtMethod, l.vtx_std_ranked_list->back() );
+				l.vtx_std_evt_mva->push_back(vtxEvtMva);
+			}
 			if( l.vtx_std_ranked_list->back().size() != 0 && ! useDefaultVertex ) {  
 				l.dipho_vtx_std_sel->push_back( (l.vtx_std_ranked_list)->back()[0] );
 			} else {
@@ -973,7 +1007,8 @@ void PhotonAnalysis::ReducedOutputTree(LoopAll &l, TTree * outputTree)
 
 	l.pho_matchingConv = new  std::vector<int>();
 	l.Branch_pho_matchingConv(outputTree);
-
+	
+	l.vtx_std_evt_mva = new std::vector<float>();
 	l.vtx_std_ranked_list = new std::vector<std::vector<int> >();
 	l.pho_tkiso_recvtx_030_002_0000_10_01 = new std::vector<std::vector<float> >();
 	l.pho_cic6cutlevel_lead = new std::vector<std::vector<Short_t> >();
@@ -986,6 +1021,7 @@ void PhotonAnalysis::ReducedOutputTree(LoopAll &l, TTree * outputTree)
 	l.pho_cic4passcuts_sublead = new std::vector<std::vector<std::vector<UInt_t> > >();
 	l.dipho_vtx_std_sel =  new std::vector<int>();
 
+	l.Branch_vtx_std_evt_mva(outputTree);
 	l.Branch_vtx_std_ranked_list(outputTree);
 	l.Branch_vtx_std_sel(outputTree);
 	l.Branch_pho_tkiso_recvtx_030_002_0000_10_01(outputTree);

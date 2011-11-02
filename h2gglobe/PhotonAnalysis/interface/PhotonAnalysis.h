@@ -39,7 +39,7 @@ public:
 	std::vector<std::string> vtxVarNames;
 	bool useDefaultVertex;
 	float forcedRho;
-	
+	bool applyPtoverM;	
 	bool doTriggerSelection; 
 	std::vector<TriggerSelection> triggerSelections;
 	
@@ -53,20 +53,28 @@ public:
 	std::string scale_offset_file;
 	float scale_offset_EBHighR9         ;
 	float scale_offset_EBLowR9          ;
+	float scale_offset_EBm4HighR9         ;
+	float scale_offset_EBm4LowR9          ;
 	float scale_offset_EEHighR9         ;
 	float scale_offset_EELowR9          ;
 	float scale_offset_error_EBHighR9   ;
 	float scale_offset_error_EBLowR9    ;
+	float scale_offset_error_EBm4HighR9   ;
+	float scale_offset_error_EBm4LowR9    ;
 	float scale_offset_error_EEHighR9   ;
 	float scale_offset_error_EELowR9    ;
 
 	EnergySmearer::energySmearingParameters eSmearPars;
 	float smearing_sigma_EBHighR9       ;
 	float smearing_sigma_EBLowR9        ;
+	float smearing_sigma_EBm4HighR9       ;
+	float smearing_sigma_EBm4LowR9        ;
 	float smearing_sigma_EEHighR9       ;
 	float smearing_sigma_EELowR9        ;
 	float smearing_sigma_error_EBHighR9 ;
 	float smearing_sigma_error_EBLowR9  ;
+	float smearing_sigma_error_EBm4HighR9 ;
+	float smearing_sigma_error_EBm4LowR9  ;
 	float smearing_sigma_error_EEHighR9 ;
 	float smearing_sigma_error_EELowR9  ;
 
@@ -81,13 +89,15 @@ public:
 	enum BkgCategory{promptprompt,promptfake,fakefake};
 	bool keepPP, keepPF, keepFF;
 
-	std::string tmvaPerVtxMethod;
-	std::string tmvaPerVtxWeights;
-	std::string tmvaPerEvtMethod;
-	std::string tmvaPerEvtWeights;
+	std::string energyCorrectionMethod;
 
-	bool useMvaRanking, addConversionToMva;
-	
+	std::string tmvaPerVtxMethod;                       	
+        std::string tmvaPerVtxWeights;                  
+        std::string tmvaPerEvtMethod;                   
+        std::string tmvaPerEvtWeights;                  
+                                                        
+        bool mvaVertexSelection, addConversionToMva;     
+
 protected:
 	void PreselectPhotons(LoopAll& l, int jentry);
 	void StatAnalysis(LoopAll &l, int jentry);
@@ -108,10 +118,12 @@ protected:
 	EnergySmearer *eCorrSmearer;      // corrections for energy scale  MC
 	std::vector<float> corrected_pho_energy;
 	
+	Float_t *energyCorrected;
+	Float_t *energyCorrectedError;
+
 	vector<string> tmvaPerVtxVariables_;
 	TMVA::Reader *tmvaPerVtxReader_;
 	TMVA::Reader *tmvaPerEvtReader_;
-
 };
 
 #endif

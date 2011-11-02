@@ -16,11 +16,6 @@ StatAnalysis::StatAnalysis()  :
 //    vtxConv_(vtxAlgoParams),
 	useNVert(3)
 {
-    reRunCiC = false;
-    doMCSmearing = true;
-    massMin = 100.;
-    massMax = 150.;
-    int nDataBins=50;
 
     systRange  = 3.; // in units of sigma
     nSystSteps = 1;    
@@ -179,6 +174,10 @@ void StatAnalysis::Init(LoopAll& l)
     diPhoEffSmearPars.n_categories = 8;
     diPhoEffSmearPars.efficiency_file = efficiencyFile;
 
+    if( doEcorrectionSmear ) {
+        // instance of this smearer done in PhotonAnalysis
+        photonSmearers_.push_back(eCorrSmearer);
+    }
     if( doEscaleSmear ) {
         // Moved to PhotonAnalysis GF 
 	//// energy scale systematics to MC
@@ -214,10 +213,6 @@ void StatAnalysis::Init(LoopAll& l)
 	idEffSmearer->init();
 	idEffSmearer->doPhoId(true);
 	photonSmearers_.push_back(idEffSmearer);
-    }
-    if( doEcorrectionSmear ) {
-        // instance of this smearer done in PhotonAnalysis
-        photonSmearers_.push_back(eCorrSmearer);
     }
     if( doR9Smear ) {
 	// R9 re-weighting
@@ -266,6 +261,13 @@ void StatAnalysis::Init(LoopAll& l)
     l.rooContainer->sigmaRange = systRange;
     // RooContainer does not support steps different from 1 sigma
     //assert( ((float)nSystSteps) == systRange );
+    if( doEcorrectionSmear && doEcorrectionSyst ) {
+        // instance of this smearer done in PhotonAnalysis
+        systPhotonSmearers_.push_back(eCorrSmearer);
+	std::vector<std::string> sys(1,eCorrSmearer->name());
+	std::vector<int> sys_t(1,-1);	// -1 for signal, 1 for background 0 for both
+	l.rooContainer->MakeSystematicStudy(sys,sys_t);
+    }
     if( doEscaleSmear && doEscaleSyst ) {
 	systPhotonSmearers_.push_back( eScaleSmearer );
 	std::vector<std::string> sys(1,eScaleSmearer->name());
@@ -281,13 +283,6 @@ void StatAnalysis::Init(LoopAll& l)
     if( doPhotonIdEffSmear && doPhotonIdEffSyst ) {
 	systPhotonSmearers_.push_back( idEffSmearer );
 	std::vector<std::string> sys(1,idEffSmearer->name());
-	std::vector<int> sys_t(1,-1);	// -1 for signal, 1 for background 0 for both
-	l.rooContainer->MakeSystematicStudy(sys,sys_t);
-    }
-    if( doEcorrectionSmear && doEcorrectionSyst ) {
-        // instance of this smearer done in PhotonAnalysis
-        systPhotonSmearers_.push_back(eCorrSmearer);
-	std::vector<std::string> sys(1,eCorrSmearer->name());
 	std::vector<int> sys_t(1,-1);	// -1 for signal, 1 for background 0 for both
 	l.rooContainer->MakeSystematicStudy(sys,sys_t);
     }
@@ -336,7 +331,7 @@ void StatAnalysis::Init(LoopAll& l)
     l.rooContainer->AddConstant("XSBR_130",0.0319112+0.00260804+0.001759636+0.000173070);
     l.rooContainer->AddConstant("XSBR_125",0.0350599+0.00277319+0.002035123+0.000197718);
     l.rooContainer->AddConstant("XSBR_120",0.0374175+0.00285525+0.002285775+0.00021951 );
-    l.rooContainer->AddConstant("XSBR_123",0.0355224+0.00281352+0.00213681+0.00020663);
+    l.rooContainer->AddConstant("XSBR_123",0.0369736+0.00281352+0.00213681+0.00020663);
     l.rooContainer->AddConstant("XSBR_121",0.0369736+0.00284082+0.00223491+0.00021510);
     l.rooContainer->AddConstant("XSBR_115",0.0386169+0.00283716+0.002482089+0.000235578);
     l.rooContainer->AddConstant("XSBR_110",0.0390848+0.00275406+0.002654575+0.000247629);
@@ -529,9 +524,12 @@ void StatAnalysis::Analysis(LoopAll& l, Int_t jentry)
 	std::vector<std::vector<bool> > p;
 	PhotonReducedInfo phoInfo ( *((TVector3*)l.pho_calopos->At(ipho)), 
 				    // *((TVector3*)l.sc_xyz->At(l.pho_scind[ipho])), 
-				    ((TLorentzVector*)l.pho_p4->At(ipho))->Energy(), l.pho_residCorrEnergy[ipho],
+				    ((TLorentzVector*)l.pho_p4->At(ipho))->Energy(), 
+				    energyCorrected[ipho],
 				    l.pho_isEB[ipho], l.pho_r9[ipho],
-				    l.PhotonCiCSelectionLevel(ipho,l.vtx_std_sel,p,nPhotonCategories_) );
+				    l.PhotonCiCSelectionLevel(ipho,l.vtx_std_sel,p,nPhotonCategories_),
+				    (energyCorrectedError!=0?energyCorrectedError[ipho]:0)
+				    );
 	float pweight = 1.;
 	// smear MC. But apply energy shift to data 
 	if( cur_type != 0 && doMCSmearing ) { // if it's MC
@@ -544,8 +542,11 @@ void StatAnalysis::Analysis(LoopAll& l, Int_t jentry)
 		}
 		pweight *= sweight;
 	    }
-	} else if( doEscaleSmear && cur_type == 0 ) {          // if it's data
+	} else if( cur_type == 0 ) {          // if it's data
 	    float sweight = 1.;
+	    if( doEcorrectionSmear )  { 
+	      eCorrSmearer->smearPhoton(phoInfo,sweight,l.run,0.); 
+	    }
 	    eScaleDataSmearer->smearPhoton(phoInfo,sweight,l.run,0.);
 	    pweight *= sweight;
 	}
@@ -556,7 +557,7 @@ void StatAnalysis::Analysis(LoopAll& l, Int_t jentry)
    
     sumev += weight;
     // FIXME pass smeared R9
-    int diphoton_id = l.DiphotonCiCSelection(l.phoSUPERTIGHT, l.phoSUPERTIGHT, leadEtCut, subleadEtCut, 4,false, &smeared_pho_energy[0] ); 
+    int diphoton_id = l.DiphotonCiCSelection(l.phoSUPERTIGHT, l.phoSUPERTIGHT, leadEtCut, subleadEtCut, 4,applyPtoverM, &smeared_pho_energy[0] ); 
     /// std::cerr << "Selected pair " << l.dipho_n << " " << diphoton_id << std::endl;
     if (diphoton_id > -1 ) {
 
@@ -576,7 +577,7 @@ void StatAnalysis::Analysis(LoopAll& l, Int_t jentry)
         //get list of vertices as ranked for the selected diphoton
         vector<int> & rankedVtxs = (*l.vtx_std_ranked_list)[diphoton_id];
         vtxAna_.preselection(rankedVtxs);
-	if( useMvaRanking ) {
+	if( mvaVertexSelection ) {
 		rankedVtxs = vtxAna_.rank(*tmvaPerVtxReader_,tmvaPerVtxMethod);
 	} else {
 		vtxAna_.evaluate(*tmvaPerVtxReader_,tmvaPerVtxMethod);
@@ -595,7 +596,7 @@ void StatAnalysis::Analysis(LoopAll& l, Int_t jentry)
         // VtxEvtMVA_ = tmvaPerEvtReader_->EvaluateMVA(tmvaPerEvtMethod);
 	VtxEvtMVA_ = vtxAna_.perEventMva( *tmvaPerEvtReader_, tmvaPerEvtMethod, rankedVtxs );
 	VtxProb_ = vtxAna_.vertexProbability( VtxEvtMVA_ ); 
-
+	
         //TODO microanalysis imported stuff
 	l.countersred[diPhoCounter_]++;
 
@@ -931,7 +932,8 @@ void StatAnalysis::Analysis(LoopAll& l, Int_t jentry)
 		    //std::cout << "GF check: " <<  l.pho_residCorrEnergy[ipho] << "  " << l.pho_residCorrResn[ipho] << std::endl;
 		    PhotonReducedInfo phoInfo ( *((TVector3*)l.pho_calopos->At(ipho)), 
 						/// *((TVector3*)l.sc_xyz->At(l.pho_scind[ipho])), 
-						((TLorentzVector*)l.pho_p4->At(ipho))->Energy(), l.pho_residCorrEnergy[ipho],
+						((TLorentzVector*)l.pho_p4->At(ipho))->Energy(), 
+						energyCorrected[ipho],
 						l.pho_isEB[ipho], l.pho_r9[ipho],
 						l.PhotonCiCSelectionLevel(ipho,l.vtx_std_sel,p,nPhotonCategories_));
 		   
@@ -954,7 +956,7 @@ void StatAnalysis::Analysis(LoopAll& l, Int_t jentry)
 	       
 		// analyze the event
 		// FIXME pass smeared R9
-		int diphoton_id = l.DiphotonCiCSelection(l.phoSUPERTIGHT, l.phoSUPERTIGHT, leadEtCut, subleadEtCut, 4,false, &smeared_pho_energy[0] ); 
+		int diphoton_id = l.DiphotonCiCSelection(l.phoSUPERTIGHT, l.phoSUPERTIGHT, leadEtCut, subleadEtCut, 4,applyPtoverM, &smeared_pho_energy[0] ); 
 	       
 		if (diphoton_id > -1 ) {
 		   

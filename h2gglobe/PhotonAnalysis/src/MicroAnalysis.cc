@@ -19,7 +19,7 @@ MicroAnalysis::MicroAnalysis()  :
     pho1_(0), pho2_(0), dipho_(0), vtxVars_(100)
 {
 	cout << "Constructing MicroAnalysis" << endl;
-	useMvaRanking = false;
+	mvaVertexSelection = false;
 }
 
 // ----------------------------------------------------------------------------------------------------
@@ -511,7 +511,7 @@ void MicroAnalysis::Analysis(LoopAll& l, Int_t jentry)
     alphaTrue_ = truevtx_lead_pho.Angle(truevtx_sublead_pho.Vect());
 
     //get list of vertices as ranked for the selected diphoton
-    if( useMvaRanking ) {
+    if( mvaVertexSelection ) {
 	    rankedVtxs = vtxAna_.rank(*tmvaReader_,tmvaMethod);
     } else {
 	    vtxAna_.evaluate(*tmvaReader_,tmvaMethod);
