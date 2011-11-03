@@ -454,7 +454,7 @@ void MvaAnalysis::Init(LoopAll& l)
  		tmvaReader_->AddVariable("pho2_eta", &_pho2_eta);
  		tmvaReader_->AddVariable("pho1_ptOverM", &_pho1_ptOverM);
  		tmvaReader_->AddVariable("pho2_ptOverM", &_pho2_ptOverM);
- 	        tmvaReader_->AddVariable("deltaMOverM", &_deltaMOverM);
+ 	    tmvaReader_->AddVariable("deltaMOverM", &_deltaMOverM);
  		tmvaReader_->AddVariable("sigmaMOverM", &_sigmaMOverM);
 
         //Invariant Mass Spectra
@@ -502,10 +502,10 @@ void MvaAnalysis::Init(LoopAll& l)
             l.rooContainer->MakeSystematics("BDT","sig_BDT_ada"+names[i]+names[i+j]  ,-1)	;
           }
 
-            //TMVA Reader
-            tmvaReader_->BookMVA("BDT_ada" +names[i],mvaWeightsFolder+"/TMVAClassification_BDT_ada" +BDTnames[i]+"_all.weights.xml");
-            tmvaReader_->BookMVA("BDT_grad"+names[i],mvaWeightsFolder+"/TMVAClassification_BDT_grad"+BDTnames[i]+"_all.weights.xml");
         }
+        //TMVA Reader
+        tmvaReader_->BookMVA("BDT_ada_123", mvaWeightsFolder+"/TMVAClassification_BDT_ada_123_all.weights.xml");
+        tmvaReader_->BookMVA("BDT_grad_123",mvaWeightsFolder+"/TMVAClassification_BDT_grad_123_all.weights.xml");
     }
 
     if(PADEBUG) 
@@ -780,8 +780,8 @@ void MvaAnalysis::Analysis(LoopAll& l, Int_t jentry)
                 if( mass>sideband_boundaries[0] && mass<sideband_boundaries[1]){//Signal mass window cut
                     SetBDTInputVariables(&lead_p4,&sublead_p4,lead_r9,sublead_r9,massResolution,mass_hypothesis,evweight);
 
-                    float bdt_ada  = tmvaReader_->EvaluateMVA( "BDT_ada"+names[i] );
-                    float bdt_grad = tmvaReader_->EvaluateMVA( "BDT_grad"+names[i] );
+                    float bdt_ada  = tmvaReader_->EvaluateMVA( "BDT_ada_123" );
+                    float bdt_grad = tmvaReader_->EvaluateMVA( "BDT_grad_123" );
 
                     if (SignalType(cur_type)==i+j){
                         l.rooContainer->InputDataPoint("sig_BDT_ada"+names[i]+names[i+j],category,bdt_ada,evweight);
@@ -828,8 +828,8 @@ void MvaAnalysis::Analysis(LoopAll& l, Int_t jentry)
                   //std::cout << "sig region" << std::endl;
                   SetBDTInputVariables(&lead_p4,&sublead_p4,lead_r9,sublead_r9,massResolution,mass_hypothesis,evweight);
                     
-                  float bdt_ada  = tmvaReader_->EvaluateMVA( "BDT_ada"+names[i] );
-                  float bdt_grad = tmvaReader_->EvaluateMVA( "BDT_grad"+names[i] );
+                  float bdt_ada  = tmvaReader_->EvaluateMVA( "BDT_ada_123" );
+                  float bdt_grad = tmvaReader_->EvaluateMVA( "BDT_grad_123" );
 
                   //std::cout << "ada: " << bdt_ada << "  grad: " << bdt_grad << std::endl;
 
@@ -854,8 +854,8 @@ void MvaAnalysis::Analysis(LoopAll& l, Int_t jentry)
 
 		   if ( mass>sideband_boundaries_low && mass<sideband_boundaries_high){
                     SetBDTInputVariables(&lead_p4,&sublead_p4,lead_r9,sublead_r9,massResolution,mass_hypothesis_low,evweight);
-                    float bdt_ada  = tmvaReader_->EvaluateMVA( "BDT_ada"+names[i] );
-                    float bdt_grad = tmvaReader_->EvaluateMVA( "BDT_grad"+names[i] );
+                    float bdt_ada  = tmvaReader_->EvaluateMVA( "BDT_ada_123" );
+                    float bdt_grad = tmvaReader_->EvaluateMVA( "BDT_grad_123" );
 
                     if (cur_type == 0 ){//data
                          l.rooContainer->InputDataPoint(Form("data_%dlow_BDT_ada_%3.1f",sideband_i,mass_hypothesis),category,bdt_ada,evweight);
@@ -878,8 +878,8 @@ void MvaAnalysis::Analysis(LoopAll& l, Int_t jentry)
 
 		   if ( mass>sideband_boundaries_low && mass<sideband_boundaries_high){
                     SetBDTInputVariables(&lead_p4,&sublead_p4,lead_r9,sublead_r9,massResolution,mass_hypothesis_high,evweight);
-                    float bdt_ada  = tmvaReader_->EvaluateMVA( "BDT_ada"+names[i] );
-                    float bdt_grad = tmvaReader_->EvaluateMVA( "BDT_grad"+names[i] );
+                    float bdt_ada  = tmvaReader_->EvaluateMVA( "BDT_ada_123" );
+                    float bdt_grad = tmvaReader_->EvaluateMVA( "BDT_grad_123" );
 
                     if (cur_type == 0 ){//data
                          l.rooContainer->InputDataPoint(Form("data_%dhigh_BDT_ada_%3.1f",sideband_i,mass_hypothesis),category,bdt_ada,evweight);
@@ -970,8 +970,8 @@ void MvaAnalysis::Analysis(LoopAll& l, Int_t jentry)
                      	    //Signal Window
                 		if( mass>sideband_boundaries[0] && mass<sideband_boundaries[1]){//Signal mass window cut
                     		SetBDTInputVariables(&lead_p4,&sublead_p4,lead_r9,sublead_r9,massResolution,mass_hypothesis,evweight);
-                    		float bdt_ada  = tmvaReader_->EvaluateMVA( "BDT_ada"+names[i] );
-                    		float bdt_grad = tmvaReader_->EvaluateMVA( "BDT_grad"+names[i] );
+                    		float bdt_ada  = tmvaReader_->EvaluateMVA( "BDT_ada_123" );
+                    		float bdt_grad = tmvaReader_->EvaluateMVA( "BDT_grad_123" );
 			
                     		categories[j+1].push_back(category);
                     		bdt_ada_errors[j+1].push_back(bdt_ada);
@@ -1056,8 +1056,8 @@ void MvaAnalysis::Analysis(LoopAll& l, Int_t jentry)
            		//Signal Window
            		 if( mass>sideband_boundaries[0] && mass<sideband_boundaries[1]){//Signal mass window cut
              		  SetBDTInputVariables(&lead_p4,&sublead_p4,lead_r9,sublead_r9,massResolution,mass_hypothesis,evweight);
-             		  float bdt_ada  = tmvaReader_->EvaluateMVA( "BDT_ada"+names[i] );
-             		  float bdt_grad = tmvaReader_->EvaluateMVA( "BDT_grad"+names[i] );
+             		  float bdt_ada  = tmvaReader_->EvaluateMVA( "BDT_ada_123" );
+             		  float bdt_grad = tmvaReader_->EvaluateMVA( "BDT_grad_123" );
 
              		  categories[j+1].push_back(category);
              		  bdt_ada_errors[j+1].push_back(bdt_ada);
@@ -1186,8 +1186,8 @@ void MvaAnalysis::Analysis(LoopAll& l, Int_t jentry)
                		  //Signal Window
                		  if( mass>sideband_boundaries[0] && mass<sideband_boundaries[1]){//Signal mass window cut
                  		SetBDTInputVariables(&lead_p4,&sublead_p4,lead_r9,sublead_r9,massResolution,mass_hypothesis,evweight);
-                 		float bdt_ada  = tmvaReader_->EvaluateMVA( "BDT_ada"+names[i] );
-                 		float bdt_grad = tmvaReader_->EvaluateMVA( "BDT_grad"+names[i] );
+                 		float bdt_ada  = tmvaReader_->EvaluateMVA( "BDT_ada_123" );
+                 		float bdt_grad = tmvaReader_->EvaluateMVA( "BDT_grad_123" );
                  
                  		categories[j+1].push_back(category);
                  		bdt_ada_errors[j+1].push_back(bdt_ada);
