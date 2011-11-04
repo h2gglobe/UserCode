@@ -212,6 +212,7 @@ void Branch_jet_algoPF1_n(TTree * tree) { tree->Branch("jet_algoPF1_n",&jet_algo
 void Branch_jet_algoPF1_p4(TTree * tree) { tree->Branch("jet_algoPF1_p4", "TClonesArray",&jet_algoPF1_p4, 32000, 0); }; 
 void Branch_jet_algoPF1_emfrac(TTree * tree) { tree->Branch("jet_algoPF1_emfrac",&jet_algoPF1_emfrac, "jet_algoPF1_emfrac[jet_algoPF1_n]/F"); }; 
 void Branch_jet_algoPF1_hadfrac(TTree * tree) { tree->Branch("jet_algoPF1_hadfrac",&jet_algoPF1_hadfrac, "jet_algoPF1_hadfrac[jet_algoPF1_n]/F"); }; 
+void Branch_jet_algoPF1_erescale(TTree * tree) { tree->Branch("jet_algoPF1_erescale",&jet_algoPF1_erescale, "jet_algoPF1_erescale[jet_algoPF1_n]/F"); }; 
 void Branch_jet_algoPF1_ntk(TTree * tree) { tree->Branch("jet_algoPF1_ntk",&jet_algoPF1_ntk, "jet_algoPF1_ntk[jet_algoPF1_n]/I"); }; 
 void Branch_jet_algoPF1_tkind(TTree * tree) { tree->Branch("jet_algoPF1_tkind", "std::vector<std::vector<unsigned short> >", &jet_algoPF1_tkind); }; 
 void Branch_jet_algoPF1_calotwind(TTree * tree) { tree->Branch("jet_algoPF1_calotwind", "std::vector<std::vector<unsigned short> >", &jet_algoPF1_calotwind); }; 
@@ -407,6 +408,8 @@ void Branch_pho_conv_refitted_momentum(TTree * tree) { tree->Branch("pho_conv_re
 void Branch_pho_conv_vertexcorrected_p4(TTree * tree) { tree->Branch("pho_conv_vertexcorrected_p4", "TClonesArray",&pho_conv_vertexcorrected_p4, 32000, 0); }; 
 void Branch_pho_residCorrEnergy(TTree * tree) { tree->Branch("pho_residCorrEnergy",&pho_residCorrEnergy,"pho_residCorrEnergy[pho_n]/F");  };
 void Branch_pho_residCorrResn(TTree * tree) { tree->Branch("pho_residCorrResn",&pho_residCorrResn,"pho_residCorrResn[pho_n]/F");  }; 
+void Branch_pho_regr_energy(TTree * tree) { tree->Branch("pho_regr_energy",&pho_regr_energy,"pho_regr_energy[pho_n]/F");  };
+void Branch_pho_regr_energyerr(TTree * tree) { tree->Branch("pho_regr_energyerr",&pho_regr_energyerr,"pho_regr_energyerr[pho_n]/F");  };
 void Branch_conv_n(TTree * tree) { tree->Branch("conv_n", &conv_n, "conv_n/I"); };
 void Branch_conv_p4(TTree * tree) { tree->Branch("conv_p4", "TClonesArray", &conv_p4, 32000, 0); };
 void Branch_conv_ntracks(TTree * tree) { tree->Branch("conv_ntracks",&conv_ntracks,"conv_ntracks[conv_n]/I"); };

@@ -212,6 +212,7 @@ void SetBranchAddress_jet_algoPF1_n(TTree * tree) { tree->SetBranchAddress("jet_
 void SetBranchAddress_jet_algoPF1_p4(TTree * tree) { tree->SetBranchAddress("jet_algoPF1_p4", &jet_algoPF1_p4, &b_jet_algoPF1_p4); }; 
 void SetBranchAddress_jet_algoPF1_emfrac(TTree * tree) { tree->SetBranchAddress("jet_algoPF1_emfrac", jet_algoPF1_emfrac, &b_jet_algoPF1_emfrac); }; 
 void SetBranchAddress_jet_algoPF1_hadfrac(TTree * tree) { tree->SetBranchAddress("jet_algoPF1_hadfrac", jet_algoPF1_hadfrac, &b_jet_algoPF1_hadfrac); }; 
+void SetBranchAddress_jet_algoPF1_erescale(TTree * tree) { tree->SetBranchAddress("jet_algoPF1_erescale", jet_algoPF1_erescale, &b_jet_algoPF1_erescale); }; 
 void SetBranchAddress_jet_algoPF1_ntk(TTree * tree) { tree->SetBranchAddress("jet_algoPF1_ntk", jet_algoPF1_ntk, &b_jet_algoPF1_ntk); }; 
 void SetBranchAddress_jet_algoPF1_tkind(TTree * tree) { tree->SetBranchAddress("jet_algoPF1_tkind", &jet_algoPF1_tkind, &b_jet_algoPF1_tkind); }; 
 void SetBranchAddress_jet_algoPF1_calotwind(TTree * tree) { tree->SetBranchAddress("jet_algoPF1_calotwind", &jet_algoPF1_calotwind, &b_jet_algoPF1_calotwind); }; 
@@ -407,6 +408,8 @@ void SetBranchAddress_pho_conv_refitted_momentum(TTree * tree) { tree->SetBranch
 void SetBranchAddress_pho_conv_vertexcorrected_p4(TTree * tree) { tree->SetBranchAddress("pho_conv_vertexcorrected_p4", &pho_conv_vertexcorrected_p4, &b_pho_conv_vertexcorrected_p4); }; 
 void SetBranchAddress_pho_residCorrEnergy(TTree * tree) { tree->SetBranchAddress("pho_residCorrEnergy", pho_residCorrEnergy, &b_pho_residCorrEnergy); }; 
 void SetBranchAddress_pho_residCorrResn(TTree * tree) { tree->SetBranchAddress("pho_residCorrResn", pho_residCorrResn, &b_pho_residCorrResn); }; 
+void SetBranchAddress_pho_regr_energy(TTree * tree) { tree->SetBranchAddress("pho_regr_energy", pho_regr_energy, &b_pho_regr_energy); };
+void SetBranchAddress_pho_regr_energyerr(TTree * tree) { tree->SetBranchAddress("pho_regr_energyerr", pho_regr_energyerr, &b_pho_regr_energyerr); };
 void SetBranchAddress_conv_n(TTree * tree) { tree->SetBranchAddress("conv_n", &conv_n, &b_conv_n); };
 void SetBranchAddress_conv_p4(TTree * tree) { tree->SetBranchAddress("conv_p4", &conv_p4, &b_conv_p4); };
 void SetBranchAddress_conv_ntracks(TTree * tree) { tree->SetBranchAddress("conv_ntracks", conv_ntracks, &b_conv_ntracks); };

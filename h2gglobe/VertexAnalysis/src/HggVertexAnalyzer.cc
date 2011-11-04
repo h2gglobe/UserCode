@@ -36,6 +36,59 @@ HggVertexAnalyzer::dict_t & HggVertexAnalyzer::dictionary()
 	return dictionary;
 }
 
+
+// -------------------------------------------------------------------------------------------------------------------------------------------------------------
+void HggVertexAnalyzer::setupWithDefaultOptions(const std::string & pathToPerVertxMvaWeights, const std::string & pathToPerEventMvaWeights, 
+						std::vector<string> & rankVariables,
+						TMVA::Reader *& perVtxReader, std::string & perVtxMethod,
+						TMVA::Reader *& perEvtReader, std::string & perEvtMethod)
+{
+	params_.fixTkIndex=0;
+
+	params_.rescaleTkPtByError=0;
+	params_.trackCountThr=0;
+	params_.highPurityOnly=0;
+
+	params_.maxD0Signif=999.;
+	params_.maxDzSignif=999.;
+
+	params_.removeTracksInCone=1;
+	params_.coneSize=0.05;
+
+	params_.useAllConversions=1;
+    params_.sigma1Pix=0.016;
+    params_.sigma1Tib=0.572;
+    params_.sigma1Tob=4.142;
+    params_.sigma1PixFwd=0.082;
+    params_.sigma1Tid=0.321;
+    params_.sigma1Tec=3.109;
+
+    params_.sigma2Pix=0.035;
+    params_.sigma2Tib=0.331;
+    params_.sigma2Tob=1.564;
+    params_.sigma2PixFwd=0.189;
+    params_.sigma2Tid=0.418;
+    params_.sigma2Tec=0.815;
+	
+	params_.vtxProbFormula="1.-0.49*(x+1)";
+	
+	std::vector<std::string>  perVtxVariables; 
+	perVtxMethod = "BDTCat";
+	perEvtMethod = "evtBDTG";
+	
+	perVtxVariables.push_back("ptbal"), perVtxVariables.push_back("ptasym"), perVtxVariables.push_back("logsumpt2"),
+		perVtxVariables.push_back("limPullToConv"), perVtxVariables.push_back("nConv");
+	rankVariables.push_back("ptbal"), rankVariables.push_back("ptasym"), rankVariables.push_back("logsumpt2");
+	
+	perVtxReader = new TMVA::Reader( "!Color:!Silent" );
+	HggVertexAnalyzer::bookVariables( *perVtxReader, perVtxVariables );
+	perVtxReader->BookMVA( perVtxMethod, pathToPerVertxMvaWeights );
+
+	perEvtReader = new TMVA::Reader( "!Color:!Silent" );
+	HggVertexAnalyzer::bookPerEventVariables( *perEvtReader );
+	perEvtReader->BookMVA( perEvtMethod, pathToPerEventMvaWeights );
+}
+
 // -------------------------------------------------------------------------------------------------------------------------------------------------------------
 void HggVertexAnalyzer::fillDictionary(HggVertexAnalyzer::dict_t& dictionary)
 {
@@ -315,7 +368,7 @@ float HggVertexAnalyzer::perEventMva(TMVA::Reader & reader,const  std::string & 
 	evt_diphoPt = diphopt(v0);
 	evt_nconv   = nconv(v0);
 	evt_nvert   = rankedVertexes.size();
-	for(int vi=0; vi<rankedVertexes.size() && vi<evt_mva.size(); ++vi ) {
+	for(int vi=0; vi<(int)rankedVertexes.size() && vi<(int)evt_mva.size(); ++vi ) {
 		int vtxid = rankedVertexes[vi];
 		evt_mva[vi] = mva(vtxid);
 		evt_dz[vi]  = vertexz(vtxid) - z0;
@@ -503,7 +556,7 @@ void HggVertexAnalyzer::clear()
 // -------------------------------------------------------------------------------------------------------------------------------------------------------------
 void HggVertexAnalyzer::setPullToConv(int ivert, float pull, float lim) 
 { 
-	if( pulltoconv_.size() <= ipair_ ) { 
+	if( (int)pulltoconv_.size() <= ipair_ ) { 
 		int nvtx = nch_[ipair_].size();
 		pulltoconv_.resize(ipair_+1); pulltoconv_[ipair_].resize(nvtx,1000.);
 		limpulltoconv_.resize(ipair_+1); limpulltoconv_[ipair_].resize(nvtx,1000.);
@@ -516,7 +569,7 @@ void HggVertexAnalyzer::setPullToConv(int ivert, float pull, float lim)
 // -------------------------------------------------------------------------------------------------------------------------------------------------------------
 void HggVertexAnalyzer::setNConv(int n)
 { 
-	if( nconv_.size() <= ipair_ ) { 
+	if( (int)nconv_.size() <= ipair_ ) { 
 		nconv_.resize(ipair_+1,0);
 	}
 	
@@ -769,29 +822,43 @@ void HggVertexAnalyzer::analyze(const VertexInfoAdapter & e, const PhotonInfo & 
 }
 
 // -------------------------------------------------------------------------------------------------------------------------------------------------------------
-double HggVertexAnalyzer::vtxdZFromConv(const PhotonInfo & pho)
+double HggVertexAnalyzer::vtxdZFromConv(const PhotonInfo & pho, int method)
 {
+  // method 0 is combined (default)
+  // method 1 is conversion only
+  // method 2 is supercluster only
   // attribute the error depending on the tracker region
   double dz=-99999;
 
   if ( pho.iDet() ==1 ) { // barrel
     if ( pho.conversionVertex().Perp() <=15 ) {
-      dz=params_.sigmaPix;
+      if (method==0) dz=params_.sigma1Pix;
+      if (method==1) dz=params_.sigma1Pix;
+      if (method==2) dz=params_.sigma2Pix;
     } else if ( pho.conversionVertex().Perp() > 15 && pho.conversionVertex().Perp() <=60 ) {
-      dz=params_.sigmaTib;
+      if (method==0) dz=params_.sigma2Tib;
+      if (method==1) dz=params_.sigma1Tib;
+      if (method==2) dz=params_.sigma2Tib;
     } else {
-      dz=params_.sigmaTob;
+      if (method==0) dz=params_.sigma2Tob;
+      if (method==1) dz=params_.sigma1Tob;
+      if (method==2) dz=params_.sigma2Tob;
     }
 
   } else { // endcap
 
-
     if ( fabs(pho.conversionVertex().Z() ) <=50 ) {
-      dz=params_.sigmaFwd1;
+      if (method==0) dz=params_.sigma1PixFwd;
+      if (method==1) dz=params_.sigma1PixFwd;
+      if (method==2) dz=params_.sigma2PixFwd;
     } else if ( fabs(pho.conversionVertex().Z() ) > 50 && fabs(pho.conversionVertex().Z()) <= 100 ) {
-      dz=params_.sigmaFwd2;
+      if (method==0) dz=params_.sigma1Tid;
+      if (method==1) dz=params_.sigma1Tid;
+      if (method==2) dz=params_.sigma2Tid;
     } else {
-      dz=params_.sigmaFwd3;
+      if (method==0) dz=params_.sigma2Tec;
+      if (method==1) dz=params_.sigma1Tec;
+      if (method==2) dz=params_.sigma2Tec;
     }
   }
 
@@ -799,12 +866,53 @@ double HggVertexAnalyzer::vtxdZFromConv(const PhotonInfo & pho)
 
 }
 
-
 // -------------------------------------------------------------------------------------------------------------------------------------------------------------
-double HggVertexAnalyzer::vtxZFromConv(const PhotonInfo & pho)
+double HggVertexAnalyzer::vtxZFromConv(const PhotonInfo & pho, int method)
+{
+  // method 0 is combined (default)
+  // method 1 is conversion only
+  // method 2 is supercluster only
+
+  double ReturnValue = 0;
+
+  //Mixed Method Conversion Vertex
+  if (method==0) {
+    if (pho.iDet()) {
+      if (pho.conversionVertex().Perp()<=15.0) {
+        //Pixel Barrel
+        ReturnValue = vtxZFromConvOnly(pho);
+      } else if  (pho.conversionVertex().Perp()>15 && pho.conversionVertex().Perp()<=60.0) {
+        //Tracker Inner Barrel
+        ReturnValue = vtxZFromConvSuperCluster(pho);
+      } else {
+        //Tracker Outer Barrel
+        ReturnValue = vtxZFromConvSuperCluster(pho);
+      }
+    } else {
+      if (fabs(pho.conversionVertex().Z())<=50.0) {
+        //Pixel Forward
+        ReturnValue = vtxZFromConvOnly(pho);
+      }  else if (fabs(pho.conversionVertex().Z())>50.0 && fabs(pho.conversionVertex().Z())<=100.0) {
+        //Tracker Inner Disk
+        ReturnValue = vtxZFromConvOnly(pho);
+      }  else {
+        //Track EndCap
+        ReturnValue = vtxZFromConvSuperCluster(pho);
+      }
+    }
+  }
+
+  if (method==1) ReturnValue = vtxZFromConvSuperCluster(pho);
+  if (method==2) ReturnValue = vtxZFromConvOnly(pho);
+  
+  return ReturnValue;
+
+}
+
+double HggVertexAnalyzer::vtxZFromConvSuperCluster(const PhotonInfo & pho)
 {
 
-  // get the z from conversions
+  // get the z from conversion plus SuperCluster
   double deltaX1 =  pho.caloPosition().X()- pho.conversionVertex().X();
   double deltaY1 =  pho.caloPosition().Y()- pho.conversionVertex().Y();
   double deltaZ1 =  pho.caloPosition().Z()- pho.conversionVertex().Z();
@@ -817,9 +925,15 @@ double HggVertexAnalyzer::vtxZFromConv(const PhotonInfo & pho)
   double deltaZ2 = R2/tantheta;
   double higgsZ =  pho.caloPosition().Z()-deltaZ1-deltaZ2;
   return higgsZ;
-
+  
 }
 
+double HggVertexAnalyzer::vtxZFromConvOnly(const PhotonInfo & pho) {
+
+  double dz = (pho.conversionVertex().Z()-pho.beamSpot().Z()) - ((pho.conversionVertex().X()-pho.beamSpot().X())*pho.refittedMomentum().X()+(pho.conversionVertex().Y()-pho.beamSpot().Y())*pho.refittedMomentum().Y())/pho.refittedMomentum().Perp() * pho.refittedMomentum().Z()/pho.refittedMomentum().Perp();
+  return dz + pho.beamSpot().Z();
+  
+}
 
 // -------------------------------------------------------------------------------------------------------------------------------------------------------------
 VertexInfoAdapter::~VertexInfoAdapter()

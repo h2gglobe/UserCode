@@ -25,6 +25,7 @@ PhotonAnalysis::PhotonAnalysis()  :
 	energyCorrectionMethod("DaunceyAndKenzie"), energyCorrected(0), energyCorrectedError(0)
 {
 	addConversionToMva=true;
+	mvaVertexSelection=false;
 	useDefaultVertex=false;
 	forcedRho = -1.;
 
@@ -253,6 +254,7 @@ void PhotonAnalysis::Init(LoopAll& l)
 	} else {
 		tmvaPerEvtReader_ = 0;
 	}
+	assert( !mvaVertexSelection || tmvaPerVtxReader_ != 0 );
 
 	eSmearDataPars.categoryType = "2CatR9_EBEBm4EE";
 	eSmearDataPars.byRun = true;

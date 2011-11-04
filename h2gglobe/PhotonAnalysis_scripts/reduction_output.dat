@@ -124,6 +124,8 @@ pho_scind
 sc_xyz
 pho_residCorrEnergy
 pho_residCorrResn
+pho_regr_energy
+pho_regr_energyerr
 
 ->
 All Conversions
@@ -240,3 +242,8 @@ l1emnoniso_phi
 l1bits_phy
 l1_labels
 
+->
+Jets
+->
+jet_algoPF1_n
+jet_algoPF1_erescale
