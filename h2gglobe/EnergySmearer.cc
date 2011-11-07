@@ -80,7 +80,7 @@ std::string EnergySmearer::photonCategory(PhotonReducedInfo & aPho) const
 float EnergySmearer::getScaleOffset(int run, const std::string & category) const
 {
   const std::map<std::string, float> * scale_offset =  &(myParameters_.scale_offset);
-  
+ 
   if( myParameters_.byRun ) {
     scale_offset = &(find(myParameters_.scale_offset_byrun.begin(),myParameters_.scale_offset_byrun.end(),run)->scale_offset) ;
   }
@@ -91,7 +91,6 @@ float EnergySmearer::getScaleOffset(int run, const std::string & category) const
       std::cout << "Category was not found in the configuration. Giving Up" << std::endl;
       return false;
     }
-  
   return 1. + it->second;
   
 }
@@ -116,14 +115,15 @@ bool EnergySmearer::smearPhoton(PhotonReducedInfo & aPho, float & weight, int ru
   if (  doCorrections_ ) {
     // corrEnergy is the corrected photon energy
     newEnergy = aPho.corrEnergy() + syst_shift * myParameters_.corrRelErr * (aPho.corrEnergy() - aPho.energy());
-  }
+  } else {
 
-  if( scaleOrSmear_ ) {
+    if( scaleOrSmear_ ) {
 	  scale_offset   += syst_shift * myParameters_.scale_offset_error.find(category)->second;
 	  newEnergy *=  scale_offset;
-  } else {
+    } else {
 	  smearing_sigma += syst_shift * myParameters_.smearing_sigma_error.find(category)->second;
 	  newEnergy *=  rgen_->Gaus(1.,smearing_sigma);
+    }
   }
   
   //std::cout << "doCorrections: " << doCorrections_ << " ene: " <<  aPho.energy() 
