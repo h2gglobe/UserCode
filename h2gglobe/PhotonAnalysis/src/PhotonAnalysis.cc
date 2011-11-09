@@ -883,6 +883,7 @@ bool PhotonAnalysis::SelectEventsReduction(LoopAll& l, int jentry)
 				diphotons.push_back( std::make_pair( pho_presel[ip], pho_presel[jp] ) );
 			}
 		}
+		l.vtx_std_evt_mva->clear();
 		for(size_t id=0; id<diphotons.size(); ++id ) {
 			
 			int ipho1 = diphotons[id].first;

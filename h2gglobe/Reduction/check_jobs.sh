@@ -6,5 +6,5 @@ if [[ -z $1 ]]; then
     exit 1
 fi
 
-tail -n 100 $1/*.log | egrep -B 2 '=>|rfcp|Red|Break' | egrep  '=>|rfcp|[Rr]ed|Break'
+tail -n 100 $(ls --color=none $1/*.log | sort ) | egrep -B 2 -A 3 '=>|rfcp|^[Rr]ed|Break' | egrep  '=>|rfcp|bytes in remote file|^[Rr]ed|Break'
 

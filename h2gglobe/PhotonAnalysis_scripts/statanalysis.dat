@@ -16,7 +16,7 @@ nDataBins=60
 
 nEtaCategories=2
 nR9Categories=2
-nPtCategories=1
+nPtCategories=0
 
 doTriggerSelection=1
 reRunCiC=0

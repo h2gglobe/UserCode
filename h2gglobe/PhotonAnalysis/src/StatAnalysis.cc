@@ -576,12 +576,12 @@ void StatAnalysis::Analysis(LoopAll& l, Int_t jentry)
 
         //get list of vertices as ranked for the selected diphoton
         vector<int> & rankedVtxs = (*l.vtx_std_ranked_list)[diphoton_id];
-        vtxAna_.preselection(rankedVtxs);
-	if( mvaVertexSelection ) {
-		rankedVtxs = vtxAna_.rank(*tmvaPerVtxReader_,tmvaPerVtxMethod);
-	} else {
-		vtxAna_.evaluate(*tmvaPerVtxReader_,tmvaPerVtxMethod);
-	}
+        /// vtxAna_.preselection(rankedVtxs);
+	/// if( mvaVertexSelection ) {
+	/// 	rankedVtxs = vtxAna_.rank(*tmvaPerVtxReader_,tmvaPerVtxMethod);
+	/// } else {
+	/// 	vtxAna_.evaluate(*tmvaPerVtxReader_,tmvaPerVtxMethod);
+	/// }
         for (size_t vi=0;vi<rankedVtxs.size();vi++) {
         	if(vi>=useNVert) break;
         	MVA_[vi] = vtxAna_.mva(rankedVtxs[vi]);
@@ -594,7 +594,7 @@ void StatAnalysis::Analysis(LoopAll& l, Int_t jentry)
         	if(vi==0) diphoRelPt_ = dipho.Pt();
         }
         // VtxEvtMVA_ = tmvaPerEvtReader_->EvaluateMVA(tmvaPerEvtMethod);
-	VtxEvtMVA_ = vtxAna_.perEventMva( *tmvaPerEvtReader_, tmvaPerEvtMethod, rankedVtxs );
+	/// VtxEvtMVA_ = vtxAna_.perEventMva( *tmvaPerEvtReader_, tmvaPerEvtMethod, rankedVtxs );
 	VtxProb_ = vtxAna_.vertexProbability( VtxEvtMVA_ ); 
 	
         //TODO microanalysis imported stuff

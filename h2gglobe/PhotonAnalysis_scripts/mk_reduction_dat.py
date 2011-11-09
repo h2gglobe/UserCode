@@ -38,6 +38,8 @@ for d in ds.read().split("\n"):
     dname = sl.pop(0)
     dtype = sl.pop(0)
     iname = dname
+    if "/" in dname:
+        dname = dname.rsplit("/",1)[1] 
     analyzer = "analyzer PhotonAnalysis photonanalysis.dat"
     getanalyzer = False
     for s in sl:
