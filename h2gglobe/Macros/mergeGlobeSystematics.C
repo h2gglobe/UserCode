@@ -4,7 +4,7 @@ TFile *oldFILE = new TFile("./vertex_reweighing.root");
 oldFILE->Print();
 oldFILE->ls();
 
-TFile *newFILE = new TFile("sig_reweighing_v17_mit.root ","recreate");
+TFile *newFILE = new TFile("sig_reweighing_v18_mit.root ","recreate");
 newFILE->cd();
 
 TGraphAsymmErrors * toCopy;
@@ -46,7 +46,8 @@ for (int cat=0;cat<ncats;cat++){
 // Numbers from https://hypernews.cern.ch/HyperNews/CMS/get/higgs2g/472/2/1.html
 // Weighted assuming Run2011A = 1.666/fb, Run2011B = 3.07/fb
 int nphocats=4;
-Double_t ratioTP_[nphocats] 	    	    = {0.9921*0.9982,1.001*0.9920,1.021*0.9978,1.03*0.9947}; // multiply by ele-veto numbers
+//Double_t ratioTP_[nphocats] 	    	    = {0.9921*0.9982,1.001*0.9920,1.021*0.9978,1.03*0.9947}; // multiply by ele-veto numbers
+Double_t ratioTP_[nphocats] 	    	    = {0.99206*0.9982,0.99741*0.9920,1.01633*0.9978,1.02007*0.9947}; // new numbers coming from new background paramterization 
 Double_t ratioTP_low_err_[nphocats] 	    = {0.002,0.011,0.013,0.037} ;
 Double_t ratioTP_high_err_[nphocats] 	    = {0.002,0.011,0.008,0.035} ;
 //Double_t ratioTP_[nphocats] 	    	    = {1.0,1.0,1.0,1.0};	// for use in MIT 
