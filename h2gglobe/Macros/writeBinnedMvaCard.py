@@ -496,11 +496,11 @@ genMasses     = [110,115,120,125,130,135,140,145,150]
 #scalingErrors = [1.00815,1.01024,1.01076,1.01197,1.0099,1.009,1.00928,1.01054 ] 	  # Takes from P.Dauncey studies -> 2% window (100-180) / MIT Preselection
 #scalingErrors = [ 1.008,1.008,1.008,1.008,1.01,1.010,1.011,1.012,1.012] # P.Dauncey 100-180 2% window /MIT preselction +BDT>-0.5
 #scalingErrors = [1.0136,1.0152,1.01425,1.01102,1.01283,1.01568,1.02157,1.02467,1.02466] # P.Dauncey 100-180, 2% window, MIT presel + BDT > 0.05 (Pow2 Fit)
-scalingErrors = [1.0119,1.01277,1.01203,1.00998,1.01213,1.0141,1.01822,1.02004,1.01954] # P.Dauncey 100-180, 2% window, MIT presel + BDT > 0.05 , after synch(Pow2 Fit)
- 
+#scalingErrors = [1.0119,1.01277,1.01203,1.00998,1.01213,1.0141,1.01822,1.02004,1.01954] # P.Dauncey 100-180, 2% window, MIT presel + BDT > 0.05 , after synch(Pow2 Fit)
 #scalingErrors = [1.025,1.025,1.025,1.025,1.025,1.025,1.025,1.025,1.025] # FLAT 25%
 #scalingErrors = [ 1.01185,1.01292,1.01378,1.01378,1.01594,1.01539,1.01814,1.02052,1.02257] # P.Dauncey 100-180, 2% window, MIT presel + BDT > 0.05 (Pol5 Fit)
 #scalingErrors=[1+((s-1)*0.95) for s in scalingErrors]
+scalingErrors = [1.01153,1.01197,1.01102,1.00966,1.01205,1.01457,1.01814,1.01903,1.01768] # P.Dauncey 100-180, 2% window, MIT presel + BDT > 0.05 , after synch, 19Feb (Pow2 Fit)
 
 evalMasses    = numpy.arange(110,150.5,0.5)
 normG = ROOT.TGraph(len(genMasses))
