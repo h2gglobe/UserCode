@@ -461,7 +461,7 @@ parser.add_option("","--inputBdtPdf",dest="inputpdfworkspace")
 parser.add_option("","--outputBdtPdf",dest="bdtworkspacename",default="bdtws.root")
 parser.add_option("","--diphotonBdtFile",dest="diphotonmvahistfilename",default="bdttree.root")
 parser.add_option("","--diphotonBdtTree",dest="diphotonmvahisttreename",default="bdttree")
-parser.add_option("","--tmvaWeightsFolder",dest="tmvaweightsfolder",default="/vols/cms02/h2g/weights/wt_01Feb/")
+parser.add_option("","--tmvaWeightsFolder",dest="tmvaweightsfolder",default="/vols/cms02/h2g/weights/wt_19Feb/")
 parser.add_option("","--reweightSignalYields",dest="signalyieldsweight",default=-999.,type="float")
 parser.add_option("-m","--mass",dest="singleMass",default=-1.,type="float")
 parser.add_option("-t","--type",dest="bdtType",default="grad");

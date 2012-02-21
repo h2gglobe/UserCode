@@ -19,14 +19,16 @@ parser.add_option("","--atCERN",action="store_true",default=False,help="need to 
   
 interpFileName = options.fileName+"_interpolated.root"
 #-------------------------------------------------------------------------
+"""
 if options.atCERN :os.system("source setupROOT.csh")
 else:os.system("source setupROOT.sh")
 ROOT.gROOT.ProcessLine(".L createCorrectedBackgroundModel.C+g")
-os.system("cmsenv")
 ROOT.gROOT.ProcessLine(".L BDTInterpolation.C+g")
 
 from ROOT import createCorrectedBackgroundModel
 from ROOT import BDTInterpolation
+
+"""
 
 ROOT.gROOT.SetStyle("Plain")
 ROOT.gROOT.SetBatch()
@@ -36,7 +38,7 @@ nSidebands=6
 datacardFile="mva-datacards"
 mvaPlotFile="mva-plots"
 
-
+"""
 if not options.htmlOnly:
   if not options.sigInterpOnly and not options.datacardsOnly:
     # First correct background model
@@ -52,7 +54,9 @@ if not options.htmlOnly:
     print '----------------------------------------------------------'
     BDTInterpolation(options.fileName,options.diagnostics,True,True)
 
-  if not options.backgroundOnly and not options.sigInterpOnly:
+  os.system("cmsenv")
+"""
+if not options.backgroundOnly and not options.sigInterpOnly:
     # Third write datacards
     print '----------------------------------------------------------'
     print '   Writing datacards for limit '
