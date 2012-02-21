@@ -505,7 +505,7 @@ genMasses     = [110,115,120,125,130,135,140,145,150]
 scalingErrors = [1.01153,1.01197,1.01102,1.00966,1.01205,1.01457,1.01814,1.01903,1.01768] # P.Dauncey 100-180, 2% window, MIT presel + BDT > 0.05 , after synch, 19Feb (Pow2 Fit)
 
 #evalMasses    = numpy.arange(110,150.5,0.5)
-evalMasses    = numpy.arange(112.5,150.5,0.5)
+evalMasses    = numpy.arange(110,150.5,0.5)
 normG = ROOT.TGraph(len(genMasses))
 
 # Fill the errors graph
