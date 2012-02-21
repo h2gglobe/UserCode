@@ -14,7 +14,7 @@ parser.add_option("-W","--htmlOnly",action="store_true",default=False,help="Run 
 parser.add_option("-B","--backgroundOnly",action="store_true",default=False,help="Run correction to background model only")
 parser.add_option("-I","--sigInterpOnly",action="store_true",default=False,help="Run signal interpolation only")
 parser.add_option("-D","--datacardsOnly",action="store_true",default=False,help="Run datacard creation only")
-parser.add_option("","--atCERN",action="store_true",default=FALSE,help="need to source setupROOT csh if at CERN")
+parser.add_option("","--atCERN",action="store_true",default=False,help="need to source setupROOT csh if at CERN")
 (options,args)=parser.parse_args()
   
 interpFileName = options.fileName+"_interpolated.root"
