@@ -107,7 +107,7 @@ doR9Syst=0
 doKFactorSmear=1
 doKFactorSyst=1
 
-mvaWeightsFolder=/vols/cms02/h2g/weights/wt_01Feb/
+mvaWeightsFolder=/vols/cms02/h2g/weights/wt_19Feb/
 
 ->
 Inputs for reweighing
