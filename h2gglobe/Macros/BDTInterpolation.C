@@ -21,6 +21,8 @@
 #include "TROOT.h"
 #include "TList.h"
 #include "TString.h"
+#include "TError.h"
+
 #include "Normalization.C"
 
 using namespace std;
@@ -285,8 +287,9 @@ void plotDavid(TH1F* bkgT, TH1F* sigT, TH1F* dataT, std::string name){
 void plotFrac(TList* HistList, TH1F* compT, std::string name, bool fracAll){
 
   gROOT->SetBatch();
-  system("mkdir -p plots/ada/fracs");
+
   system("mkdir -p plots/grad/fracs");
+  system("mkdir -p plots/ada/fracs");
 
   std::string bdt;
   TString str = compT->GetName();
@@ -313,14 +316,14 @@ void plotFrac(TList* HistList, TH1F* compT, std::string name, bool fracAll){
   comp->SetTitle(("Up, down and interpolated templates for "+bdt+" "+name).c_str());
   comp->GetYaxis()->SetRangeUser(0.0,((TH1F*)HistList->At(0))->GetMaximum()+0.5);
   comp->GetYaxis()->SetTitle("Events / bin");
-  comp->GetXaxis()->SetTitle("Category");
+  comp->GetXaxis()->SetTitle("BDT output bin");
   int mass;
-  if (name=="syst120") mass=120;
-  if (name=="syst135") mass=135;
+  if (name.find("syst120")!=string::npos) mass=120;
+  if (name.find("syst135")!=string::npos) mass=135;
   TLegend *leg = new TLegend(0.6,0.5,0.88,0.88);
   leg->SetLineColor(0);
   leg->SetFillColor(0);
-  if (name=="syst120" || name=="syst135"){
+  if (name.find("syst120")!=string::npos || name.find("syst135")!=string::npos){
     leg->AddEntry(comp,Form("True %d signal binned at %d",mass,mass),"f");
   }
   
@@ -343,7 +346,7 @@ void plotFrac(TList* HistList, TH1F* compT, std::string name, bool fracAll){
     uandd[i]->Divide(temp);
     uandd[i]->Scale(-100.);
     //uandd[i]->Divide(comp);
-    if (name=="syst120" || name=="syst135") {
+    if (name.find("syst120")!=string::npos || name.find("syst135")!=string::npos){
       if (i==0) leg->AddEntry(uandd[i],Form("True %d signal binned at %d",mass+5,mass),"lep");
       if (i==1) leg->AddEntry(uandd[i],Form("True %d signal binned at %d",mass-5,mass),"lep");
       if (i==nHists-1) leg->AddEntry(uandd[i],Form("Interpolated %d signal",mass),"lep");
@@ -373,7 +376,7 @@ void plotFrac(TList* HistList, TH1F* compT, std::string name, bool fracAll){
     uandd[i]->GetXaxis()->SetTitle("BDT output");
     uandd[i]->GetXaxis()->SetTitleSize(0.08);
     canv->cd(1);
-    if (name=="syst120" || name=="syst135") leg->Draw("same");
+    if (name.find("syst120")!=string::npos || name.find("syst135")!=string::npos) leg->Draw("same");
   }
   
 
@@ -472,19 +475,71 @@ std::pair<TH1F*,TH1F*> GetPMSyst(TH1F* trueHist, TH1F* intHist, std::string name
   TH1F *diff = (TH1F*)trueHist->Clone();
   diff->Add(intHist,-1);
   diff->Divide(intHist);
+  // actually use +- 3 sigma templates
   diff->Scale(3.);
   TH1F *up = (TH1F*)intHist->Clone();
-  up->Add(diff,1);
+  up->Add(diff,3);
   up->SetName((name+"Up01_sigma").c_str());
   TH1F *down = (TH1F*)intHist->Clone();
-  down->Add(diff,-1);
+  down->Add(diff,-3);
   down->SetName((name+"Down01_sigma").c_str());
 
   std::pair<TH1F*,TH1F*> result(up,down);
   return result; 
 }
 
-int BDTInterpolation(std::string inFileName,bool Diagnose=false, bool doNorm=true, bool doSidebands=false){
+TH1F* doSystematic(TH1F *lowH, TH1F *highH, double systMass, bool doNorm){
+  
+  double mLow=systMass-5.;
+  double mHigh=systMass+5.;
+  
+  double norm = GetNorm(mLow,lowH,mHigh,highH,systMass);
+  if (doNorm){
+    lowH->Scale(1./(GetXsection(mLow)*GetBR(mLow)));
+    highH->Scale(1./(GetXsection(mHigh)*GetBR(mHigh)));
+  }
+  TH1F *intH = Interpolate(mLow,lowH,mHigh,highH,systMass);
+  if (doNorm){
+    lowH->Scale(GetXsection(mLow)*GetBR(mLow));
+    highH->Scale(GetXsection(mHigh)*GetBR(mHigh));
+    intH->Scale(norm/intH->Integral());
+  }
+
+  return intH;
+
+}
+
+void alternateSystematic(TH1F* intHist, TH1F *trueHist, double systMass, string type){
+  
+  TH1F *frac = (TH1F*)trueHist->Clone();
+  frac->Add(intHist,-1);
+  frac->Divide(intHist);
+  TH1F* linFrac = (TH1F*)linearBin(frac);
+  
+  TFile *systTestF = new TFile("altSyst.root","RECREATE");
+
+  linFrac->GetYaxis()->SetRangeUser(-0.4,0.4);
+  TCanvas *c = new TCanvas();
+  systTestF->cd();
+  linFrac->Write();
+  linFrac->Draw();
+  
+  TF1 *fit = new TF1("fit","[0]*(x-36.)^2",0.,36.);
+  linFrac->Fit(fit,"q");
+  fit->DrawCopy("same");
+  fit->SetLineColor(kGray);
+  fit->SetLineStyle(2);
+  double var = fit->GetParameter(0);
+  double err = fit->GetParError(0);
+  fit->SetParameter(0,var+err);
+  fit->DrawCopy("same");
+  fit->SetParameter(0,var-err);
+  fit->DrawCopy("same");
+
+  c->Print(Form("plots/%s/fracs/systTest%3.0f.png",type.c_str(),systMass),"png");
+}
+
+int BDTInterpolation(std::string inFileName,bool Diagnose=false, bool doNorm=true, bool doSidebands=false, bool doInterpSystematic=false){
 
   std::cout << getTime() << std::endl;
 
@@ -493,6 +548,7 @@ int BDTInterpolation(std::string inFileName,bool Diagnose=false, bool doNorm=tru
 
   //gROOT->SetBatch();
   gStyle->SetOptStat(0);
+  gErrorIgnoreLevel = kWarning;
 
   // input flags
   bool all=0;
@@ -506,12 +562,12 @@ int BDTInterpolation(std::string inFileName,bool Diagnose=false, bool doNorm=tru
   else std::cout << "Normalization turned off" << std::endl;
   if (doSidebands) std::cout << "Background model from sidebands turned on" << std::endl;
   else std::cout << "Background model from sidebands turned off" << std::endl;
+  if (doInterpSystematic) std::cout << "Calcualte interpolation systematic turned on \n WARNING -- cannot run systematic study in conjunction with normal interpolation. If this option is on the results will be INCORRECT for mass 120 and 135" << std::endl;
 
   TFile *inFile = new TFile(inFileName.c_str());
   //TFile *inFile = new TFile("/vols/cms02/nw709/hgg/src_cvs/oct13/CMSSW_4_2_8/src/HiggsAnalysis/HiggsTo2photons/h2gglobe/Macros/CMS-HGG_1658pb_mva.root");
   //TFile *inFile = new TFile("RefWorkspaces/CMS-HGG_1658pb_mva.root");
   TFile *outFile = new TFile(Form("%s_interpolated.root",inFileName.c_str()),"RECREATE");
-  TFile *systTestF = new TFile("systTest.root","RECREATE");
   ofstream diagFile("plots/BDTInterpolationDiagnostics.txt");
 
   const int nBDTs=2;
@@ -529,11 +585,11 @@ int BDTInterpolation(std::string inFileName,bool Diagnose=false, bool doNorm=tru
   diagFile << "Following orginal histograms rewritten into new workspace: " << std::endl;
   
   // ------ stuff for interpolation systematic -------
-  TH1F *systHists120[2][3];
-  TH1F *systHists135[2][3];
+  // two systematic mass points (120,130);
+  TH1F *systHists[2][nBDTs][3][nProds];
 
-  std::string syst120mass[3] = {"120.0","115.0","125.0"};
-  std::string syst135mass[3] = {"135.0","130.0","140.0"};
+  // {cent, low, up}
+  std::string systmass[2][3] = {{"120.0","115.0","125.0"},{"135.0","130.0","140.0"}};
   // ---------------------------------------------------
   
   // make plots of background model from sidebands
@@ -565,15 +621,17 @@ int BDTInterpolation(std::string inFileName,bool Diagnose=false, bool doNorm=tru
     TString name = temp->GetName();
 
     // store stuff for interpolation systematic
+    // look at 120 and 135
     for (int bdt=0; bdt<nBDTs; bdt++){
       for (int syst=0; syst<3; syst++){
-        if (name.Contains(("th1f_sig_"+BDTtype[bdt]+"_"+productionTypes[0]+"_"+syst120mass[0]+"_"+syst120mass[syst]).c_str()) && !name.Contains("sigma")){
-          systHists120[bdt][syst] = (TH1F*)inFile->Get(name.Data());
-          systHists120[bdt][syst]->SetLineColor(syst+2);
-        }
-        if (name.Contains(("th1f_sig_"+BDTtype[bdt]+"_"+productionTypes[0]+"_"+syst135mass[0]+"_"+syst135mass[syst]).c_str()) && !name.Contains("sigma")){
-          systHists135[bdt][syst] = (TH1F*)inFile->Get(name.Data());
-          systHists135[bdt][syst]->SetLineColor(syst+2);
+        for (int pro=0; pro<nProds; pro++){
+          // two systematic mass points 120, 135
+          for (int s=0; s<2; s++){
+            if (name.Contains(("th1f_sig_"+BDTtype[bdt]+"_"+productionTypes[pro]+"_"+systmass[s][0]+"_"+systmass[s][syst]).c_str()) && !name.Contains("sigma")){
+              systHists[s][bdt][syst][pro] = (TH1F*)inFile->Get(name.Data());
+              systHists[s][bdt][syst][pro]->SetLineColor(syst+2);
+            }
+          }
         }
       }
     }
@@ -595,86 +653,61 @@ int BDTInterpolation(std::string inFileName,bool Diagnose=false, bool doNorm=tru
 
   diagFile << "---------------------------------------------------------------------" << std::endl;
   diagFile << "Writing following interpolation systematic templates: " << std::endl;
-  
-  for (int bdt=0; bdt<nBDTs; bdt++){
-    double norm120 = GetNorm(115.0,systHists120[bdt][1],125.0,systHists120[bdt][2],120.0);
-    double norm135 = GetNorm(130.0,systHists135[bdt][1],140.0,systHists135[bdt][2],135.0);
-    if (doNorm) {
-      systHists120[bdt][1]->Scale(1./(GetXsection(115.0)*GetBR(115.0)));
-      systHists120[bdt][2]->Scale(1./(GetXsection(125.0)*GetBR(125.0)));
-      systHists135[bdt][1]->Scale(1./(GetXsection(130.0)*GetBR(130.0)));
-      systHists135[bdt][2]->Scale(1./(GetXsection(140.0)*GetBR(140.0)));
-    }
-    TH1F *int120 = Interpolate(115.0,systHists120[bdt][1],125.0,systHists120[bdt][2],120.0);
-    TH1F *int135 = Interpolate(130.0,systHists135[bdt][1],140.0,systHists135[bdt][2],135.0);
-    if (doNorm) {
-      systHists120[bdt][1]->Scale(GetXsection(115.0)*GetBR(115.0));
-      systHists120[bdt][2]->Scale(GetXsection(125.0)*GetBR(125.0));
-      systHists135[bdt][1]->Scale(GetXsection(130.0)*GetBR(130.0));
-      systHists135[bdt][2]->Scale(GetXsection(140.0)*GetBR(140.0));
-    }
-    if (doNorm) {
-      int120->Scale(norm120/int120->Integral());
-      int135->Scale(norm135/int135->Integral());
-    }
-    
-    TList *int120list = new TList();
-    int120list->Add(systHists120[bdt][1]);
-    int120list->Add(systHists120[bdt][2]);
-    int120list->Add(int120);
-    plotFrac(int120list,systHists120[bdt][0],"syst120",false);
-    
-    TList *int135list = new TList();
-    int135list->Add(systHists135[bdt][1]);
-    int135list->Add(systHists135[bdt][2]);
-    int135list->Add(int135);
-    plotFrac(int135list,systHists135[bdt][0],"syst135",false);
-    TH1F *frac=(TH1F*)systHists135[bdt][0]->Clone();
-    frac->Add(int135,-1);
-    frac->Divide(int135);
-    TH1F *linFrac = (TH1F*)linearBin(frac);
-    linFrac->GetYaxis()->SetRangeUser(-0.4,0.4);
-    TCanvas *c = new TCanvas();
-    systTestF->cd();
-    linFrac->Write();
-    linFrac->Draw();
-    TF1 *fit = new TF1("fit","[0]*(x-36.)^2",0.,36.);
-    linFrac->Fit(fit,"q");
-    fit->DrawCopy("same");
-    fit->SetLineColor(kGray);
-    fit->SetLineStyle(2);
-    double var = fit->GetParameter(0);
-    double err = fit->GetParError(0);
-    fit->SetParameter(0,var+err);
-    fit->DrawCopy("same");
-    fit->SetParameter(0,var-err);
-    fit->DrawCopy("same");
+ 
+  if (doInterpSystematic){
+    for (int bdt=0; bdt<nBDTs; bdt++){
+      TH1F *totLow[2];
+      TH1F *totHigh[2];
+      TH1F *totInterp[2];
+      TH1F *totTrue[2];
+      double systMassPoints[2]={120.0,135.0};
+      for (int pro=0; pro<nProds; pro++){
+        // loop two different systematic mass points (120, 130);
+        for (int s=0; s<2; s++){
+          TH1F *systInterp = doSystematic(systHists[s][bdt][1][pro],systHists[s][bdt][2][pro], systMassPoints[s], doNorm);
+          // plot stuff
+          if (pro==0){
+            totLow[s] = (TH1F*)systHists[s][bdt][1][pro]->Clone();
+            totHigh[s] = (TH1F*)systHists[s][bdt][2][pro]->Clone();
+            totInterp[s] = (TH1F*)systInterp->Clone();
+            totTrue[s] = (TH1F*)systHists[s][bdt][0][pro]->Clone();
+          }
+          else {
+            totLow[s]->Add(systHists[s][bdt][1][pro]);
+            totHigh[s]->Add(systHists[s][bdt][2][pro]);
+            totInterp[s]->Add(systInterp);
+            totTrue[s]->Add(systHists[s][bdt][0][pro]);
+          }
+          // get plus and minus tempaltes and save them
+          std::pair<TH1F*,TH1F*> result = GetPMSyst(systHists[s][bdt][0][pro],systInterp,"th1f_sig_"+BDTtype[bdt]+"_"+productionTypes[pro]+"_"+systmass[s][0]+"_cat0_sigInt");
+          TH1F *sigIntDown =(TH1F*)linearBin(result.first);
+          TH1F *sigIntUp = (TH1F*)linearBin(result.second);
+          TH1F *sigIntCent = (TH1F*)linearBin(systInterp);
+          sigIntCent->SetName(Form("th1f_sig_%s_%s_%s_cat0",BDTtype[bdt].c_str(),productionTypes[pro].c_str(),systmass[s][0].c_str()));
+          sigIntDown->SetName(Form("th1f_sig_%s_%s_%s_cat0_sigIntDown01_sigma",BDTtype[bdt].c_str(),productionTypes[pro].c_str(),systmass[s][0].c_str()));
+          sigIntUp->SetName(Form("th1f_sig_%s_%s_%s_cat0_sigIntUp01_sigma",BDTtype[bdt].c_str(),productionTypes[pro].c_str(),systmass[s][0].c_str()));
 
-    c->Print(Form("plots/%s/fracs/systTest135.png",BDTtype[bdt].c_str()),"png");
-
-    // get plus and minus templates
-    std::pair<TH1F*,TH1F*> result135 = GetPMSyst(systHists135[bdt][0],int135,"th1f_sig_"+BDTtype[bdt]+"_ggh_135.0_cat0_sigInt");
-    TH1F* sigIntDown = (TH1F*)linearBin(result135.first);
-    TH1F* sigIntUp = (TH1F*)linearBin(result135.second);
-    TH1F* sigIntCent = (TH1F*)linearBin(int135);
-    diagFile << (result135.first)->GetName() << std::endl;
-    diagFile << (result135.second)->GetName() << std::endl;
-    
-    TCanvas *test = new TCanvas();
-    sigIntDown->SetLineColor(2);
-    sigIntUp->SetLineColor(4);
-    sigIntDown->Draw();
-    sigIntUp->Draw("same");
-    sigIntCent->Draw("same'");
-    test->Print(("plots/"+BDTtype[bdt]+"/fracs/PMsysts135.png").c_str(),"png");
-   
-    outFile->cd();
-    (result135.first)->Write();
-    (result135.second)->Write();
-   
+          if (Diagnose){
+            diagFile << (result.first)->GetName() << std::endl;
+            diagFile << (result.second)->GetName() << std::endl;
+          }
+          outFile->cd();
+          sigIntDown->Write();
+          sigIntUp->Write();
+          sigIntCent->Write();
+        }
+      }
+      for (int s=0; s<2; s++){
+        TList *systList = new TList();
+        systList->Add(totLow[s]);
+        systList->Add(totHigh[s]);
+        systList->Add(totInterp[s]);
+        plotFrac(systList,totTrue[s],Form("syst%3.1f",systMassPoints[s]),false);
+      }
+    }
   }
-
-    // -------------------- systematic stuff done ----------------------
+  // -------------------- systematic stuff done ----------------------
+  if (doInterpSystematic) exit(1);
 
   // get lists of middle, upper and lower templates for each mass
   TList *orgHistList[nBDTs][nProds][nMasses];
@@ -894,7 +927,8 @@ int BDTInterpolation(std::string inFileName,bool Diagnose=false, bool doNorm=tru
   }
  
   outFile->cd();
-
+  
+  std::cout << "Writing interpolated histograms into new workspace - please be patient... " << std::endl;
   diagFile << "---------------------------------------------------------------------" << std::endl;
   diagFile << "Writing following interpolated histograms to file: " << std::endl;
   for (int l=0; l<nBDTs; l++) for (int pT=0; pT<nProds; pT++)for (int j=0; j<nGlobalMs; j++) for (int k=0; k<orgHistListInt[l][pT][j]->GetSize(); k++) {
