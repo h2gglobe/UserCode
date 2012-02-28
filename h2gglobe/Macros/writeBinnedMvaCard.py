@@ -9,6 +9,7 @@ from ROOT import quadInterpolate
 from optparse import OptionParser
 
 from BdtToyMaker import BdtToyMaker
+from CombinedToyMaker import CombinedToyMaker
 
 g_r=ROOT.TRandom3(0)
 
@@ -360,7 +361,7 @@ def writeCard(tfile,mass,scaleErr):
   # Now is the very tedious part of the signal shape systematics, for each shape, simply do -/+ sigma
   
   if options.signalSys:
-   print "Writing Systematics Part (coule be slow)"
+   print "Writing Systematics Part (could be slow)"
    for sys in systematics:
 
     gghHistU  = tfile.Get("th1f_sig_"+type+"_ggh_%3.1f_cat0_%sUp01_sigma"%(mass,sys))
@@ -457,10 +458,14 @@ parser.add_option("","--expSig",dest="expSig",default=-1.,type="float")
 parser.add_option("","--makePlot",dest="makePlot",default=False,action="store_true")
 parser.add_option("","--noVbfTag",dest="includeVBF",default=True,action="store_false")
 parser.add_option("","--plotStackedVbf",dest="splitSignal",default=False,action="store_true")
-parser.add_option("","--inputBdtPdf",dest="inputpdfworkspace")
-parser.add_option("","--outputBdtPdf",dest="bdtworkspacename",default="bdtws.root")
-parser.add_option("","--diphotonBdtFile",dest="diphotonmvahistfilename",default="bdttree.root")
-parser.add_option("","--diphotonBdtTree",dest="diphotonmvahisttreename",default="bdttree")
+parser.add_option("","--inputMassFacWS",dest="inputmassfacws",default="CMS-HGG_massfac_full_110_150_1.root")
+parser.add_option("","--outputMassFacToy",dest="outputmassfactoy",default="massfac_toy_ws.root")
+parser.add_option("","--inputBdtPdf",dest="inputpdfworkspace",default="combToyWS.root")
+parser.add_option("","--outputBdtPdf",dest="bdtworkspacename",default="combToyWS.root")
+parser.add_option("","--diphotonBdtFile",dest="diphotonmvahistfilename",default="DataTree_CMS-HGG.root")
+parser.add_option("","--diphotonBdtTree",dest="diphotonmvahisttreename",default="dataTree")
+parser.add_option("","--signalModelFile",dest="signalfilename",default="sigtree.root")
+parser.add_option("","--signalModelTree",dest="signaltreename",default="sigtree")
 parser.add_option("","--tmvaWeightsFolder",dest="tmvaweightsfolder",default="/vols/cms02/h2g/weights/wt_19Feb/")
 parser.add_option("","--reweightSignalYields",dest="signalyieldsweight",default=-999.,type="float")
 parser.add_option("-m","--mass",dest="singleMass",default=-1.,type="float")
@@ -480,6 +485,8 @@ type=options.bdtType
 
 # create output folders
 cardOutDir="mva-datacards-"+type
+if not options.signalSys:
+  cardOutDir+="-nosigsys"
 if not os.path.isdir(cardOutDir):
   os.makedirs(cardOutDir)
 if options.makePlot:
@@ -505,7 +512,7 @@ genMasses     = [110,115,120,125,130,135,140,145,150]
 scalingErrors = [1.01153,1.01197,1.01102,1.00966,1.01205,1.01457,1.01814,1.01903,1.01768] # P.Dauncey 100-180, 2% window, MIT presel + BDT > 0.05 , after synch, 19Feb (Pow2 Fit)
 
 #evalMasses    = numpy.arange(110,150.5,0.5)
-evalMasses    = numpy.arange(110,150.5,0.5)
+evalMasses    = numpy.arange(110.0,150.5,0.5)
 normG = ROOT.TGraph(len(genMasses))
 
 # Fill the errors graph
@@ -523,23 +530,35 @@ can.SaveAs("normErrors_%s.pdf"%options.tfileName)
 # can make a special "global toy" set of datacards
 toymaker=0
 if options.throwGlobalToy:
-  if not options.inputpdfworkspace: backgrounddiphotonmvafile=ROOT.TFile(options.diphotonmvahistfilename)
-  toymaker = BdtToyMaker(options.tfileName,"data_pow_model_150.0")
-  toymaker.fitData()
+  if not options.inputpdfworkspace: 
+    backgrounddiphotonmvafile=ROOT.TFile(options.diphotonmvahistfilename)
+    signaldiphotonmvafile=ROOT.TFile(options.signalfilename)
+  #toymaker = BdtToyMaker(options.tfileName,"data_pow_model_150.0")
+  #toymaker.fitData()
+  toymaker = CombinedToyMaker(options.inputmassfacws)
 
   if options.inputpdfworkspace:
     if not os.path.isfile(options.inputpdfworkspace): 
 	sys.exit("No file named %s, generate it first (remove option)"%options.inputpdfworkspace)
-    backgroundpdfws = ROOT.TFile(options.inputpdfworkspace)
-    toymaker.loadKeysPdf(backgroundpdfws)	
+    toymaker.loadKeysPdf(options.inputpdfworkspace)
+    #if options.expSig>0: toymaker.loadKeysPdf(backgroundpdfws,1)
+    #else: toymaker.loadKeysPdf(backgroundpdfws,0)
   else: 
     backgrounddiphotonmvahist=backgrounddiphotonmvafile.Get(options.diphotonmvahisttreename)
+    print 'Creating keys pdf from ', backgrounddiphotonmvahist.GetName(), ' with ', backgrounddiphotonmvahist.GetEntries(), ' entries '
     toymaker.createKeysPdf(backgrounddiphotonmvahist)	
-    toymaker.saveBdtWorkspace(options.bdtworkspacename)
+    #if options.expSig>0: 
+    #  signaldiphotonmvahist=signaldiphotonmvafile.Get(options.signaltreename)
+    #  print 'Creating keys pdf from ', signaldiphotonmvahist.GetName(), ' with ', signaldiphotonmvahist.GetEntries(), ' entries '
+    #  toymaker.createSigHistPdf(signaldiphotonmvahist)
+    toymaker.savePdfWorkspace(options.bdtworkspacename)
 
-  toymaker.genData()
-#  toymaker.plotRealData(160)
-#  toymaker.plotGenData(160)
+  toymaker.plotData(160,180)
+  toymaker.genData(cardOutDir+"/"+options.outputmassfactoy)
+  toymaker.plotToy(160,200)
+  toymaker.saveToyWorkspace("testToyWS.root")
+  #toymaker.genData(options.expSig)
+  #if options.expSig>0: toymaker.plotSigData(160)
   ROOT.gROOT.ProcessLine(".L tmvaLoader.C+")
   from ROOT import tmvaLoader
   g_tmva = tmvaLoader(options.tmvaweightsfolder+"/TMVAClassification_BDT%sMIT.weights.xml"%options.bdtType,options.bdtType)
@@ -551,7 +570,8 @@ if options.singleMass>0: evalMasses=[float(options.singleMass)]
 for m in evalMasses: 
 	if options.throwGlobalToy: 
 		g_toydatalist=toymaker.returnWindowToyData(float(m),g_SIDEBANDWIDTH)
-		if options.includeVBF: tagPseudoDijets()
+		#tagging of jets now implicitly taken car of in CombinedToyMaker
+    #if options.includeVBF: tagPseudoDijets()
 	#print toymaker.getN(m,0.02)
 	writeCard(tfile,m,normG.Eval(m))
 print "Done Writing Cards"
