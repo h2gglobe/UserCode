@@ -29,6 +29,7 @@ MvaAnalysis::~MvaAnalysis()
 // ----------------------------------------------------------------------------------------------------
 void MvaAnalysis::Term(LoopAll& l) 
 {
+  eventListText.close();
   if (doTraining){
     for (int i = 0; i<nMasses;i++){
       cout << " ----------- Writing trees ------------ " << endl;
@@ -172,6 +173,7 @@ void MvaAnalysis::Term(LoopAll& l)
       bool scale = true;//true;
       std::vector<string> ada_bkgsets;
       std::vector<string> grad_bkgsets;
+      std::vector<string> vbf_bkgsets;
       //std::vector<string> ada_datasets;
       //std::vector<string> grad_datasets;
 
@@ -192,6 +194,7 @@ void MvaAnalysis::Term(LoopAll& l)
           ada_bkgsets.push_back(Form("bkg_%dhigh_BDT_ada_%3.1f",sideband_i,mass));
        //   ada_datasets.push_back(Form("data_%dhigh_BDT_ada_%3.1f",sideband_i,mass));
           grad_bkgsets.push_back(Form("bkg_%dhigh_BDT_grad_%3.1f",sideband_i,mass));
+          vbf_bkgsets.push_back(Form("bkg_%dhigh_VBF_%3.1f",sideband_i,mass));
        //   grad_datasets.push_back(Form("data_%dhigh_BDT_grad_%3.1f",sideband_i,mass));
          }
 
@@ -203,6 +206,7 @@ void MvaAnalysis::Term(LoopAll& l)
            ada_bkgsets.push_back(Form("bkg_%dlow_BDT_ada_%3.1f",sideband_i,mass));
 //           ada_datasets.push_back(Form("data_%dlow_BDT_ada_%3.1f",sideband_i,mass));
            grad_bkgsets.push_back(Form("bkg_%dlow_BDT_grad_%3.1f",sideband_i,mass));
+           vbf_bkgsets.push_back(Form("bkg_%dlow_VBF_%3.1f",sideband_i,mass));
 //           grad_datasets.push_back(Form("data_%dlow_BDT_grad_%3.1f",sideband_i,mass));
          }
 
@@ -211,10 +215,12 @@ void MvaAnalysis::Term(LoopAll& l)
       // Also for the bkg MC we want to throw in the signal region for the binning algos
       ada_bkgsets.push_back(Form("bkg_BDT_ada_%3.1f",mass)) ;
       grad_bkgsets.push_back(Form("bkg_BDT_grad_%3.1f",mass)) ;
+      vbf_bkgsets.push_back(Form("bkg_VBF_%3.1f",mass)) ;
 
 
       l.rooContainer->SumMultiBinnedDatasets(Form("bkg_BDT_ada_all_%3.1f",mass),ada_bkgsets, N_sig, scale);
       l.rooContainer->SumMultiBinnedDatasets(Form("bkg_BDT_grad_all_%3.1f",mass),grad_bkgsets, N_sig, scale);
+      l.rooContainer->SumMultiBinnedDatasets(Form("bkg_VBF_all_%3.1f",mass),vbf_bkgsets, -1, true); // N<0, implies no rescaling when true flag is used
 
 //      l.rooContainer->SumMultiBinnedDatasets(Form("data_BDT_sideband_ada_%3.1f",mass),ada_datasets, N_sig, scale);
 //      l.rooContainer->SumMultiBinnedDatasets(Form("data_BDT_sideband_grad_%3.1f",mass),grad_datasets, N_sig, scale);
@@ -232,6 +238,7 @@ void MvaAnalysis::Term(LoopAll& l)
 
       std::vector<std::string> grad_sigsets;
       std::vector<std::string> ada_sigsets;
+      std::vector<std::string> vbf_sigsets;
       ada_sigsets.push_back("sig_BDT_ada_ggh"+names[i]);
       ada_sigsets.push_back("sig_BDT_ada_vbf"+names[i]);
       ada_sigsets.push_back("sig_BDT_ada_wzh"+names[i]);
@@ -240,12 +247,75 @@ void MvaAnalysis::Term(LoopAll& l)
       grad_sigsets.push_back("sig_BDT_grad_vbf"+names[i]);
       grad_sigsets.push_back("sig_BDT_grad_wzh"+names[i]);
       grad_sigsets.push_back("sig_BDT_grad_tth"+names[i]);
+      vbf_sigsets.push_back("sig_VBF_ggh"+names[i]);
+      vbf_sigsets.push_back("sig_VBF_vbf"+names[i]);
+      vbf_sigsets.push_back("sig_VBF_wzh"+names[i]);
+      vbf_sigsets.push_back("sig_VBF_tth"+names[i]);
 
       l.rooContainer->SumMultiBinnedDatasets("sig_BDT_ada_all"+names[i],ada_sigsets,-1.,true);
       l.rooContainer->SumMultiBinnedDatasets("sig_BDT_grad_all"+names[i],grad_sigsets,-1.,true);
+      l.rooContainer->SumMultiBinnedDatasets("sig_VBF_all"+names[i],vbf_sigsets,-1.,true);
 
-      std::vector <std::vector<double> > optimizedGradBins =  l.rooContainer->SoverBOptimizedBinning("sig_BDT_grad_all"+names[i],"bkg_BDT_grad_all"+names[i],20,50);
-      std::vector<std::vector <double> > optimizedAdaBins =  l.rooContainer->SoverBOptimizedBinning("sig_BDT_ada_all"+names[i],"bkg_BDT_ada_all"+names[i],20,50);
+      std::vector<double> optimizedVbfBins;
+      std::vector <std::vector<double> > optimizedGradBins;
+      std::vector<std::vector <double> > optimizedAdaBins; 
+
+
+      // Bin edges can be rederived if flag is on --> Requires background MC
+      if (rederiveOptimizedBinEdges) {
+        //optimizedGradBins =  l.rooContainer->SignificanceOptimizedBinning("sig_BDT_grad_all"+names[i],"bkg_BDT_grad_all"+names[i],10);
+        //optimizedAdaBins =  l.rooContainer->SignificanceOptimizedBinning("sig_BDT_ada_all"+names[i],"bkg_BDT_ada_all"+names[i],10);
+        optimizedGradBins =  l.rooContainer->SoverBOptimizedBinning("sig_BDT_grad_all"+names[i],"bkg_BDT_grad_all"+names[i],20,50);
+        optimizedAdaBins =  l.rooContainer->SoverBOptimizedBinning("sig_BDT_ada_all"+names[i],"bkg_BDT_ada_all"+names[i],20,50);
+	//      optimizedVbfBins =  l.rooContainer->SoverBOptimizedBinning("sig_VBF_all"+names[i],"bkg_VBF_all"+names[i],10,50);
+	//      optimizedVbfBins =  l.rooContainer->OptimizedBinning("bkg_VBF_all"+names[i],3,false,false-1);
+	optimizedVbfBins.push_back(1.);
+//	optimizedVbfBins.push_back(1.013333333333333);
+//	optimizedVbfBins.push_back(1.026666666666666);
+	optimizedVbfBins.push_back(1.04);
+      } else {
+	if (i==1){
+	   optimizedVbfBins=VbfBinEdges_110;
+	   optimizedGradBins.push_back(GradBinEdges_110);
+	   optimizedAdaBins.push_back(AdaBinEdges_110);
+	}
+	else if (i==2){
+	   optimizedVbfBins=VbfBinEdges_115;
+	   optimizedGradBins.push_back(GradBinEdges_115);
+	   optimizedAdaBins.push_back(AdaBinEdges_115);
+	}
+	else if (i==3){
+	   optimizedVbfBins=VbfBinEdges_120;
+	   optimizedGradBins.push_back(GradBinEdges_120);
+	   optimizedAdaBins.push_back(AdaBinEdges_120);
+	}
+	else if (i==4){
+	   optimizedVbfBins=VbfBinEdges_125;
+	   optimizedGradBins.push_back(GradBinEdges_125);
+	   optimizedAdaBins.push_back(AdaBinEdges_125);
+	}
+	else if (i==5){
+	   optimizedVbfBins=VbfBinEdges_130;
+	   optimizedGradBins.push_back(GradBinEdges_130);
+	   optimizedAdaBins.push_back(AdaBinEdges_130);
+	}
+	else if (i==6){
+	   optimizedVbfBins=VbfBinEdges_135;
+	   optimizedGradBins.push_back(GradBinEdges_135);
+	   optimizedAdaBins.push_back(AdaBinEdges_135);
+	}
+	else if (i==7){
+	   optimizedVbfBins=VbfBinEdges_140;
+	   optimizedGradBins.push_back(GradBinEdges_140);
+	   optimizedAdaBins.push_back(AdaBinEdges_140);
+	}
+	else if (i==8){
+	   optimizedVbfBins=VbfBinEdges_150;
+	   optimizedGradBins.push_back(GradBinEdges_150);
+	   optimizedAdaBins.push_back(AdaBinEdges_150);
+	}
+
+      }
 
 
       double mass_h_low;      
@@ -279,13 +349,15 @@ void MvaAnalysis::Term(LoopAll& l)
        // l.rooContainer->RebinBinnedDataset(Form("bkg_mc_balg_ada_%3.1f",mass_hypothesis),Form("bkg_BDT_ada_all_%3.1f",mass_hypothesis),optimizedAdaBins,false);
         l.rooContainer->RebinBinnedDataset(Form("data_ada_%3.1f",mass_hypothesis),Form("data_BDT_ada_%3.1f",mass_hypothesis),optimizedAdaBins,false);
 
+        l.rooContainer->RebinBinnedDataset(Form("bkg_mc_vbf_%3.1f",mass_hypothesis),Form("bkg_VBF_%3.1f",mass_hypothesis),optimizedVbfBins,false);
+        l.rooContainer->RebinBinnedDataset(Form("data_vbf_%3.1f",mass_hypothesis),Form("data_VBF_%3.1f",mass_hypothesis),optimizedVbfBins,false);
 	
 	if (includeVBF){
 	  // After Rebinning, now we want to include the VBF dataset
-	  l.rooContainer->MergeHistograms(Form("bkg_mc_grad_%3.1f",mass_hypothesis),Form("bkg_VBF_%3.1f",mass_hypothesis));
-          l.rooContainer->MergeHistograms(Form("data_grad_%3.1f",mass_hypothesis),Form("data_VBF_%3.1f",mass_hypothesis));
-	  l.rooContainer->MergeHistograms(Form("bkg_mc_ada_%3.1f",mass_hypothesis),Form("bkg_VBF_%3.1f",mass_hypothesis));
-          l.rooContainer->MergeHistograms(Form("data_ada_%3.1f",mass_hypothesis),Form("data_VBF_%3.1f",mass_hypothesis));
+	  l.rooContainer->MergeHistograms(Form("bkg_mc_grad_%3.1f",mass_hypothesis),Form("bkg_mc_vbf_%3.1f",mass_hypothesis));
+          l.rooContainer->MergeHistograms(Form("data_grad_%3.1f",mass_hypothesis),Form("data_vbf_%3.1f",mass_hypothesis));
+	  l.rooContainer->MergeHistograms(Form("bkg_mc_ada_%3.1f",mass_hypothesis),Form("bkg_mc_vbf_%3.1f",mass_hypothesis));
+          l.rooContainer->MergeHistograms(Form("data_ada_%3.1f",mass_hypothesis),Form("data_vbf_%3.1f",mass_hypothesis));
 	}
                                                                                      
 
@@ -304,17 +376,22 @@ void MvaAnalysis::Term(LoopAll& l)
          // l.rooContainer->RebinBinnedDataset(Form("zee_mc_%dhigh_ada_%3.1f",sideband_i,mass_hypothesis),Form("zee_%dhigh_BDT_ada_%3.1f",sideband_i,mass_hypothesis),optimizedAdaBins,false);
          // l.rooContainer->RebinBinnedDataset(Form("zee_mc_%dlow_ada_%3.1f",sideband_i,mass_hypothesis),Form("zee_%dlow_BDT_ada_%3.1f",sideband_i,mass_hypothesis),optimizedAdaBins,false);
 
+          l.rooContainer->RebinBinnedDataset(Form("bkg_%dhigh_vbf_%3.1f",sideband_i,mass_hypothesis),Form("data_%dhigh_VBF_%3.1f",sideband_i,mass_hypothesis),optimizedVbfBins,false);
+          l.rooContainer->RebinBinnedDataset(Form("bkg_%dlow_vbf_%3.1f",sideband_i,mass_hypothesis),Form("data_%dlow_VBF_%3.1f",sideband_i,mass_hypothesis),optimizedVbfBins,false);
+          l.rooContainer->RebinBinnedDataset(Form("bkg_mc_%dhigh_vbf_%3.1f",sideband_i,mass_hypothesis),Form("bkg_%dhigh_VBF_%3.1f",sideband_i,mass_hypothesis),optimizedVbfBins,false);
+          l.rooContainer->RebinBinnedDataset(Form("bkg_mc_%dlow_vbf_%3.1f",sideband_i,mass_hypothesis),Form("bkg_%dlow_VBF_%3.1f",sideband_i,mass_hypothesis),optimizedVbfBins,false);
+
 	  if (includeVBF){
 	    // Also add sidbeband from VBF
-	    l.rooContainer->MergeHistograms(Form("bkg_%dhigh_grad_%3.1f",sideband_i,mass_hypothesis),Form("data_%dhigh_VBF_%3.1f",sideband_i,mass_hypothesis));
-            l.rooContainer->MergeHistograms(Form("bkg_%dlow_grad_%3.1f",sideband_i,mass_hypothesis),Form("data_%dlow_VBF_%3.1f",sideband_i,mass_hypothesis));
-            l.rooContainer->MergeHistograms(Form("bkg_mc_%dhigh_grad_%3.1f",sideband_i,mass_hypothesis),Form("bkg_%dhigh_VBF_%3.1f",sideband_i,mass_hypothesis));
-            l.rooContainer->MergeHistograms(Form("bkg_mc_%dlow_grad_%3.1f",sideband_i,mass_hypothesis),Form("bkg_%dlow_VBF_%3.1f",sideband_i,mass_hypothesis));
+	    l.rooContainer->MergeHistograms(Form("bkg_%dhigh_grad_%3.1f",sideband_i,mass_hypothesis),Form("bkg_%dhigh_vbf_%3.1f",sideband_i,mass_hypothesis));
+            l.rooContainer->MergeHistograms(Form("bkg_%dlow_grad_%3.1f",sideband_i,mass_hypothesis),Form("bkg_%dlow_vbf_%3.1f",sideband_i,mass_hypothesis));
+            l.rooContainer->MergeHistograms(Form("bkg_mc_%dhigh_grad_%3.1f",sideband_i,mass_hypothesis),Form("bkg_mc_%dhigh_vbf_%3.1f",sideband_i,mass_hypothesis));
+            l.rooContainer->MergeHistograms(Form("bkg_mc_%dlow_grad_%3.1f",sideband_i,mass_hypothesis),Form("bkg_mc_%dlow_vbf_%3.1f",sideband_i,mass_hypothesis));
 
-	    l.rooContainer->MergeHistograms(Form("bkg_%dhigh_ada_%3.1f",sideband_i,mass_hypothesis),Form("data_%dhigh_VBF_%3.1f",sideband_i,mass_hypothesis));
-            l.rooContainer->MergeHistograms(Form("bkg_%dlow_ada_%3.1f",sideband_i,mass_hypothesis),Form("data_%dlow_VBF_%3.1f",sideband_i,mass_hypothesis));
-            l.rooContainer->MergeHistograms(Form("bkg_mc_%dhigh_ada_%3.1f",sideband_i,mass_hypothesis),Form("bkg_%dhigh_VBF_%3.1f",sideband_i,mass_hypothesis));
-            l.rooContainer->MergeHistograms(Form("bkg_mc_%dlow_ada_%3.1f",sideband_i,mass_hypothesis),Form("bkg_%dlow_VBF_%3.1f",sideband_i,mass_hypothesis));
+	    l.rooContainer->MergeHistograms(Form("bkg_%dhigh_ada_%3.1f",sideband_i,mass_hypothesis),Form("bkg_%dhigh_vbf_%3.1f",sideband_i,mass_hypothesis));
+            l.rooContainer->MergeHistograms(Form("bkg_%dlow_ada_%3.1f",sideband_i,mass_hypothesis),Form("bkg_%dlow_vbf_%3.1f",sideband_i,mass_hypothesis));
+            l.rooContainer->MergeHistograms(Form("bkg_mc_%dhigh_ada_%3.1f",sideband_i,mass_hypothesis),Form("bkg_mc_%dhigh_vbf_%3.1f",sideband_i,mass_hypothesis));
+            l.rooContainer->MergeHistograms(Form("bkg_mc_%dlow_ada_%3.1f",sideband_i,mass_hypothesis),Form("bkg_mc_%dlow_vbf_%3.1f",sideband_i,mass_hypothesis));
 	  }
         }
 
@@ -330,20 +407,25 @@ void MvaAnalysis::Term(LoopAll& l)
         l.rooContainer->RebinBinnedDataset("sig_ada_vbf"+names[i]+names[i+j],"sig_BDT_ada_vbf"  +names[i+j],optimizedAdaBins,true);
         l.rooContainer->RebinBinnedDataset("sig_ada_wzh"+names[i]+names[i+j],"sig_BDT_ada_wzh"  +names[i+j],optimizedAdaBins,true);
         l.rooContainer->RebinBinnedDataset("sig_ada_tth"+names[i]+names[i+j],"sig_BDT_ada_tth"  +names[i+j],optimizedAdaBins,true);
+        l.rooContainer->RebinBinnedDataset("sig_vbf_ggh"+names[i]+names[i+j],"sig_VBF_ggh"  +names[i+j],optimizedVbfBins,true);
+        l.rooContainer->RebinBinnedDataset("sig_vbf_vbf"+names[i]+names[i+j],"sig_VBF_vbf"  +names[i+j],optimizedVbfBins,true);
+        l.rooContainer->RebinBinnedDataset("sig_vbf_wzh"+names[i]+names[i+j],"sig_VBF_wzh"  +names[i+j],optimizedVbfBins,true);
+        l.rooContainer->RebinBinnedDataset("sig_vbf_tth"+names[i]+names[i+j],"sig_VBF_tth"  +names[i+j],optimizedVbfBins,true);
 
 	if (includeVBF){
-          l.rooContainer->MergeHistograms("sig_grad_ggh"+names[i]+names[i+j],"sig_VBF_ggh"+names[i+j],true);
-          l.rooContainer->MergeHistograms("sig_grad_vbf"+names[i]+names[i+j],"sig_VBF_vbf"+names[i+j],true);
-          l.rooContainer->MergeHistograms("sig_grad_wzh"+names[i]+names[i+j],"sig_VBF_wzh"+names[i+j],true);
-          l.rooContainer->MergeHistograms("sig_grad_tth"+names[i]+names[i+j],"sig_VBF_tth"+names[i+j],true);
-          l.rooContainer->MergeHistograms("sig_ada_ggh"+names[i]+names[i+j],"sig_VBF_ggh"+names[i+j],true);
-          l.rooContainer->MergeHistograms("sig_ada_vbf"+names[i]+names[i+j],"sig_VBF_vbf"+names[i+j],true);
-          l.rooContainer->MergeHistograms("sig_ada_wzh"+names[i]+names[i+j],"sig_VBF_wzh"+names[i+j],true);
-          l.rooContainer->MergeHistograms("sig_ada_tth"+names[i]+names[i+j],"sig_VBF_tth"+names[i+j],true);
+          l.rooContainer->MergeHistograms("sig_grad_ggh"+names[i]+names[i+j],"sig_vbf_ggh"+names[i]+names[i+j],true);
+          l.rooContainer->MergeHistograms("sig_grad_vbf"+names[i]+names[i+j],"sig_vbf_vbf"+names[i]+names[i+j],true);
+          l.rooContainer->MergeHistograms("sig_grad_wzh"+names[i]+names[i+j],"sig_vbf_wzh"+names[i]+names[i+j],true);
+          l.rooContainer->MergeHistograms("sig_grad_tth"+names[i]+names[i+j],"sig_vbf_tth"+names[i]+names[i+j],true);
+          l.rooContainer->MergeHistograms("sig_ada_ggh"+names[i]+names[i+j],"sig_vbf_ggh"+names[i]+names[i+j],true);
+          l.rooContainer->MergeHistograms("sig_ada_vbf"+names[i]+names[i+j],"sig_vbf_vbf"+names[i]+names[i+j],true);
+          l.rooContainer->MergeHistograms("sig_ada_wzh"+names[i]+names[i+j],"sig_vbf_wzh"+names[i]+names[i+j],true);
+          l.rooContainer->MergeHistograms("sig_ada_tth"+names[i]+names[i+j],"sig_vbf_tth"+names[i]+names[i+j],true);
 	}
 		
       } 
     }
+
   }
   PhotonAnalysis::Term(l);
 }
@@ -356,6 +438,8 @@ void MvaAnalysis::Init(LoopAll& l)
 
   nevents=0., sumwei=0.; 
   sumaccept=0., sumsmear=0., sumev=0.;
+
+  eventListText.open(Form("%s",l.outputTextFileName.c_str()));
 
   if (doTraining) {
     nMasses  = 2;
@@ -709,7 +793,7 @@ void MvaAnalysis::Init(LoopAll& l)
   else{
 
     l.rooContainer->AddObservable("BDT" ,-1.,1.);
-    l.rooContainer->AddObservable("VBF" ,1.,2.);	// Basically a single bin just for VBF
+    l.rooContainer->AddObservable("VBF" ,1,1+2*sidebandWidth);	// Basically a single bin just for VBF
 
     //Set up TMVA reader (only two variables)
     tmvaReader_= new TMVA::Reader();
@@ -723,6 +807,14 @@ void MvaAnalysis::Init(LoopAll& l)
     l.rooContainer->CreateDataSet("CMS_hgg_mass","zee_mass" ,nDataBins);       
 
     int nBDTbins = 5000;
+
+    // TESTING 
+
+    for (std::vector<double>::iterator b=VbfBinEdges_110.begin();b!=VbfBinEdges_110.end();b++){
+
+    std::cout << "Bin edge " << *b<<std::endl ;
+    }
+    //
 
     // Usual datasets
     for (double mass=110.0; mass<150.5; mass+=0.5){
@@ -739,9 +831,9 @@ void MvaAnalysis::Init(LoopAll& l)
 
       if (includeVBF){
         // VBF
-        l.rooContainer->CreateDataSet("VBF",Form("data_VBF_%3.1f",mass)     ,1);
-        l.rooContainer->CreateDataSet("VBF",Form("bkg_VBF_%3.1f",mass)      ,1);
-        l.rooContainer->CreateDataSet("VBF",Form("zee_VBF_%3.1f",mass)      ,1);
+        l.rooContainer->CreateDataSet("VBF",Form("data_VBF_%3.1f",mass)     ,nBDTbins);
+        l.rooContainer->CreateDataSet("VBF",Form("bkg_VBF_%3.1f",mass)      ,nBDTbins);
+        l.rooContainer->CreateDataSet("VBF",Form("zee_VBF_%3.1f",mass)      ,nBDTbins);
       }
       
 
@@ -759,10 +851,10 @@ void MvaAnalysis::Init(LoopAll& l)
         l.rooContainer->CreateDataSet("BDT",Form("data_%dhigh_BDT_grad_%3.1f",sideband_i,mass),nBDTbins);
 
 	if (includeVBF){
-          l.rooContainer->CreateDataSet("VBF",Form("bkg_%dlow_VBF_%3.1f",sideband_i,mass)  ,1);
-          l.rooContainer->CreateDataSet("VBF",Form("bkg_%dhigh_VBF_%3.1f",sideband_i,mass) ,1);
-          l.rooContainer->CreateDataSet("VBF",Form("data_%dlow_VBF_%3.1f",sideband_i,mass) ,1);
-          l.rooContainer->CreateDataSet("VBF",Form("data_%dhigh_VBF_%3.1f",sideband_i,mass),1);
+          l.rooContainer->CreateDataSet("VBF",Form("bkg_%dlow_VBF_%3.1f",sideband_i,mass)  ,nBDTbins);
+          l.rooContainer->CreateDataSet("VBF",Form("bkg_%dhigh_VBF_%3.1f",sideband_i,mass) ,nBDTbins);
+          l.rooContainer->CreateDataSet("VBF",Form("data_%dlow_VBF_%3.1f",sideband_i,mass) ,nBDTbins);
+          l.rooContainer->CreateDataSet("VBF",Form("data_%dhigh_VBF_%3.1f",sideband_i,mass),nBDTbins);
 	}
 
       //  l.rooContainer->CreateDataSet("BDT",Form("zee_%dlow_BDT_ada_%3.1f",sideband_i,mass)   ,nBDTbins);
@@ -788,10 +880,10 @@ void MvaAnalysis::Init(LoopAll& l)
       l.rooContainer->CreateDataSet("BDT",Form("sig_BDT_ada_tth_%3.1f",sig)       ,nBDTbins);   
 
       if (includeVBF){
-        l.rooContainer->CreateDataSet("VBF",Form("sig_VBF_ggh_%3.1f",sig)       ,1);    
-        l.rooContainer->CreateDataSet("VBF",Form("sig_VBF_vbf_%3.1f",sig)       ,1);    
-        l.rooContainer->CreateDataSet("VBF",Form("sig_VBF_wzh_%3.1f",sig)       ,1);    
-        l.rooContainer->CreateDataSet("VBF",Form("sig_VBF_tth_%3.1f",sig)       ,1);   
+        l.rooContainer->CreateDataSet("VBF",Form("sig_VBF_ggh_%3.1f",sig)       ,nBDTbins);    
+        l.rooContainer->CreateDataSet("VBF",Form("sig_VBF_vbf_%3.1f",sig)       ,nBDTbins);    
+        l.rooContainer->CreateDataSet("VBF",Form("sig_VBF_wzh_%3.1f",sig)       ,nBDTbins);    
+        l.rooContainer->CreateDataSet("VBF",Form("sig_VBF_tth_%3.1f",sig)       ,nBDTbins);   
       }
 
 /*
@@ -1386,7 +1478,7 @@ void MvaAnalysis::Analysis(LoopAll& l, Int_t jentry)
           l.FillHist("signal_bdtoutput_msig",0,bdtoutput, evweight);
 
 	  if (VBFevent){ // note if includeVBF=false, VBFevent will always be false so no need to check both
-            l.rooContainer->InputBinnedDataPoint("sig_VBF_"+currentTypeSignalLabel  ,category,1.5,evweight);
+            l.rooContainer->InputBinnedDataPoint("sig_VBF_"+currentTypeSignalLabel  ,category,1.+sidebandWidth+_deltaMOverM,evweight);
 	  } else {
             l.rooContainer->InputBinnedDataPoint("sig_BDT_ada_"+currentTypeSignalLabel  ,category,bdt_ada,evweight);
             l.rooContainer->InputBinnedDataPoint("sig_BDT_grad_"+currentTypeSignalLabel ,category,bdt_grad,evweight);
@@ -1519,8 +1611,12 @@ void MvaAnalysis::Analysis(LoopAll& l, Int_t jentry)
               //std::cout << "ada: " << bdt_ada << "  grad: " << bdt_grad << std::endl;
 
               if (cur_type == 0 ){//data
+	
+      		if (cur_type==0 && mass_hypothesis==124.0 && bdtoutput>=0.05){
+		eventListText <<"Type="<< cur_type << " diphotonBDT="<<bdtoutput<<" mgg="<<mass<<" bdt="<<bdt_grad<<" vbf=" << VBFevent << endl;
+		}
 		if (VBFevent){ 
-                  l.rooContainer->InputBinnedDataPoint(Form("data_VBF_%3.1f",mass_hypothesis),category,1.5,evweight);
+                  l.rooContainer->InputBinnedDataPoint(Form("data_VBF_%3.1f",mass_hypothesis),category,1.+sidebandWidth+_deltaMOverM,evweight);
 		} else {
                   l.rooContainer->InputBinnedDataPoint(Form("data_BDT_ada_%3.1f",mass_hypothesis),category,bdt_ada,evweight);
                   l.rooContainer->InputBinnedDataPoint(Form("data_BDT_grad_%3.1f",mass_hypothesis),category,bdt_grad,evweight);
@@ -1533,7 +1629,7 @@ void MvaAnalysis::Analysis(LoopAll& l, Int_t jentry)
                 }
                 else{
 		  if (VBFevent){
-                    l.rooContainer->InputBinnedDataPoint(Form("bkg_VBF_%3.1f",mass_hypothesis),category,1.5,evweight);
+                    l.rooContainer->InputBinnedDataPoint(Form("bkg_VBF_%3.1f",mass_hypothesis),category,1.+sidebandWidth+_deltaMOverM,evweight);
 		  } else {
                     l.rooContainer->InputBinnedDataPoint(Form("bkg_BDT_ada_%3.1f",mass_hypothesis),category,bdt_ada,evweight);
                     l.rooContainer->InputBinnedDataPoint(Form("bkg_BDT_grad_%3.1f",mass_hypothesis) ,category,bdt_grad,evweight);
@@ -1609,7 +1705,7 @@ void MvaAnalysis::Analysis(LoopAll& l, Int_t jentry)
 
                   if (cur_type == 0 ){//data
 		    if (VBFevent){
-                      l.rooContainer->InputBinnedDataPoint(Form("data_%dlow_VBF_%3.1f",sideband_i,mass_hypothesis),category,1.5,evweight);
+                      l.rooContainer->InputBinnedDataPoint(Form("data_%dlow_VBF_%3.1f",sideband_i,mass_hypothesis),category,1.+sidebandWidth+_deltaMOverM,evweight);
 		    } else {
                       l.rooContainer->InputBinnedDataPoint(Form("data_%dlow_BDT_ada_%3.1f",sideband_i,mass_hypothesis),category,bdt_ada,evweight);
                       l.rooContainer->InputBinnedDataPoint(Form("data_%dlow_BDT_grad_%3.1f",sideband_i,mass_hypothesis) ,category,bdt_grad,evweight);
@@ -1621,7 +1717,7 @@ void MvaAnalysis::Analysis(LoopAll& l, Int_t jentry)
                       //l.rooContainer->InputBinnedDataPoint(Form("zee_%dlow_BDT_grad_%3.1f",sideband_i,mass_hypothesis) ,category,bdt_grad,evweight);
                     } else {
 		      if (VBFevent){
-                        l.rooContainer->InputBinnedDataPoint(Form("bkg_%dlow_VBF_%3.1f",sideband_i,mass_hypothesis),category,1.5,evweight);
+                        l.rooContainer->InputBinnedDataPoint(Form("bkg_%dlow_VBF_%3.1f",sideband_i,mass_hypothesis),category,1.+sidebandWidth+_deltaMOverM,evweight);
 		      } else {
                         l.rooContainer->InputBinnedDataPoint(Form("bkg_%dlow_BDT_ada_%3.1f",sideband_i,mass_hypothesis),category,bdt_ada,evweight);
                         l.rooContainer->InputBinnedDataPoint(Form("bkg_%dlow_BDT_grad_%3.1f",sideband_i,mass_hypothesis),category,bdt_grad,evweight);	
@@ -1695,7 +1791,7 @@ void MvaAnalysis::Analysis(LoopAll& l, Int_t jentry)
 
                   if (cur_type == 0 ){//data
 		    if (VBFevent){
-                      l.rooContainer->InputBinnedDataPoint(Form("data_%dhigh_VBF_%3.1f",sideband_i,mass_hypothesis),category,1.5,evweight);
+                      l.rooContainer->InputBinnedDataPoint(Form("data_%dhigh_VBF_%3.1f",sideband_i,mass_hypothesis),category,1.+sidebandWidth+_deltaMOverM,evweight);
 		    } else {
                       l.rooContainer->InputBinnedDataPoint(Form("data_%dhigh_BDT_ada_%3.1f",sideband_i,mass_hypothesis),category,bdt_ada,evweight);
                       l.rooContainer->InputBinnedDataPoint(Form("data_%dhigh_BDT_grad_%3.1f",sideband_i,mass_hypothesis) ,category,bdt_grad,evweight);
@@ -1707,7 +1803,7 @@ void MvaAnalysis::Analysis(LoopAll& l, Int_t jentry)
                       //l.rooContainer->InputBinnedDataPoint(Form("zee_%dhigh_BDT_grad_%3.1f",sideband_i,mass_hypothesis) ,category,bdt_grad,evweight);
                     } else {
 		      if (VBFevent){
-                        l.rooContainer->InputBinnedDataPoint(Form("bkg_%dhigh_VBF_%3.1f",sideband_i,mass_hypothesis),category,1.5,evweight);
+                        l.rooContainer->InputBinnedDataPoint(Form("bkg_%dhigh_VBF_%3.1f",sideband_i,mass_hypothesis),category,1.+sidebandWidth+_deltaMOverM,evweight);
 		      } else {
                         l.rooContainer->InputBinnedDataPoint(Form("bkg_%dhigh_BDT_ada_%3.1f",sideband_i,mass_hypothesis),category,bdt_ada,evweight);
                         l.rooContainer->InputBinnedDataPoint(Form("bkg_%dhigh_BDT_grad_%3.1f",sideband_i,mass_hypothesis),category,bdt_grad,evweight);

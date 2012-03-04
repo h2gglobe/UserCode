@@ -67,7 +67,7 @@ def tagPseudoDijets():
 	print "Tagging Pseudo Di-jets in Global Toy"
 	for p,gtoy in enumerate(g_toydatalist):
 		unirandom=g_r.Uniform()
-		if unirandom<g_expdijet: g_toydatalist[p]=(1.5,gtoy[1])
+		if unirandom<g_expdijet: g_toydatalist[p]=(1.+g_SIDEBANDWIDTH+gtoy[1],gtoy[1])
 
 def fillToyBDT(histogram):
 
@@ -76,7 +76,7 @@ def fillToyBDT(histogram):
 	for b in range(1,histNew.GetNbinsX()+1): histNew.SetBinContent(b,0)
 	for j in range(len(toydata)):
 		val = array.array('f',[0])
-		if toydata[j][0]>1.1 : val[0] = 1.5
+		if toydata[j][0]>1. : val[0] = toydata[j][0]
 		else:g_tmva.tmvaGetVal(toydata[j][0],toydata[j][1],val)	
 		histNew.Fill(val[0])
 	listret = []
@@ -127,7 +127,7 @@ def plotDistributions(mass,data,signals,bkg,errors):
 	flatsignal.SetLineWidth(2);flatsignal.SetLineColor(ROOT.kRed);flatsignal.Scale(sigscale)
 	flatsignal1.SetLineWidth(2);flatsignal1.SetLineColor(ROOT.kGreen+4);flatsignal1.Scale(sigscale)
 		
-	leg = ROOT.TLegend(0.56,0.56,0.88,0.88);leg.SetFillColor(0);leg.SetBorderSize(0)
+	leg = ROOT.TLegend(0.6,0.59,0.88,0.88);leg.SetFillColor(0);leg.SetBorderSize(0)
 
 	for b in range(1,nbins+1):
 		additional = errors[b-1]
@@ -139,7 +139,7 @@ def plotDistributions(mass,data,signals,bkg,errors):
 	if options.splitSignal: 
 	  sigst = ROOT.THStack();sigst.Add(flatsignal);sigst.Add(flatsignal1);sigst.Draw("9samehist")
 	else:  flatsignal.Draw("9samehist")
-	flatdata.Draw("9sameP");flatdata.SetMinimum(1)
+	flatdata.Draw("9sameP");flatdata.SetMinimum(1.0);flatdata.SetMaximum(20*flatdata.Integral())
 
 	leg.AddEntry(flatdata,"Data","PLE")
 	if options.splitSignal:
@@ -150,7 +150,7 @@ def plotDistributions(mass,data,signals,bkg,errors):
 	leg.AddEntry(flatbkg,"Background","L");leg.AddEntry(fNewT,"\pm 1\sigma","F");leg.AddEntry(fNew2T,"\pm 2\sigma","F")
 	leg.Draw()
 	mytext = ROOT.TLatex();mytext.SetTextSize(0.03);mytext.SetNDC();mytext.DrawLatex(0.1,0.92,"CMS preliminary,  #sqrt{s} = 7 TeV ");mytext.SetTextSize(0.04)
-	mytext.DrawLatex(0.2,0.2,"#int L = %s"%(lumistring))
+	mytext.DrawLatex(0.2,0.8,"#int L = %s"%(lumistring))
 	leg.Draw()
 	c.SaveAs(plotOutDir+"/model_m%3.1f.pdf"%mass);c.SaveAs(plotOutDir+"/model_m%3.1f.png"%mass)
 	
@@ -333,31 +333,36 @@ def writeCard(tfile,mass,scaleErr):
   # 70% GGH(TTH) and 10% on the VBF(WZH) part of that category (configurable above)
   if options.includeVBF:
     print "Including VBF (last Bin) Systematics"
-    # calculate the effect on each bin, eg 70%, always assume last bin is VBF tag
-    numberOfGGH_dijet = gghHist.GetBinContent(nBins)*JetID_ggh
-    numberOfTTH_dijet = tthHist.GetBinContent(nBins)*JetID_ggh
-    numberOfVBF_dijet = vbfHist.GetBinContent(nBins)*JetID_vbf
-    numberOfWZH_dijet = wzhHist.GetBinContent(nBins)*JetID_vbf
+    # how many non VBF bins are there?
+    nBins_inclusive=0
+    for b in range(1,nBins+1):  
+	if dataHist.GetBinLowEdge(b)<1: nBins_inclusive+=1
+
+    print "Number of Non VBF channels -> ", nBins_inclusive
+    print "Number of VBF channels -> ", nBins-nBins_inclusive
+    # calculate the effect on each bin, eg 70%, always assume last bins are VBF tagged
+    numberOfGGH_dijet = sum([gghHist.GetBinContent(b)*JetID_ggh for b in range(nBins_inclusive+1,nBins+1)])
+    numberOfTTH_dijet = sum([tthHist.GetBinContent(b)*JetID_ggh for b in range(nBins_inclusive+1,nBins+1)])
+    numberOfVBF_dijet = sum([vbfHist.GetBinContent(b)*JetID_vbf for b in range(nBins_inclusive+1,nBins+1)])
+    numberOfWZH_dijet = sum([wzhHist.GetBinContent(b)*JetID_vbf for b in range(nBins_inclusive+1,nBins+1)])
     
-    numberOfGGH_incl  = sum([gghHist.GetBinContent(b) for b in range(1,nBins)])
-    numberOfTTH_incl  = sum([tthHist.GetBinContent(b) for b in range(1,nBins)])
-    numberOfVBF_incl  = sum([vbfHist.GetBinContent(b) for b in range(1,nBins)])
-    numberOfWZH_incl  = sum([wzhHist.GetBinContent(b) for b in range(1,nBins)])
+    numberOfGGH_incl  = sum([gghHist.GetBinContent(b) for b in range(1,nBins_inclusive+1)])
+    numberOfTTH_incl  = sum([tthHist.GetBinContent(b) for b in range(1,nBins_inclusive+1)])
+    numberOfVBF_incl  = sum([vbfHist.GetBinContent(b) for b in range(1,nBins_inclusive+1)])
+    numberOfWZH_incl  = sum([wzhHist.GetBinContent(b) for b in range(1,nBins_inclusive+1)])
 
     outPut.write("\nJetID_ggh  lnN ")
-    for b in range(1,nBins): outPut.write(" %.3f/%.3f   -   -   %.3f/%.3f   -  "%\
+    for b in range(1,nBins_inclusive+1): outPut.write(" %.3f/%.3f   -   -   %.3f/%.3f   -  "%\
 		    (1.-(numberOfGGH_dijet/numberOfGGH_incl),1.+(numberOfGGH_dijet/numberOfGGH_incl),\
 		     1.-(numberOfTTH_dijet/numberOfTTH_incl),1.+(numberOfTTH_dijet/numberOfTTH_incl)))
-    outPut.write(" %.3f/%.3f   -   -   %.3f/%.3f   -  "%(1+JetID_ggh,1-JetID_ggh,1+JetID_ggh,1-JetID_ggh))
+    for b in range(nBins_inclusive+1,nBins+1): outPut.write(" %.3f/%.3f   -   -   %.3f/%.3f   -  "%(1+JetID_ggh,1-JetID_ggh,1+JetID_ggh,1-JetID_ggh))
     outPut.write("\nJetID_vbf  lnN ")
-    for b in range(1,nBins): outPut.write(" -  %.3f/%.3f  %.3f/%.3f  -   -  "%\
+    for b in range(1,nBins_inclusive+1): outPut.write(" -  %.3f/%.3f  %.3f/%.3f  -   -  "%\
 		    (1.-(numberOfVBF_dijet/numberOfVBF_incl),1.+(numberOfVBF_dijet/numberOfVBF_incl),\
 		     1.-(numberOfWZH_dijet/numberOfWZH_incl),1.+(numberOfWZH_dijet/numberOfWZH_incl)))
-    outPut.write(" -  %.3f/%.3f   %.3f/%.3f  -   -  "%(1+JetID_vbf,1-JetID_vbf,1+JetID_vbf,1-JetID_vbf))
+    for b in range(nBins_inclusive+1,nBins+1):  outPut.write(" -  %.3f/%.3f   %.3f/%.3f  -   -  "%(1+JetID_vbf,1-JetID_vbf,1+JetID_vbf,1-JetID_vbf))
     outPut.write("\n")
 
-    
-   
   # Now is the very tedious part of the signal shape systematics, for each shape, simply do -/+ sigma
   
   if options.signalSys:

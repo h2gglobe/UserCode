@@ -1617,6 +1617,197 @@ std::vector<std::vector<double> > RooContainer::SoverBOptimizedBinning(std::stri
 	return return_bins;
 
 }
+
+// ----------------------------------------------------------------------------------------------------
+double RooContainer::calculateSig(double s1, double s2, double b1, double b2){
+	
+	
+	double sig =  1.4142*TMath::Sqrt((s1+b1)*TMath::Log((s1+b1)/b1) + (s2+b2)*TMath::Log((s2+b2)/b2) - (s1+s2));
+	return sig;
+}
+
+double RooContainer::calculateSigMulti(std::vector<double> &s1, std::vector<double> &b1){
+	
+	int nchannel=s1.size();
+	double sterm=0;
+	double logterms=0;
+	for (int i=0;i<nchannel;i++){
+	  logterms+=(s1[i]+b1[i])*TMath::Log((s1[i]+b1[i])/b1[i]);
+	  sterm+=s1[i];
+	}
+	double sig =  1.4142*TMath::Sqrt(logterms - sterm);
+	return sig;
+}
+
+bool RooContainer::compareLHWide(double s1, double sdiff,double s2,double b1,double bdiff, double b2,double n, std::vector<double> &chanS, std::vector<double> &chanB){
+
+
+	std::vector<double> tmpS = chanS;
+	std::vector<double> tmpB = chanB;
+	std::vector<double> tmpS2 = chanS;
+	std::vector<double> tmpB2 = chanB;
+	
+	double chan1 = calculateSig(s1+sdiff,s2,b1+bdiff,b2) ;
+	double chan2 = calculateSig(s1,s2+sdiff,b1,b2+bdiff);
+
+	if ((chan1 > chan2) ){
+		return true;
+	}
+	else return false;
+
+
+}
+
+// ----------------------------------------------------------------------------------------------------
+std::vector<std::vector<double> > RooContainer::SignificanceOptimizedBinning(std::string signalname,std::string bkgname,int nTargetBins){
+
+	std::vector<std::vector<double> > return_bins;
+	for (int cat=0;cat<ncat;cat++){
+	   std::map<std::string,TH1F>::iterator it_ths=m_th1f_.find(getcatName(signalname,cat));
+	   std::map<std::string,TH1F>::iterator it_thb=m_th1f_.find(getcatName(bkgname,cat));
+	   if (it_ths!=m_th1f_.end() && it_thb!=m_th1f_.end()){
+		return_bins.push_back(significanceOptimizedBinning(&(it_ths->second),&(it_thb->second),nTargetBins));
+
+	   } else {
+		std::cerr << "WARNING ! -- RooContainer::SignificanceOptimizedBinning -- One of the Following binned datasets not found " << signalname << ", " << bkgname <<std::endl;
+	   }
+	}
+
+	return return_bins;
+
+}
+// ----------------------------------------------------------------------------------------------------
+std::vector<double> RooContainer::significanceOptimizedBinning(TH1F *hs,TH1F *hb,int nTargetBins){
+
+	// Performs Optimized Binning based on a Signal and Background  distributions
+	// First runs the optimizedBinning on background and rebins S and B clones, note, always performs 
+	// revise_target=false,direction=-1 and use_n_entries=true
+	// nTargetBins is used for the flat binning, decision to merge is based on improvement to expected significance
+	int ninitBins = hb->GetNbinsX();
+	if (hs->Integral()==0 ||  hb->Integral()==0 || ninitBins < 2) {
+		std::vector<double> binEdges;
+		binEdges.push_back(hb->GetBinLowEdge(1));
+		binEdges.push_back(hb->GetBinLowEdge(ninitBins+1));
+		return binEdges;
+	}
+
+	std::vector<double> binEdges = optimizedReverseBinning(hb,nTargetBins,false,true);
+
+	int j =0;
+	double *arrBins = new double[binEdges.size()];
+	for (std::vector<double>::iterator it=binEdges.begin();it!=binEdges.end();it++){
+		//cout << *it << endl;
+		arrBins[j]=*it;
+		j++;	
+	}
+	// Create new rebinned histograms (only temporary)
+	TH1F *hbnew =(TH1F*) hb->Rebin(binEdges.size()-1,"hbnew",arrBins);
+	TH1F *hsnew =(TH1F*) hs->Rebin(binEdges.size()-1,"hsnew",arrBins);
+	
+
+	// Better smoothing which doesn't use the first and last binsi, performs a fit to the histogram	
+	if (hsnew->Integral()!=0 && hbnew->Integral()!=0 && binEdges.size()-1 > 10){
+		histogramSmoothingFit(hsnew);
+		histogramSmoothingFit(hbnew);
+		//hsnew->Smooth(1000);
+		//hbnew->Smooth(1000);
+        }
+	// Do we really need the background histogram ?  we will be assuming that the first step is nentries per bin
+
+	// Smooth signal new binned histograms, the size of smoothing should be ~1% of the total bins	
+	//int nSmooth = (int) 0.01*hsnew->GetNbinsX();
+	//hsnew->Smooth(nSmooth);
+
+	delete [] arrBins;
+
+	if (hbnew->Integral()==0 || hsnew->Integral()==0) return binEdges;
+	std::vector<double> newbinEdges;
+	 int nNewBins = hbnew->GetNbinsX();
+         newbinEdges.push_back(hbnew->GetBinLowEdge(nNewBins+1));
+         int i=nNewBins;
+ 	 std::vector<double> backgroundsofar,signalsofar;
+         while (i>1){
+
+                 //std::cout << "At Bin - "<< i <<std::endl;
+                 int k = i-1;
+                 double highEdge=hbnew->GetBinLowEdge(i);
+                 double S = hsnew->GetBinContent(i);
+                 double B = hbnew->GetBinContent(i);
+                 double Stot =S;
+                 double Btot =B;
+                 if (B!=0){
+                 bool carryOn=true;
+ 
+                 while ( carryOn){
+                         if (k>=1){
+ 
+                           double S1 = hsnew->GetBinContent(k);
+                           double B1 = nTargetBins;
+                           double BB1 = nTargetBins;
+                            if (B1==0) {
+                                  carryOn=true;
+                                  highEdge = hbnew->GetBinLowEdge(k);
+                                  k++;
+                            } else {
+                              //if (compareLH(S1,Stot,B1,Btot,scaler)){
+                              // now the think we want to compare to is not S1 and B1 but the rest of S1 and B1
+                              double SSumRight = hsnew->Integral(1,k-1);
+                              double BSumRight = hbnew->Integral(1,k-1);
+ 			      //double sigsofar = calculateSigMulti(signalsofar,backgroundsofar);
+			   
+                              if (compareLHWide(Stot,S1,SSumRight,Btot,B1,BSumRight,1.0, signalsofar,backgroundsofar)){
+ 
+                              //cout << "Merging dude!" << endl; 
+                              highEdge = hbnew->GetBinLowEdge(k);
+ 
+                              Stot+=S1;
+                              Btot+=B1;
+ 
+                              carryOn = true;
+                              k--;
+                           } else {
+
+				// check if we even care at this point, if we are no longer merging, check that a split is worth is
+			      if (signalsofar.size()==0) {carryOn=false;}
+			      else{
+				std::vector<double> tmpS = signalsofar;
+				std::vector<double> tmpB = backgroundsofar;
+				std::vector<double> tmpS2 = signalsofar;
+				std::vector<double> tmpB2 = backgroundsofar;
+				tmpS.push_back(Stot+S1);
+				tmpS.push_back(SSumRight);
+				tmpB.push_back(Btot+B1);
+				tmpB.push_back(BSumRight);
+				tmpS2.push_back(Stot+S1+SSumRight);
+				tmpB2.push_back(Btot+B1+BSumRight);
+				if ((calculateSigMulti(tmpS,tmpB)-calculateSigMulti(tmpS2,tmpB2)) /calculateSigMulti(tmpS2,tmpB2) > 0.0001) carryOn= false;
+				else{ carryOn=true; k--;}
+			      }
+			   }
+			}
+ 
+                         } else {
+                           highEdge = hbnew->GetBinLowEdge(k+1);
+                           carryOn=false;
+                         }
+                         }
+                 }
+                 newbinEdges.push_back(highEdge);
+		 signalsofar.push_back(Stot);
+		 backgroundsofar.push_back(Btot);
+                 i=k;
+         }
+
+
+
+
+        reverse(newbinEdges.begin(),newbinEdges.end());	
+
+
+	// now we have new Bin edges to return to the 
+	return newbinEdges;
+
+}
 // ----------------------------------------------------------------------------------------------------
 std::vector<double> RooContainer::soverBOptimizedBinning(TH1F *hs,TH1F *hb,int nTargetBins,double penaltyScale){
 
@@ -1890,6 +2081,40 @@ std::vector<double> RooContainer::optimizedReverseBinning(TH1F *hb,int nTargetBi
 	reverse(binEdges.begin(),binEdges.end());
 	return binEdges;
 
+}
+// ----------------------------------------------------------------------------------------------------
+void RooContainer::RebinBinnedDataset(std::string new_name,std::string name,std::vector<double>  catBinEdges, bool systematics){
+
+	for (int cat=0;cat<ncat;cat++){
+	  std::string catName = getcatName(name,cat);
+	  std::string catNewName = getcatName(new_name,cat);
+	  std::map<std::string,TH1F>::iterator it = m_th1f_.find(catName);
+	  if (it!=m_th1f_.end())
+		rebinBinnedDataset(catNewName,catName,&(it->second),catBinEdges);
+	  else {
+		std::cerr << "WARNING -- RooContainer::RebinBinnedDataset -- No Such Binned Dataset as "
+			  << getcatName(name,cat)
+			  << std::endl;
+	  }
+
+	  if (systematics){
+		for (it_sys=systematics_.begin(); it_sys!=systematics_.end();it_sys++){ 
+		  for (int sys=1;sys<=nsigmas;sys++){
+		     std::string sysDName = getsysindexName(catName,it_sys->first,sys,-1);
+		     std::string sysUName = getsysindexName(catName,it_sys->first,sys,1);
+		     std::string sysDNewName = getsysindexName(catNewName,it_sys->first,sys,-1);
+		     std::string sysUNewName = getsysindexName(catNewName,it_sys->first,sys,1);
+		     std::map<std::string,TH1F>::iterator itD = m_th1f_.find(sysDName);
+		     std::map<std::string,TH1F>::iterator itU = m_th1f_.find(sysUName);
+		     if (itD!=m_th1f_.end()) {
+			rebinBinnedDataset(sysDNewName,sysDName,&(itD->second),catBinEdges);
+			rebinBinnedDataset(sysUNewName,sysUName,&(itU->second),catBinEdges);
+		     }	
+		  }
+	        }
+	  }
+
+	}
 }
 // ----------------------------------------------------------------------------------------------------
 void RooContainer::RebinBinnedDataset(std::string new_name,std::string name,std::vector <std::vector<double> > catBinEdges, bool systematics){
@@ -2661,6 +2886,31 @@ void RooContainer::histogramSmoothing(TH1F* h, int n){
    return;
 
    
+}
+// ----------------------------------------------------------------------------------------------------
+void RooContainer::histogramSmoothingFit(TH1F* h){
+   // Nothing too special, a function which will smooth a histogram but ignore the first and last
+   // bins, useful for the "flat-binning" approach! 
+	if (h->GetNbinsX()>3){
+	  int nbin = h->GetNbinsX();
+	  TH1F *h2 = new TH1F(Form("hn%s",h->GetName()),Form("hn%s",h->GetName()),nbin-2,0,1);
+	  for (int i=1;i<=nbin-2;i++){
+		h2->SetBinContent(i,h->GetBinContent(i+1));
+          }
+	  h->Fit("pol9","F","",h->GetBinLowEdge(2),h->GetBinLowEdge(h->GetNbinsX()));
+	  //h2->Smooth(n);
+	  for (int i=2;i<=nbin-1;i++){
+		if (h->GetFunction("pol9")->Eval(h->GetBinCenter(i-1)) < 0){
+			h->SetBinContent(i,0.5*(h->GetBinContent(i-1)+h->GetBinContent(i+1)));
+			
+		} else {
+			h->SetBinContent(i,h->GetFunction("pol9")->Eval(h->GetBinCenter(i)));
+		}
+          }
+	
+	}
+
+	return;
 }
 // ----------------------------------------------------------------------------------------------------
 void RooContainer::makeSystematics(std::string observable,std::string s_name, int effect){

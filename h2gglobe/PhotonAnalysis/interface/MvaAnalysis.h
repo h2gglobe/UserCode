@@ -96,6 +96,17 @@ public:
 
 	std::string mvaWeightsFolder;
 
+	// Bin edges pre-defined
+	bool rederiveOptimizedBinEdges;
+	std::vector<double> VbfBinEdges_110, GradBinEdges_110, AdaBinEdges_110;
+	std::vector<double> VbfBinEdges_115, GradBinEdges_115, AdaBinEdges_115;
+	std::vector<double> VbfBinEdges_120, GradBinEdges_120, AdaBinEdges_120;
+	std::vector<double> VbfBinEdges_125, GradBinEdges_125, AdaBinEdges_125;
+	std::vector<double> VbfBinEdges_130, GradBinEdges_130, AdaBinEdges_130;
+	std::vector<double> VbfBinEdges_135, GradBinEdges_135, AdaBinEdges_135;
+	std::vector<double> VbfBinEdges_140, GradBinEdges_140, AdaBinEdges_140;
+	std::vector<double> VbfBinEdges_150, GradBinEdges_150, AdaBinEdges_150;
+
 protected:
 	std::vector<BaseSmearer *> photonSmearers_;
 	std::vector<BaseSmearer *> systPhotonSmearers_;

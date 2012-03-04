@@ -1,7 +1,7 @@
 # Python Configuration Handler for Util
 # Original Author - Nicholas Wardle
 
-PYDEBUG = 0
+PYDEBUG = 1
 
 # System python imports
 import sys,os, json
@@ -389,8 +389,13 @@ class configProducer:
           name,val = [ s.lstrip(" ").rstrip(" ") for s in sp.split("=") ]
           try:
 	    if ".root" in val and not "/castor" in val and not os.path.isfile(val): sys.exit("No File found - %s, check the line %s"%(val,line))
-            t = type( struct.__getattribute__(name) )
-            struct.__setattr__(name, t(val) )
+      	    if "," in val:
+	     print "SWEEEEEEET"
+	     ele = val.split(",")
+	     for v in ele: (struct.__getattribute__(name)).push_back(float(v))
+            else :
+             t = type( struct.__getattribute__(name) )
+             struct.__setattr__(name, t(val) )
             print "%s = %s" % ( name, str(struct.__getattribute__(name)) )
           except AttributeError:
             sys.exit( "Error: unkown attribute: %s\nline: %s\n%s" % ( name, line, struct ) )
