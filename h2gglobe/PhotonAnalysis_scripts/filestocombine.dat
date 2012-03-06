@@ -1,8 +1,8 @@
-intL=4763. histfile=test.root output=shifo.root
+intL=4763. histfile=CMS-HGG_newrebinning.root output=shifo.root
 
-
-Fil=/vols/cms02/h2g/latest_workspace/CMS-HGG_10-02-2012_an048_icbdt_interpolated.root
+Fil=../Macros/CMS-HGG_vbf_dmom.root
 ->
+Dir=vbf_dmom_comb
 Dir=cms-hgg_icvbf_fixtrkiso
 Dir=cms-hgg_icvbf_fixtrkiso_merged
 ->

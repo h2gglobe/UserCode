@@ -72,7 +72,7 @@ Inputs for reweighing
 ->
 
 kfacHist=aux/KFactors_AllScales_interpolated.root
-efficiencyFile=aux/sig_reweighing_v17_mit.root
+efficiencyFile=aux/sig_reweighing_v20_mit.root
 puHist=aux/2011_0100_73500.weights3.root
 
 puMap=pu_weights_map.dat
