@@ -18,10 +18,11 @@ ROOT.gStyle.SetOptStat(0)
 
 #-------------------------------------------------------------------------
 # Configuration for the Plotter
-intlumi = str(4.7)
+intlumi = str(4.76)
 #EXPmasses = [110,115,120,125,130,135,140,150]       # Only used in Bayesian and PL method
-OBSmasses = numpy.arange(115,151,1.)
-EXPmasses = numpy.arange(115,151,1.)
+#'OBSmasses = [110,115,120,125,130,135,140,150]       # Only used in Bayesian and PL method
+OBSmasses = numpy.arange(110,150.5,0.5)
+EXPmasses = numpy.arange(110,150.5,0.5)
 #OBSmasses = [110,115,120,125,130,135,140,150]
 theorySMScales = [5,10]  			# A list of the C x sigma to draw
 
@@ -34,7 +35,7 @@ FILLCOLOR_95=ROOT.kGreen
 FILLCOLOR_68=ROOT.kYellow
 FILLCOLOR_T=ROOT.kAzure+7			# Theory lines color
 RANGEYABS=[0.0,0.6]
-RANGEYRAT=[0.0,6]
+RANGEYRAT=[0.0,4]
 #-------------------------------------------------------------------------
 # UserInput
 parser=OptionParser()
@@ -49,6 +50,13 @@ parser.add_option("","--pval",action="store_true")
 
 if options.pval: EXPmasses=[]
 
+"""
+BASELINE = ROOT.TFile("limitICVBF_synch_e2.root")
+baseline = BASELINE.Get("median")
+baselineObs = BASELINE.Get("observed")
+baseline.SetLineColor(1)
+baselineObs.SetLineColor(1)
+"""
 # Overlay the Baysian observed Limit 
 if options.bayes:
   BayesianFile =ROOT.TFile(options.bayes) 
@@ -58,7 +66,7 @@ print "doRatio: ", options.doRatio
 print "doSmooth: ", options.doSmooth
  
 Method = args[0]
-EXPName = Method+"/expected"+Method
+EXPName = Method+"/higgsCombineEXPECTED."+Method
 if Method == "Asymptotic":  EXPName = Method+"/higgsCombineTest."+Method  # everyhting contained here
 if Method == "ProfileLikelihood" or Method=="Asymptotic":
   OBSName = Method+"/higgsCombineTest."+Method
@@ -159,7 +167,7 @@ else:
 #-------------------------------------------------------------------------
 
 # Set-up the GRAPHS
-leg=ROOT.TLegend(0.46,0.56,0.79,0.89)
+leg=ROOT.TLegend(0.16,0.75,0.49,0.89)
 leg.SetFillColor(0)
 leg.SetBorderSize(0)
 
@@ -182,11 +190,13 @@ if Method == "Bayesian": LegendEntry = "Bayesian"
 if Method == "Frequentist": LegendEntry = "CLs"
 if Method == "Asymptotic": LegendEntry = "CLs - Asymptotic"
 
-if not options.expectedOnly: leg.AddEntry(graphObs,"Observed %s Limit"%LegendEntry,"L")
+#if not options.expectedOnly: leg.AddEntry(baselineObs,"Observed %s (BDT Count) "%LegendEntry,"L")
+if not options.expectedOnly: leg.AddEntry(graphObs,"Observed %s"%LegendEntry,"L")
 if options.bayes and not options.expectedOnly: leg.AddEntry(bayesObs,"Observed Bayesian Limit","L")
-leg.AddEntry(graphMed,"Median Expected %s Limit"%LegendEntry,"L")
-leg.AddEntry(graph68,"#pm 1#sigma Expected %s"%LegendEntry,"F")
-leg.AddEntry(graph95,"#pm 2#sigma Expected %s"%LegendEntry,"F")
+#leg.AddEntry(baseline,"Expected (BDT Count)","L")
+leg.AddEntry(graphMed,"Expected","L")
+leg.AddEntry(graph68,"#pm 1#sigma","F")
+leg.AddEntry(graph95,"#pm 2#sigma","F")
 
 MG = ROOT.TMultiGraph()
 
@@ -387,6 +397,7 @@ graphOne.SetLineWidth(3)
 
 graphObs.SetMarkerStyle(20)
 graphObs.SetMarkerSize(2.0)
+graphObs.SetLineColor(1)
 
 
 myGraphXSecSM.SetLineStyle(1)
@@ -399,6 +410,7 @@ myGraphXSecSM.SetFillStyle(SMFILLSTYLE)
 MG.Add(graph95)
 MG.Add(graph68)
 MG.Add(graphMed)
+#MG.Add(baseline)
 MG.Add(myGraphXSecSM)
 
 if not options.doRatio:
@@ -419,6 +431,7 @@ if not options.doRatio:
 
 if not options.expectedOnly:
   MG.Add(graphObs)
+#  MG.Add(baselineObs)
   if options.bayes:
    MG.Add(bayesObs)
 
@@ -429,7 +442,7 @@ C.SetGrid(True)
 
 dummyHist = ROOT.TH1D("dummy","",1,min(OBSmasses)-OFFSETLOW,max(OBSmasses)+OFFSETHIGH)
 dummyHist.Draw("AXIS")
-MG.Draw("C3")
+MG.Draw("L3")
 dummyHist.Draw("AXIGSAME")
 
 #MG.GetXaxis().SetTitle("m_{H}(GeV/c^{2})")
@@ -457,7 +470,7 @@ if not options.doRatio:
   mytext.DrawLatex(max(OBSmasses)+0.3,th*SMEnd,"%d#times#sigma_{%s}"%(th,extraString))
 
 mytext.SetNDC()
-mytext.DrawLatex(0.18,0.8,"#splitline{CMS preliminary}{#sqrt{s} = 7 TeV L = %.2f fb^{-1}}"%float(intlumi))
+mytext.DrawLatex(0.54,0.8,"#splitline{CMS preliminary}{#sqrt{s} = 7 TeV L = %.2f fb^{-1}}"%float(intlumi))
 leg.Draw()
 
 #Make a bunch of extensions to the plots
