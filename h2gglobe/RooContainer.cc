@@ -1648,7 +1648,7 @@ double RooContainer::calculateSigMulti(std::vector<double> &s1, std::vector<doub
 	double sig =  1.4142*TMath::Sqrt(logterms - sterm);
 	return sig;
 }
-double calculateSigMulti(double *s1, double *b1, int nchannel){
+double RooContainer::calculateSigMulti(double *s1, double *b1, int nchannel){
 	
 //	int nchannel=s1.size();
 	double sterm=0;
