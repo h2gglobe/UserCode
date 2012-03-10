@@ -189,7 +189,7 @@ class RooContainer {
    void getArgSetParameters(RooArgSet*,std::vector<double> &);
    void setArgSetParameters(RooArgSet*,std::vector<double> &);
 
-   void maxSigScan(double *maximumSignificance,int *chosen_counters,TH1F *hs, TH1F *hb, int N,int *counters, int movingCounterIndex);
+   void maxSigScan(double *maximumSignificance,int *frozen_counters,int *chosen_counters,TH1F *hs, TH1F *hb, int N,int *counters, int movingCounterIndex);
 
    std::map<std::string,int> systematics_;
    std::map<std::string,std::pair<double,double> > global_systematics_;
@@ -236,6 +236,8 @@ class RooContainer {
 
    double *signalVector1;
    double *backgroundVector1;
+   int g_step;
+   int sweepmode;
 
    RooWorkspace ws;   
    
