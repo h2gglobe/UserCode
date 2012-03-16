@@ -1,8 +1,0 @@
-<export></export>
-<library name=AnalyzersGlobeAnalyzer_plugins file=*.cc>
-  <use name=FWCore/Framework>
-  <use name=FWCore/ParameterSet>
-  <use name=FWCore/MessageLogger>
-  <use name=DataFormats/EgammaCandidates>
-  <use name=CommonTools/Utils>
-</library>
