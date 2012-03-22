@@ -1850,6 +1850,11 @@ std::vector<double> RooContainer::significanceOptimizedBinning(TH1F *hs,TH1F *hb
 
 	std::vector<double> binEdges = optimizedReverseBinning(hb,nTargetBins,false,true);
 
+	// Just TESTING HERE so remove this line soon!
+//	nTargetBins = 150; // this gives us about 144 with the latest thing :)
+//	std::vector<double> binEdges = optimizedReverseBinning(hb,nTargetBins,false,false);
+	//---------------------------------------------------------------------------------
+
 	int j =0;
 	double *arrBins = new double[binEdges.size()];
 	for (std::vector<double>::iterator it=binEdges.begin();it!=binEdges.end();it++){
@@ -1869,6 +1874,14 @@ std::vector<double> RooContainer::significanceOptimizedBinning(TH1F *hs,TH1F *hb
 		//hsnew->Smooth(1000);
 		//hbnew->Smooth(1000);
         }
+
+	// --------------------------- TEST --------------------------- //
+	//hsnew->Rebin(2);
+	//hbnew->Rebin(2);
+	//hsnew->Rebin(2);
+	//hbnew->Rebin(2);
+	// --------------------------- TEST --------------------------- //
+
 	// Do we really need the background histogram ?  we will be assuming that the first step is nentries per bin
 
 	// Smooth signal new binned histograms, the size of smoothing should be ~1% of the total bins	
@@ -1891,7 +1904,7 @@ std::vector<double> RooContainer::significanceOptimizedBinning(TH1F *hs,TH1F *hb
 	g_step = (int)TMath::Exp(TMath::Log(nNewBins/2)/2);
 	if (g_step < 1) g_step=1;
 		
-	for (int N=1;N<7;N++){				// Refuse to go beyond 7 Bins, will take forever
+	for (int N=2;N<7;N++){				// Refuse to go beyond 7 Bins, will take forever
 	  double maximumSignificance=0;
 	  counters = new int[N];
 	  chosen_counters = new int[N];
