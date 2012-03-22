@@ -514,15 +514,15 @@ void paulFit(TDirectory *mDir,TH1F* fMFitS,TH1F* hMFitS,TH2F* hFCovar, bool make
         fBRaw[j]->GetXaxis()->SetTitle("m_{H} (GeV)");
         fBRaw[j]->GetXaxis()->SetTitleSize(0.055);
         fBRaw[j]->GetXaxis()->SetLabelSize(0.045);
-        fBRaw[j]->GetYaxis()->SetTitle("Fraction in bin 0");
+        fBRaw[j]->GetYaxis()->SetTitle(Form("Fraction in bin %d",j+1));
         fBRaw[j]->GetYaxis()->SetTitleSize(0.05);
         fBRaw[j]->GetYaxis()->SetLabelSize(0.045);
         fBRaw[j]->GetYaxis()->SetNdivisions(508); 
         //fBRaw[j]->SetTitle(Form("Fit BDT Mass %3.1f Bin %d",global_mH,j));
         double FVal = fBFit[j]->Eval(global_mH);
-        fBRaw[j]->GetYaxis()->SetRangeUser(FVal*0.1,FVal*1.9);
+        fBRaw[j]->GetYaxis()->SetRangeUser(floor(FVal*0.75*100)/100,floor(FVal*1.25*100)/100);
 
-        TLine l(global_mH,FVal*0.1,global_mH,FVal*1.9);
+        TLine l(global_mH,floor(FVal*0.75*100)/100,global_mH,floor(FVal*1.25*100)/100);
         l.SetLineColor(46);
         l.SetLineStyle(7);
 	l.SetLineWidth(3);
