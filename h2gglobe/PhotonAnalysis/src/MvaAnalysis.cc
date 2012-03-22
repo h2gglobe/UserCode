@@ -97,6 +97,12 @@ void MvaAnalysis::Term(LoopAll& l)
     // -----------------------------
     */
 
+    if (makeTrees){
+      treeFile_->cd();
+      dataTree_->Write();
+      sigTree_->Write();
+    }
+
     // loop hypothesis  
     for (double mass=110.0; mass<150.2; mass+=0.5){
       if (mass < masses[1] || mass > masses[nMasses-1] ) continue;  
@@ -791,6 +797,12 @@ void MvaAnalysis::Init(LoopAll& l)
     }
   }
   else{
+    
+    string outName = (string) l.histFileName;
+    string path = outName.substr(0,outName.rfind("/")+1);
+    string datfName = outName.substr(outName.rfind("/")+1,string::npos);
+    TString dataTreeFileName(path+"Tree_"+datfName);
+    if (makeTrees) treeFile_ = new TFile(dataTreeFileName,"RECREATE");
 
     l.rooContainer->AddObservable("BDT" ,-1.,1.);
     l.rooContainer->AddObservable("VBF" ,1,1+2*sidebandWidth);	// Basically a single bin just for VBF
@@ -804,7 +816,21 @@ void MvaAnalysis::Init(LoopAll& l)
     //Invariant Mass Spectra
     l.rooContainer->CreateDataSet("CMS_hgg_mass","data_mass",nDataBins);
     l.rooContainer->CreateDataSet("CMS_hgg_mass","bkg_mass" ,nDataBins);       
-    l.rooContainer->CreateDataSet("CMS_hgg_mass","zee_mass" ,nDataBins);       
+    l.rooContainer->CreateDataSet("CMS_hgg_mass","zee_mass" ,nDataBins);
+
+    //Trees for toys
+    if (makeTrees) {
+      dataTree_ = new TTree("dataTree","dataTree");
+      dataTree_->Branch("CMS_hgg_mass",&_mgg);
+      dataTree_->Branch("bdtoutput",&_bdtoutput);
+      dataTree_->Branch("vbf",&_vbf);
+      dataTree_->Branch("weight",&_weight);
+      sigTree_  = new TTree("sigTree","sigTree");
+      sigTree_->Branch("CMS_hgg_mass",&_mgg);
+      sigTree_->Branch("bdtoutput",&_bdtoutput);
+      sigTree_->Branch("vbf",&_vbf);
+      sigTree_->Branch("weight",&_weight);
+    }
 
     int nBDTbins = 5000;
 
@@ -1415,6 +1441,12 @@ void MvaAnalysis::Analysis(LoopAll& l, Int_t jentry)
       // --- Fill invariant mass spectrum -------
       if (cur_type==0){  // Data
         l.rooContainer->InputDataPoint("data_mass",category,mass);
+        _mgg = mass;
+        _bdtoutput = bdtoutput;
+        _weight = evweight;
+        if (VBFevent) _vbf=1;
+        else _vbf=0;
+        if (makeTrees) dataTree_->Fill();
       } else if (cur_type>0){ // Background MC
         if (cur_type==6){l.rooContainer->InputBinnedDataPoint("zee_mass",category,mass,evweight);}
         else {l.rooContainer->InputBinnedDataPoint("bkg_mass",category,mass,evweight);}
@@ -1424,6 +1456,13 @@ void MvaAnalysis::Analysis(LoopAll& l, Int_t jentry)
 
       // ------ Deal with Signal MC first
       if (cur_type<0){ // signal MC
+        _mgg = mass;
+        _bdtoutput = bdtoutput;
+        _weight = evweight;
+        if (VBFevent) _vbf=1;
+        else _vbf=0;
+        if (makeTrees) sigTree_->Fill();
+        
         // define hypothesis masses for the sidebands
         float mass_hypothesis = masses[SignalType(cur_type)];
 
