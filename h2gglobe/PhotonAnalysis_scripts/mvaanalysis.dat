@@ -35,7 +35,7 @@ sidebandShift=0.
 numberOfSidebands=6
 numberOfSidebandsForAlgos=3
 numberOfSidebandGaps=1
-massSidebandMin=99.5
+massSidebandMin=99
 massSidebandMax=180.
 
 ->
@@ -84,6 +84,7 @@ reRunCiCForData=1
 doTraining=0
 splitSignalSample=0
 splitBackgroundSample=0
+makeTrees=1
 
 ->
 choose between UCSD and MIT trainings
