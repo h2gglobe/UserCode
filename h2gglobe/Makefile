@@ -57,7 +57,6 @@ LOOPALLO = LoopAll.$(ObjSuf) \
 
 DICTS = LoopAll.h BaseAnalysis.h BaseSmearer.h EnergySmearer.h EfficiencySmearer.h DiPhoEfficiencySmearer.h EnergySmearer.h KFactorSmearer.h SampleContainer.h PhotonFix.h \
 	VertexAnalysis/interface/VertexAlgoParameters.h\
-	ClassificationTree/ClassificationTree.h\
 	PhotonAnalysis/interface/PhotonAnalysis.h\
 	PhotonAnalysis/interface/StatAnalysis.h\
 	PhotonAnalysis/interface/MassFactorizedMvaAnalysis.h\
@@ -113,7 +112,6 @@ LoopAllDict.$(SrcSuf): CommonParameters.h LoopAll.h \
 	SampleContainer.h \
 	RooContainer.h \
 	VertexAnalysis/interface/VertexAlgoParameters.h\
-	ClassificationTree/ClassificationTree.h\
 	PhotonAnalysis/interface/PhotonAnalysis.h PhotonAnalysis/interface/StatAnalysis.h PhotonAnalysis/interface/MassFactorizedMvaAnalysis.h PhotonAnalysis/interface/MvaAnalysis.h
 
 	@echo "Generating dictionary $@..."
