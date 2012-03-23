@@ -1,22 +1,25 @@
-#define DEBUG
-
 #ifndef CLASSTREE_H
 #define CLASSTREE_H
 
-#ifdef DEBUG
+#define CLSDEBUGOUT
+#define CLSASSERT
+
+#ifdef CLSDEBUG
 #include <iostream>
 #define OUT(str) do { std::cout << __FUNCTION__ << ": " <<  str << std::endl; } while( false )
 #else
 #define OUT(str) do { } while ( false )
 #endif
 
-#ifdef DEBUG
+#ifdef CLSASSERT
+#include <iostream>
+#include <cstdlib>
 #   define ASSERT(condition, message) \
     do { \
         if (! (condition)) { \
             std::cerr << "Assertion `" #condition "` failed in " << __FILE__ \
                       << " line " << __LINE__ << ": " << message << std::endl; \
-            std::exit(EXIT_FAILURE); \
+            std::exit(-1);						\
         } \
     } while (false)
 #else

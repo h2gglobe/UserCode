@@ -27,6 +27,10 @@ VTX=VertexAnalysis
 VTXSRC=$(wildcard $(VTX)/src/*.$(SrcSuf))
 VTXOBS=$(patsubst %$(SrcSuf), %$(ObjSuf), $(VTXSRC))
 
+CLS=ClassificationTree
+CLSSRC=$(wildcard $(CLS)/*.$(SrcSuf))
+CLSOBS=$(patsubst %$(SrcSuf), %$(ObjSuf), $(CLSSRC))
+
 PHO=PhotonAnalysis
 PHOSRC=$(wildcard $(PHO)/src/*.$(SrcSuf))
 PHOOBS=$(patsubst %$(SrcSuf), %$(ObjSuf), $(PHOSRC))
@@ -49,10 +53,11 @@ LOOPALLO = LoopAll.$(ObjSuf) \
 	   Cut.o \
 	   TriggerSelection.o \
 	   PhotonFix.o \
-           $(VTXOBS) $(PHOOBS)
+           $(VTXOBS) $(PHOOBS) $(CLSOBS)
 
 DICTS = LoopAll.h BaseAnalysis.h BaseSmearer.h EnergySmearer.h EfficiencySmearer.h DiPhoEfficiencySmearer.h EnergySmearer.h KFactorSmearer.h SampleContainer.h PhotonFix.h \
 	VertexAnalysis/interface/VertexAlgoParameters.h\
+	ClassificationTree/ClassificationTree.h\
 	PhotonAnalysis/interface/PhotonAnalysis.h\
 	PhotonAnalysis/interface/StatAnalysis.h\
 	PhotonAnalysis/interface/MassFactorizedMvaAnalysis.h\
@@ -95,7 +100,7 @@ LoopAll.$(ObjSuf): CommonParameters.h LoopAll.h Tools.h \
 	MassResolution.cc MassResolution.h \
 	TriggerSelection.h TriggerSelection.cc \
 	PhotonFix.h PhotonFix.cc \
-	Cut.cc Cut.h $(VTXSRC) $(PHOSRC)
+	Cut.cc Cut.h $(VTXSRC) $(PHOSRC) $(CLSSRC)
 
 LoopAllDict.$(SrcSuf): CommonParameters.h LoopAll.h \
 	branchdef/Limits.h branchdef/treedef.h \
@@ -107,7 +112,9 @@ LoopAllDict.$(SrcSuf): CommonParameters.h LoopAll.h \
 	CounterContainer.h \
 	SampleContainer.h \
 	RooContainer.h \
-	VertexAnalysis/interface/VertexAlgoParameters.h PhotonAnalysis/interface/PhotonAnalysis.h PhotonAnalysis/interface/StatAnalysis.h PhotonAnalysis/interface/MassFactorizedMvaAnalysis.h PhotonAnalysis/interface/MvaAnalysis.h
+	VertexAnalysis/interface/VertexAlgoParameters.h\
+	ClassificationTree/ClassificationTree.h\
+	PhotonAnalysis/interface/PhotonAnalysis.h PhotonAnalysis/interface/StatAnalysis.h PhotonAnalysis/interface/MassFactorizedMvaAnalysis.h PhotonAnalysis/interface/MvaAnalysis.h
 
 	@echo "Generating dictionary $@..."
 	@rootcint -f $@ -c -I$(ROOFIT_BASE)/include -I$(CMSSW_BASE)/src $(DICTS)
