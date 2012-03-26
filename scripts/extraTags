@@ -1,5 +1,0 @@
-cvs co -r regression_Dec3d RecoEgamma/EgammaTools
-cvs co -r V00-02-04 CondFormats/EgammaObjects
-cvs co -r regression44x_Dec3 CondFormats/DataRecord
-checkdeps -a
-cvs co -r V00-03-35 RecoEgamma/ElectronIdentification
