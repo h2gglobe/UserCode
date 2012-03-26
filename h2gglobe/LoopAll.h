@@ -35,7 +35,7 @@ class BaseAnalysis;
 #include "VertexAnalysis/interface/PhotonInfo.h"
 #include "VertexAnalysis/interface/VertexAlgoParameters.h"
 
-#include "ClassificationTree/ClassificationTree.h"
+#include "ClassificationTree/interface/ClassificationTree.h"
 
 #define BRANCH_DICT(NAME) branchDict[# NAME] = branch_info_t(& b ## _ ## NAME, & LoopAll::SetBranchAddress ## _ ## NAME, & LoopAll::Branch ## _ ## NAME )
 

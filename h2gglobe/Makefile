@@ -28,7 +28,7 @@ VTXSRC=$(wildcard $(VTX)/src/*.$(SrcSuf))
 VTXOBS=$(patsubst %$(SrcSuf), %$(ObjSuf), $(VTXSRC))
 
 CLS=ClassificationTree
-CLSSRC=$(wildcard $(CLS)/*.$(SrcSuf))
+CLSSRC=$(wildcard $(CLS)/src/*.$(SrcSuf))
 CLSOBS=$(patsubst %$(SrcSuf), %$(ObjSuf), $(CLSSRC))
 
 PHO=PhotonAnalysis
