@@ -1451,11 +1451,14 @@ int LoopAll::DiphotonCiCSelection( phoCiCIDLevel LEADCUTLEVEL, phoCiCIDLevel SUB
 
 	  float leadpt = lead_p4.Pt() > sublead_p4.Pt() ? lead_p4.Pt() : sublead_p4.Pt();
       	  float subleadpt = lead_p4.Pt() < sublead_p4.Pt() ? lead_p4.Pt() : sublead_p4.Pt(); 	  
-
-	  if( applyPtoverM ) {
-	    if ( leadpt/m_gamgam < leadPtMin/120. || subleadpt/m_gamgam < subleadPtMin/120. ) { continue; }
-	  } else {
-	    if ( leadpt < leadPtMin || subleadpt < subleadPtMin ) { continue; }
+	  if(split){
+	 	  if ( leadpt/m_gamgam < leadPtMin/120. || subleadpt< subleadPtMin ) { continue; }
+	  }else{
+	  	if( applyPtoverM ) {
+	    		if ( leadpt/m_gamgam < leadPtMin/120. || subleadpt/m_gamgam < subleadPtMin/120. ) { continue; }
+	  	} else {
+	    		if ( leadpt < leadPtMin || subleadpt < subleadPtMin ) { continue; }
+	 	}
 	  }
 	  
 	  if (subleadpt > leadpt){ // Swap them
@@ -1553,12 +1556,6 @@ int LoopAll::DiphotonMITPreSelection(Float_t leadPtMin, Float_t subleadPtMin,boo
 	  float leadpt = lead_p4.Pt() > sublead_p4.Pt() ? lead_p4.Pt() : sublead_p4.Pt();
       	  float subleadpt = lead_p4.Pt() < sublead_p4.Pt() ? lead_p4.Pt() : sublead_p4.Pt(); 	  
 
-   if (run==173439 && lumis==155 && event==236661419) {
- std::cout <<	"Inside diphotonSelection now" <<std::endl;
- std::cout <<	"mass - " <<m_gamgam<<std::endl;
- std::cout <<	"lead ET - " <<leadpt<<std::endl;
- std::cout <<	"sublead ET - " <<subleadpt<<std::endl;
-}
 	  if( applyPtoverM ) {
 	    if ( leadpt/m_gamgam < leadPtMin/120. || subleadpt/m_gamgam < subleadPtMin/120. ) { continue; }
 	  } else {
