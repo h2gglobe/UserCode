@@ -95,7 +95,7 @@ class PhotonAnalysis : public BaseAnalysis
     std::vector<float> pho_et;
     // Other options
     bool runStatAnalysis;
-    TString puHist, puMap;//name of pileup reweighting histogram
+    TString puHist, puMap, puTarget;//name of pileup reweighting histogram
 
     enum BkgCategory{promptprompt,promptfake,fakefake};
     bool keepPP, keepPF, keepFF;
@@ -146,12 +146,15 @@ class PhotonAnalysis : public BaseAnalysis
  protected:
     void PreselectPhotons(LoopAll& l, int jentry);
     void StatAnalysis(LoopAll &l, int jentry);
-    void loadPuMap(const char * fname, TDirectory * dir);
-    void loadPuWeights(int typid, TDirectory * dir);
     float GetSmearSigma(float eta, float r9, int epoch=0);
     void SetNullHiggs(LoopAll& l);
     bool FindHiggsObjects(LoopAll& l);
     Bool_t GenMatchedPhoton(LoopAll& l, int ipho);
+
+    // Pile-up reweighing
+    void loadPuMap(const char * fname, TDirectory * dir, TH1 * target=0);
+    void loadPuWeights(int typid, TDirectory * dir, TH1 * target=0);
+    float getPuWeight(int npu, int sample_type, bool warnMe); 
 
     std::string name_;
     
@@ -203,7 +206,6 @@ class PhotonAnalysis : public BaseAnalysis
 
 // Local Variables:
 // mode: c++
-// mode: sensitive
 // c-basic-offset: 4
 // End:
 // vim: tabstop=4 expandtab shiftwidth=4 softtabstop=4
