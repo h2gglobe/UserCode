@@ -1,7 +1,0 @@
-
-#/bin/bash!
-
-./job_maker --MC --AOD --vlpresel --storage="castor" --name=DYJets --datasetpath="/DYJetsToLL_M-50_TuneZ2Star_8TeV-madgraph-tarball/Summer12-PU_S7_START52_V5-v2/AODSIM" --events=-1 --events_per_job=15000 --outputdir="c/cmshgg/processed/V13_01_00/mc/Summer12_S7_pffix" --globaltag="START52_V5::All" --hlttag="HLT" --blacklist="T2_US_Florida" 
-./job_maker --MC --AOD --mypresel --storage="castor" --name=QCD_Pt_30_80 --datasetpath="/QCD_Pt_30_80_EMEnriched_TuneZ2star_8TeV_pythia6/Summer12-PU_S7_START50_V15-v1/AODSIM" --events=-1 --events_per_job=300000 --outputdir="c/cmshgg/processed/V13_01_00/mc/Summer12_S7_pffix" --globaltag="START50_V15::All" --hlttag="HLT" --blacklist="T2_US_Florida"
-./job_maker --MC --AOD --noskim --storage="castor" --name=GluGluToHToGG_M-120 --datasetpath="/GluGluToHToGG_M-120_8TeV-powheg-pythia6/Summer12-PU_S7_START50_V15-v1/AODSIM" --events=-1 --events_per_job=5000 --outputdir="/c/cmshgg/processed/V13_01_00/mc/Summer12_S7_pffix" --globaltag="START50_V15::All" --hlttag="HLT" --blacklist="T2_US_Florida" 
-./job_maker --MC --AOD --noskim --storage="castor" --name=GluGluToHToGG_M-125 --datasetpath="/GluGluToHToGG_M-125_8TeV-powheg-pythia6/Summer12-PU_S7_START50_V15-v1/AODSIM" --events=-1 --events_per_job=5000 --outputdir="/c/cmshgg/processed/V13_01_00/mc/Summer12_S7_pffix" --globaltag="START50_V15::All" --hlttag="HLT" --blacklist="T2_US_Florida" 
