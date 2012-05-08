@@ -1242,7 +1242,7 @@ bool PhotonAnalysis::SelectEventsReduction(LoopAll& l, int jentry)
     }
     
 
-    return true;
+    return pho_presel.size() >= 2;
 }
 
 // ----------------------------------------------------------------------------------------------------
@@ -1322,10 +1322,10 @@ bool PhotonAnalysis::SelectEvents(LoopAll& l, int jentry)
 // ----------------------------------------------------------------------------------------------------
 void PhotonAnalysis::ReducedOutputTree(LoopAll &l, TTree * outputTree) 
 {
-    vtxAna_.branches(outputTree,"vtx_std_");    
+    if( outputTree ) { vtxAna_.branches(outputTree,"vtx_std_"); }
 
     l.pho_matchingConv = new  std::vector<int>();
-    l.Branch_pho_matchingConv(outputTree);
+    if( outputTree ) { l.Branch_pho_matchingConv(outputTree); }
     
     l.vtx_std_evt_mva = new std::vector<float>();
     l.vtx_std_ranked_list = new std::vector<std::vector<int> >();
@@ -1341,36 +1341,37 @@ void PhotonAnalysis::ReducedOutputTree(LoopAll &l, TTree * outputTree)
     l.pho_cic4passcuts_sublead = new std::vector<std::vector<std::vector<UInt_t> > >();
     l.dipho_vtx_std_sel =  new std::vector<int>();
 
-    l.Branch_vtx_std_evt_mva(outputTree);
-    l.Branch_vtx_std_ranked_list(outputTree);
-    l.Branch_vtx_std_sel(outputTree);
-    l.Branch_pho_tkiso_recvtx_030_002_0000_10_01(outputTree);
-    l.Branch_pho_tkiso_badvtx_040_002_0000_10_01(outputTree);
-    l.Branch_pho_tkiso_badvtx_id(outputTree);
-    l.Branch_pho_ZeeVal_tkiso_recvtx_030_002_0000_10_01(outputTree);
-    l.Branch_pho_ZeeVal_tkiso_badvtx_040_002_0000_10_01(outputTree);
-    l.Branch_pho_ZeeVal_tkiso_badvtx_id(outputTree);
-    l.Branch_pho_drtotk_25_99(outputTree);
-
-    l.Branch_dipho_n(outputTree);
-    l.Branch_dipho_leadind(outputTree);
-    l.Branch_dipho_subleadind(outputTree);
-    l.Branch_dipho_vtxind(outputTree);
-    l.Branch_dipho_sumpt(outputTree);
-    
-    l.Branch_pho_cic6cutlevel_lead( outputTree );
-    l.Branch_pho_cic6passcuts_lead( outputTree );
-    l.Branch_pho_cic6cutlevel_sublead( outputTree );
-    l.Branch_pho_cic6passcuts_sublead( outputTree );
-    l.Branch_pho_cic4cutlevel_lead( outputTree );
-    l.Branch_pho_cic4passcuts_lead( outputTree );
-    l.Branch_pho_cic4cutlevel_sublead( outputTree );
-    l.Branch_pho_cic4passcuts_sublead( outputTree );
-
-    l.Branch_pho_genmatched(outputTree);
-    l.Branch_pho_regr_energy_otf(outputTree);
-    l.Branch_pho_regr_energyerr_otf(outputTree);
-    
+    if( outputTree ) {
+	l.Branch_vtx_std_evt_mva(outputTree);
+	l.Branch_vtx_std_ranked_list(outputTree);
+	l.Branch_vtx_std_sel(outputTree);
+	l.Branch_pho_tkiso_recvtx_030_002_0000_10_01(outputTree);
+	l.Branch_pho_tkiso_badvtx_040_002_0000_10_01(outputTree);
+	l.Branch_pho_tkiso_badvtx_id(outputTree);
+	l.Branch_pho_ZeeVal_tkiso_recvtx_030_002_0000_10_01(outputTree);
+	l.Branch_pho_ZeeVal_tkiso_badvtx_040_002_0000_10_01(outputTree);
+	l.Branch_pho_ZeeVal_tkiso_badvtx_id(outputTree);
+	l.Branch_pho_drtotk_25_99(outputTree);
+	
+	l.Branch_dipho_n(outputTree);
+	l.Branch_dipho_leadind(outputTree);
+	l.Branch_dipho_subleadind(outputTree);
+	l.Branch_dipho_vtxind(outputTree);
+	l.Branch_dipho_sumpt(outputTree);
+	
+	l.Branch_pho_cic6cutlevel_lead( outputTree );
+	l.Branch_pho_cic6passcuts_lead( outputTree );
+	l.Branch_pho_cic6cutlevel_sublead( outputTree );
+	l.Branch_pho_cic6passcuts_sublead( outputTree );
+	l.Branch_pho_cic4cutlevel_lead( outputTree );
+	l.Branch_pho_cic4passcuts_lead( outputTree );
+	l.Branch_pho_cic4cutlevel_sublead( outputTree );
+	l.Branch_pho_cic4passcuts_sublead( outputTree );
+	
+	l.Branch_pho_genmatched(outputTree);
+	l.Branch_pho_regr_energy_otf(outputTree);
+	l.Branch_pho_regr_energyerr_otf(outputTree);
+    }
     
     l.gh_higgs_p4 = new TClonesArray("TLorentzVector", 1); 
     l.gh_higgs_p4->Clear();
@@ -1399,20 +1400,22 @@ void PhotonAnalysis::ReducedOutputTree(LoopAll &l, TTree * outputTree)
     l.gh_vh2_p4 = new TClonesArray("TLorentzVector", 1); 
     l.gh_vh2_p4->Clear();
     ((*l.gh_vh2_p4)[0]) = new TLorentzVector();
-    l.Branch_gh_gen2reco1( outputTree );
-    l.Branch_gh_gen2reco2( outputTree );
-    l.Branch_gh_vbfq1_pdgid( outputTree );
-    l.Branch_gh_vbfq2_pdgid( outputTree );
-    l.Branch_gh_vh_pdgid( outputTree );
-    l.Branch_gh_vh1_pdgid( outputTree );
-    l.Branch_gh_vh2_pdgid( outputTree );
-    l.Branch_gh_higgs_p4( outputTree );
-    l.Branch_gh_pho1_p4( outputTree );
-    l.Branch_gh_pho2_p4( outputTree );
-    l.Branch_gh_vbfq1_p4( outputTree );
-    l.Branch_gh_vbfq2_p4( outputTree );
-    l.Branch_gh_vh1_p4( outputTree );
-    l.Branch_gh_vh2_p4( outputTree );
+    if( outputTree ) {
+	l.Branch_gh_gen2reco1( outputTree );
+	l.Branch_gh_gen2reco2( outputTree );
+	l.Branch_gh_vbfq1_pdgid( outputTree );
+	l.Branch_gh_vbfq2_pdgid( outputTree );
+	l.Branch_gh_vh_pdgid( outputTree );
+	l.Branch_gh_vh1_pdgid( outputTree );
+	l.Branch_gh_vh2_pdgid( outputTree );
+	l.Branch_gh_higgs_p4( outputTree );
+	l.Branch_gh_pho1_p4( outputTree );
+	l.Branch_gh_pho2_p4( outputTree );
+	l.Branch_gh_vbfq1_p4( outputTree );
+	l.Branch_gh_vbfq2_p4( outputTree );
+	l.Branch_gh_vh1_p4( outputTree );
+	l.Branch_gh_vh2_p4( outputTree );
+    }
 
 }
 

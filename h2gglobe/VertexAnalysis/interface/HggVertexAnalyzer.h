@@ -377,6 +377,5 @@ private:
 
 // Local Variables:
 // mode: c++       
-// mode: sensitive 
 // c-basic-offset: 8
 // End:             

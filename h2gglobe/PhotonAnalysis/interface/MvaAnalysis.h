@@ -192,7 +192,6 @@ class MvaAnalysis : public PhotonAnalysis
 
 // Local Variables:
 // mode: c++
-// mode: sensitive
 // c-basic-offset: 4
 // End:
 // vim: tabstop=4 expandtab shiftwidth=4 softtabstop=4

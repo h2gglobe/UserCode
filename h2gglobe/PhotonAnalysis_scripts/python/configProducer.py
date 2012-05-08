@@ -68,7 +68,7 @@ class configProducer:
     if njobs>=0: self.ut_.SetSubJob(True)
     else: self.ut_.SetSubJob(False)
 
-    if self.type_ == 0 or self.type_ == 2:
+    if self.type_ == 0:
       self.init_loop()
       self.init_counters()
       self.init_histos()
@@ -78,7 +78,7 @@ class configProducer:
       self.init_reduce()
       self.init_cuts()
 
-    elif self.type_ == 3:
+    elif self.type_ == 2:
       self.init_loop()
 
     else: 

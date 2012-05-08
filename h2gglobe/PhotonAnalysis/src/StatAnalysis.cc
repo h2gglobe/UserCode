@@ -11,8 +11,7 @@ using namespace std;
 
 // ----------------------------------------------------------------------------------------------------
 StatAnalysis::StatAnalysis()  : 
-    name_("StatAnalysis"),
-    vtxAna_(vtxAlgoParams), vtxConv_(vtxAlgoParams)
+    name_("StatAnalysis")
 {
 
     systRange  = 3.; // in units of sigma

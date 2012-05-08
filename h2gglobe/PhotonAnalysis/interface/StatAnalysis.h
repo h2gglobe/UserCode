@@ -34,7 +34,12 @@ class StatAnalysis : public PhotonAnalysis
     virtual bool SelectEvents(LoopAll&, int);
     virtual void ResetAnalysis();
     virtual void Analysis(LoopAll&, Int_t);
-    
+
+    virtual bool AnalyseEvent(LoopAll& l, Int_t jentry, float weight, TLorentzVector & gP4, float & mass, float & evweight, int & category, int & diphoton_id,
+			      bool & isCorrectVertex,
+			      bool isSyst=false, 
+			      float syst_shift=0., bool skipSelection=false,
+			      BaseGenLevelSmearer *genSys=0, BaseSmearer *phoSys=0, BaseDiPhotonSmearer * diPhoSys=0); 
     
     std::string efficiencyFile;
 
@@ -76,11 +81,6 @@ class StatAnalysis : public PhotonAnalysis
     int nMasses;
 
  protected:
-    bool AnalyseEvent(LoopAll& l, Int_t jentry, float weight, TLorentzVector & gP4, float & mass, float & evweight, int & category, int & diphoton_id,
-		      bool & isCorrectVertex,
-		      bool isSyst=false, 
-		      float syst_shift=0., bool skipSelection=false,
-		      BaseGenLevelSmearer *genSys=0, BaseSmearer *phoSys=0, BaseDiPhotonSmearer * diPhoSys=0); 
     bool VHmuevent, VHelevent, VBFevent, VHhadevent;
     double genLevWeight; 
 
@@ -106,9 +106,6 @@ class StatAnalysis : public PhotonAnalysis
     int nCategories_;
     int nPhotonCategories_;
     int diPhoCounter_;
-    // Vertex analysis
-    HggVertexAnalyzer vtxAna_;
-    HggVertexFromConversions vtxConv_;
     
     // RooStuff
     RooContainer *rooContainer;

@@ -530,7 +530,7 @@ public:
 	GlobeVertexInfo(LoopAll &);
 	
 	virtual int nvtx() const    { return lo_.vtx_std_n; };
-	virtual int ntracks() const { return lo_.tk_n; };
+	virtual int ntracks() const { return lo_.tk_p4->GetEntries(); } // return lo_.tk_n; };
 	
 	virtual bool hasVtxTracks() const { return true; }
 	virtual const unsigned short * vtxTracks(int ii) const { return &(*lo_.vtx_std_tkind)[ii][0]; };

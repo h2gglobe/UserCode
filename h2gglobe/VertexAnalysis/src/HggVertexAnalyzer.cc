@@ -56,19 +56,19 @@ void HggVertexAnalyzer::setupWithDefaultOptions(const std::string & pathToPerVer
 	params_.coneSize=0.05;
 
 	params_.useAllConversions=1;
-    params_.sigma1Pix=0.016;
-    params_.sigma1Tib=0.572;
-    params_.sigma1Tob=4.142;
-    params_.sigma1PixFwd=0.082;
-    params_.sigma1Tid=0.321;
-    params_.sigma1Tec=3.109;
-
-    params_.sigma2Pix=0.035;
-    params_.sigma2Tib=0.331;
-    params_.sigma2Tob=1.564;
-    params_.sigma2PixFwd=0.189;
-    params_.sigma2Tid=0.418;
-    params_.sigma2Tec=0.815;
+	params_.sigma1Pix=0.016;
+	params_.sigma1Tib=0.572;
+	params_.sigma1Tob=4.142;
+	params_.sigma1PixFwd=0.082;
+	params_.sigma1Tid=0.321;
+	params_.sigma1Tec=3.109;
+	
+	params_.sigma2Pix=0.035;
+	params_.sigma2Tib=0.331;
+	params_.sigma2Tob=1.564;
+	params_.sigma2PixFwd=0.189;
+	params_.sigma2Tid=0.418;
+	params_.sigma2Tec=0.815;
 	
 	params_.vtxProbFormula="1.-0.49*(x+1)";
 	
@@ -526,6 +526,7 @@ int HggVertexAnalyzer::pairID(int pho1, int pho2)
 // -------------------------------------------------------------------------------------------------------------------------------------------------------------
 void HggVertexAnalyzer::clear()
 {
+	/// std::cerr << "HggVertexAnalyzer::clear" << std::endl;
 	mva_.clear();
 	rcomb_.clear();
 	
@@ -604,11 +605,12 @@ void HggVertexAnalyzer::analyze(const VertexInfoAdapter & e, const PhotonInfo & 
 {
 	int const nvtx = e.nvtx();
 	nvtx_ = nvtx;
-	/// std::cerr << "HggVertexAnalyzer::analyze " << nvtx_ << std::endl;
 	int pho1 = p1.id();
 	int pho2 = p2.id();
 	ipair_ = pairID(pho1,pho2);
+	/// std::cerr << "HggVertexAnalyzer::analyze " << nvtx_ << " " << ipair_ << std::endl;
 	if( ipair_ >= (int)pho1_.size() ) {
+		/// std::cerr << "HggVertexAnalyzer::analyze " << __LINE__ << std::endl;
 		pho1_.push_back(pho1);
 		pho2_.push_back(pho2);
 
@@ -996,6 +998,5 @@ TupleVertexInfo::TupleVertexInfo(int nvtx, float * vtxx, float * vtxy, float * v
 
 // Local Variables:
 // mode: c++       
-// mode: sensitive 
 // c-basic-offset: 8
 // End:             

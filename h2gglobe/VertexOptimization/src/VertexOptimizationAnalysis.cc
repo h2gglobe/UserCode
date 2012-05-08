@@ -23,6 +23,11 @@ VertexOptimizationAnalysis::~VertexOptimizationAnalysis()
 // ----------------------------------------------------------------------------------------------------
 void VertexOptimizationAnalysis::Term(LoopAll& l) 
 {
+    l.outputFile->cd();
+    uTree_->Write();
+    hMinBiasSpecturm_->Write();
+    uTree_->SetDirectory(0);
+    hMinBiasSpecturm_->SetDirectory(0);
 }
 
 // ----------------------------------------------------------------------------------------------------
@@ -34,14 +39,27 @@ void VertexOptimizationAnalysis::Init(LoopAll& l)
 
     StatAnalysis::Init(l);
 
-    // per vertex tree
-    uFile_ = TFile::Open(uFileName,"recreate");
-    uFile_->cd(); 
+    /////// TDirectory * pwd = gDirectory;
+    /////// if( l.outputFile != 0 ) {
+    /////// 	uFile_ = l.outputFile;
+    /////// } else {
+    /////// 	uFile_ = TFile::Open(uFileName,"recreate");
+    /////// }
+    /////// uFile_->cd(); 
+    ///////
+    /////// pwd->cd();
+}
 
-    uTree_ = new TTree("utree","MicroAnalysis per Vertex Tree");
+void VertexOptimizationAnalysis::ReducedOutputTree(LoopAll &l, TTree * outputTree) 
+{
+    // per vertex tree
+    TDirectory * pwd = gDirectory;
+    outputTree->GetDirectory()->cd();
+    uTree_ = new TTree("vtxOptTree","Vertex optimization tree");
     uTree_->Branch("nVert",   &nVert_   );
     uTree_->Branch("nPU",     &nPU_     );
     uTree_->Branch("evWeight",&evWeight_);
+    uTree_->Branch("isClosestToGen",&isClosestToGen_);
     
     vtxVarNames_.push_back("ptvtx"), vtxVarNames_.push_back("ptasym"), vtxVarNames_.push_back("ptratio"), 
 	vtxVarNames_.push_back("ptbal"), vtxVarNames_.push_back("logsumpt2"), vtxVarNames_.push_back("ptmax3"), 
@@ -51,21 +69,23 @@ void VertexOptimizationAnalysis::Init(LoopAll& l)
     for( size_t iv=0; iv<vtxVarNames_.size(); ++iv ) {
 	uTree_->Branch(vtxVarNames_[iv].c_str(),&vtxVars_[iv]);
     }
+
+    hMinBiasSpecturm_ = new TH1F("minBiasSpecturm","minBiasSpecturm;;p_{T} (GeV/c)",200,0,20);
     
     //////////// // per event tree
     //////////// evTree_ = new TTree("evtree","MicroAnalysis per Event Tree");
-    //////////// evTree_->Branch("dZTrue",&dZTrue_);
-    //////////// evTree_->Branch("alphaTrue",&alphaTrue_);
-    //////////// evTree_->Branch("zTrue",&zTrue_);
-    //////////// evTree_->Branch("rTrue",&rTrue_);
-    //////////// evTree_->Branch("zRMS",&zRMS_);
-    //////////// evTree_->Branch("category",&category_,"category/I");
-    //////////// evTree_->Branch("mTrue",&mTrue_);
-    //////////// evTree_->Branch("mTrueVtx",&mTrueVtx_);
-    //////////// evTree_->Branch("nVert",&nVert_);
-    //////////// evTree_->Branch("evWeight",&evWeight_);
-    //////////// evTree_->Branch("nConv",&nConv_);
-    //////////// evTree_->Branch("ConvCompat",&convCompat_);
+    //////////// outputTree->Branch("dZTrue",&dZTrue_);
+    //////////// outputTree->Branch("alphaTrue",&alphaTrue_);
+    //////////// outputTree->Branch("zTrue",&zTrue_);
+    //////////// outputTree->Branch("rTrue",&rTrue_);
+    //////////// outputTree->Branch("zRMS",&zRMS_);
+    //////////// outputTree->Branch("category",&category_,"category/I");
+    //////////// outputTree->Branch("mTrue",&mTrue_);
+    //////////// outputTree->Branch("mTrueVtx",&mTrueVtx_);
+    //////////// outputTree->Branch("nVert",&nVert_);
+    //////////// outputTree->Branch("evWeight",&evWeight_);
+    //////////// outputTree->Branch("nConv",&nConv_);
+    //////////// outputTree->Branch("ConvCompat",&convCompat_);
     //////////// for(int i=0;i<storeNVert; i++){
     //////////// 	evTree_->Branch(Form("MVA%d",i),&MVA_[i]);
     //////////// 	evTree_->Branch(Form("alpha%d",i),&alpha_[i]);
@@ -73,14 +93,16 @@ void VertexOptimizationAnalysis::Init(LoopAll& l)
     //////////// 	evTree_->Branch(Form("dZ%d",i),&dZ_[i]);
     //////////// }
     
+    pwd->cd();
+    PhotonAnalysis::ReducedOutputTree(l,0);
 }
 
 // ----------------------------------------------------------------------------------------------------
 bool VertexOptimizationAnalysis::AnalyseEvent(LoopAll& l, Int_t jentry, float weight, TLorentzVector & gP4, float & mass, float & evweight, int & category, int & diphoton_id,
 			      bool & isCorrectVertex,
-			      bool isSyst=false, 
-			      float syst_shift=0., bool skipSelection=false,
-			      BaseGenLevelSmearer *genSys=0, BaseSmearer *phoSys=0, BaseDiPhotonSmearer * diPhoSys=0)
+			      bool isSyst, 
+			      float syst_shift, bool skipSelection,
+			      BaseGenLevelSmearer *genSys, BaseSmearer *phoSys, BaseDiPhotonSmearer * diPhoSys)
 {
     static std::vector<HggVertexAnalyzer::getter_t> varMeths_(0);
     if( varMeths_.empty() ) {
@@ -113,6 +135,7 @@ bool VertexOptimizationAnalysis::AnalyseEvent(LoopAll& l, Int_t jentry, float we
     diphoton_id = l.DiphotonCiCSelection(l.phoNOCUTS, l.phoNOCUTS, leadEtCut, subleadEtCut, 4,applyPtoverM, &smeared_pho_energy[0] ); 
 
     if (diphoton_id > -1 ) {
+	/// std::cout << diphoton_id << " " << l.dipho_n << std::endl;
         diphoton_index = std::make_pair( l.dipho_leadind[diphoton_id],  l.dipho_subleadind[diphoton_id] );
 	evweight = weight * smeared_pho_weight[diphoton_index.first] * smeared_pho_weight[diphoton_index.second] * genLevWeight;
 
@@ -134,49 +157,43 @@ bool VertexOptimizationAnalysis::AnalyseEvent(LoopAll& l, Int_t jentry, float we
         }
         float ptHiggs = Higgs.Pt();
 	
+	// fill optimization tree
 	vtxAna_.setPairID(diphoton_id);
+	/// std::cout << vtxAna_.pho1() << " " << vtxAna_.pho1() << std::endl;
 	nVert_    = l.vtx_std_n;
 	nPU_      = l.pu_n;
 	evWeight_ = evweight;
+	int closest_id = -1;
+	float minDist = 999.;
 	for(int vi=0; vi<l.vtx_std_n; ++vi) {
-	    
-	    for( size_t ivar=0; ivar<vtxVarNames_.size(); ++ivar ){
+	    float dist =  fabs( ( *((TVector3*)l.vtx_std_xyz->At(vi)) - *((TVector3*)l.gv_pos->At(0)) ).Z() );
+	    if( dist < 1. && dist < minDist ) {
+		closest_id = vi;
+	    }
+	}
+	for(int vi=0; vi<l.vtx_std_n; ++vi) {
+	    isClosestToGen_ = (vi == closest_id);
+
+	    for( size_t ivar=0; ivar<vtxVarNames_.size(); ++ivar ) {
 		vtxVars_[ivar] = (vtxAna_.*(varMeths_[ivar]))(vi);
 	    }
 	    
+	    int ntks = l.vtx_std_ntks[vi];
+	    for(int ti=0; ti<ntks; ++ti) {
+		int tkind = (*l.vtx_std_tkind)[vi][ti];
+		if( tkind >= l.tk_n ) { continue; }
+		TLorentzVector* tkp4 = (TLorentzVector*)l.tk_p4->At(tkind);
+		if( ! isClosestToGen_ ) {
+		    hMinBiasSpecturm_->Fill(tkp4->Pt());
+		}
+	    }
+	    
+	    uTree_->Fill();
 	}
-    }	
+    }
+    
+    return false;
 }
-
-// ----------------------------------------------------------------------------------------------------
-bool VertexOptimizationAnalysis::SelectEvents(LoopAll&, int)
-{
-    return true;
-}
-
-// ----------------------------------------------------------------------------------------------------
-void VertexOptimizationAnalysis::FillReductionVariables(LoopAll& l, int jentry)
-{
-}
-   
-// ----------------------------------------------------------------------------------------------------
-bool VertexOptimizationAnalysis::SelectEventsReduction(LoopAll&, int)
-{
-    return true;
-}
-
-// ----------------------------------------------------------------------------------------------------
-bool VertexOptimizationAnalysis::SkimEvents(LoopAll&, int)
-{
-    return true;
-}
-
-// ----------------------------------------------------------------------------------------------------
-void VertexOptimizationAnalysis::ReducedOutputTree(LoopAll &l, TTree * outputTree) 
-{
-    vtxAna_.branches(outputTree,"vtx_std_");    
-}
-
 
 // Local Variables:
 // mode: c++

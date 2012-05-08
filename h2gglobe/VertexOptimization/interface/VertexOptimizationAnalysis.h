@@ -30,21 +30,27 @@ class VertexOptimizationAnalysis : public StatAnalysis
     void Init(LoopAll&);
     void Term(LoopAll&);
     
-    virtual void FillReductionVariables(LoopAll& l, int jentry);   
-    virtual bool SelectEventsReduction(LoopAll&, int);
-    virtual void ReducedOutputTree(LoopAll &l, TTree * outputTree); 
-    
-    virtual bool SkimEvents(LoopAll&, int);
-    virtual bool SelectEvents(LoopAll&, int);
-    
+    void ReducedOutputTree(LoopAll &l, TTree * outputTree);
+
     virtual bool AnalyseEvent(LoopAll& l, Int_t jentry, float weight, TLorentzVector & gP4, float & mass, float & evweight, int & category, int & diphoton_id,
 			      bool & isCorrectVertex,
 			      bool isSyst=false, 
 			      float syst_shift=0., bool skipSelection=false,
 			      BaseGenLevelSmearer *genSys=0, BaseSmearer *phoSys=0, BaseDiPhotonSmearer * diPhoSys=0); 
+    
+    TString uFileName;
+    
 private:
     std::vector<std::string> vtxVarNames_;
     std::vector<float> vtxVars_;
+    
+    TFile * uFile_;
+    TTree * uTree_;
+    TH1 * hMinBiasSpecturm_;
+    bool isClosestToGen_;
+    int   nPU_, nVert_;
+    float evWeight_;
+    
 };
 
 #endif
