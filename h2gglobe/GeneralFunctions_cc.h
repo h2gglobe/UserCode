@@ -140,8 +140,7 @@ Float_t LoopAll::photonIDMVA(Int_t iPhoton, Int_t vtx, TLorentzVector &p4, const
     tmva_id_mit_hoe = pho_hoe[iPhoton];
     tmva_id_mit_sieie = pho_sieie[iPhoton];
    
-    //float rhofacbad=0.52, rhofac=0.17;
-    float rhofacbad=0.354293, rhofac=0.171688;
+    float rhofacbad=0.52, rhofac=0.17;
     
     Float_t raw = sc_raw[pho_scind[iPhoton]];
 //    TLorentzVector p4 = get_pho_p4(iPhoton, vtx);
@@ -838,15 +837,15 @@ int  LoopAll::matchPhotonToConversion( int lpho) {
 
   if(LDEBUG)  cout << "   LoopAll::matchPhotonToConversion conv_n " << conv_n << endl; 
   for(int iconv=0; iconv<conv_n; iconv++) {
-    TVector3 refittedPairMomentum= *((TVector3*) conv_refitted_momentum->At(iconv));
+    TVector3 refittedPairMomentum= conv_ntracks[iconv]==1 ? *((TVector3*) conv_singleleg_momentum->At(iconv)) : *((TVector3*) conv_refitted_momentum->At(iconv));
     conv_pt =  refittedPairMomentum.Pt();
     if (conv_pt < 1 ) continue;
     if ( conv_ntracks[iconv]!=1 && conv_ntracks[iconv]!=2) continue;
     if ( conv_ntracks[iconv]==2 && (!conv_validvtx[iconv] || conv_ntracks[iconv]!=2 || conv_chi2_probability[iconv]<0.000001)) continue; // Changed back based on meeting on 21.03.2012
 
-    phi  = ((TVector3 *) conv_refitted_momentum->At(iconv))->Phi();
+    phi  = refittedPairMomentum.Phi();
     conv_phi  = phiNorm(phi);
-    float eta  = ((TVector3 *) conv_refitted_momentum->At(iconv))->Eta();
+    float eta  = refittedPairMomentum.Eta();
     conv_eta = etaTransformation(eta, conv_zofprimvtxfromtrks[iconv] );
 
     //    cout << " conversion index " << iconv << " eta " <<conv_eta<<  " norm phi " << conv_phi << " PT " << conv_pt << endl; 
@@ -1796,8 +1795,7 @@ int LoopAll::PhotonCiCSelectionLevel( int photon_index, int vertex_index, std::v
   }
   
   /// float rhofacbad=0.40, rhofac=0.05;
-  //float rhofacbad=0.52, rhofac=0.17;
-  float rhofacbad=0.354293, rhofac=0.171688;
+  float rhofacbad=0.52, rhofac=0.17;
 
   // isolation cone energies divided by Et
   //                        tracker iso    ecal iso         hcal iso         offset ?!        mean energy
