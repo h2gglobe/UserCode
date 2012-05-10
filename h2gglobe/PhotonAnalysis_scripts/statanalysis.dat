@@ -73,6 +73,8 @@ doR9Syst=1
 doKFactorSmear=1
 doKFactorSyst=1
 
+doInterferenceSmear=1
+
 ->
 Inputs for reweighing
 ->
