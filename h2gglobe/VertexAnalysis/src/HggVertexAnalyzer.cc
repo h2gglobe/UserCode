@@ -70,10 +70,10 @@ void HggVertexAnalyzer::setupWithDefaultOptions(const std::string & pathToPerVer
 	params_.sigma2Tid=0.418;
 	params_.sigma2Tec=0.815;
 
-	params_.singlelegsigma2Pix=10.0;
+	params_.singlelegsigma2Pix=0.036;
 	params_.singlelegsigma2Tib=0.456;
 	params_.singlelegsigma2Tob=0.362;
-	params_.singlelegsigma2PixFwd=10.0;
+	params_.singlelegsigma2PixFwd=0.130;
 	params_.singlelegsigma2Tid=0.465;
 	params_.singlelegsigma2Tec=1.018;
     
