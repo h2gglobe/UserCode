@@ -1,3 +1,4 @@
+
 #include "Sorters.h"
 
 
@@ -834,19 +835,23 @@ int  LoopAll::matchPhotonToConversion( int lpho) {
   float mconv_pt=-999999;
   int iMatch=-1;     
   float conv_pt = -9999;
+  int ntracks = 0;
 
   if(LDEBUG)  cout << "   LoopAll::matchPhotonToConversion conv_n " << conv_n << endl; 
   for(int iconv=0; iconv<conv_n; iconv++) {
     TVector3 refittedPairMomentum= conv_ntracks[iconv]==1 ? *((TVector3*) conv_singleleg_momentum->At(iconv)) : *((TVector3*) conv_refitted_momentum->At(iconv));
     conv_pt =  refittedPairMomentum.Pt();
+    if(LDEBUG) cout << "Looking at conversion: " << conv_n << " it has ntracks: " << conv_ntracks[iconv] << " and Pt: " << conv_pt << endl;
     if (conv_pt < 1 ) continue;
     if ( conv_ntracks[iconv]!=1 && conv_ntracks[iconv]!=2) continue;
-    if ( conv_ntracks[iconv]==2 && (!conv_validvtx[iconv] || conv_ntracks[iconv]!=2 || conv_chi2_probability[iconv]<0.000001)) continue; // Changed back based on meeting on 21.03.2012
+    if ( conv_ntracks[iconv]==2 && (!conv_validvtx[iconv] || conv_chi2_probability[iconv]<0.000001)) continue; // Changed back based on meeting on 21.03.2012
 
     phi  = refittedPairMomentum.Phi();
     conv_phi  = phiNorm(phi);
     float eta  = refittedPairMomentum.Eta();
-    conv_eta = etaTransformation(eta, conv_zofprimvtxfromtrks[iconv] );
+    float zpositionfromconv = get_pho_zposfromconv(*((TVector3*) conv_vtx->At(iconv)),*((TVector3*) sc_xyz->At(pho_scind[lpho])),*((TVector3*) bs_xyz->At(0)));
+    //conv_eta = etaTransformation(eta, conv_zofprimvtxfromtrks[iconv] );
+    conv_eta = etaTransformation(eta, zpositionfromconv );
 
     //    cout << " conversion index " << iconv << " eta " <<conv_eta<<  " norm phi " << conv_phi << " PT " << conv_pt << endl; 
 
@@ -869,6 +874,7 @@ int  LoopAll::matchPhotonToConversion( int lpho) {
       dRMin=dR;
       iMatch=iconv;
       mconv_pt = conv_pt;
+      ntracks = conv_ntracks[iconv];
     }
     
   }
@@ -877,7 +883,7 @@ int  LoopAll::matchPhotonToConversion( int lpho) {
 
   //if ( detaMin < 0.1 && dphiMin < 0.1 ) {
   if ( dRMin< 0.1 ) {
-    if(LDEBUG)    cout << " matched conversion index " << iMatch << " eta " <<conv_eta<< " phi " << conv_phi << " pt " << mconv_pt << endl; 	
+    if (LDEBUG) cout << " matched conversion index " << iMatch << " ntracks " << ntracks << " eta " << conv_eta << " phi " << conv_phi << " pt " << mconv_pt << endl; 	
     result = iMatch;
   } else {
     result = -1;
@@ -888,6 +894,22 @@ int  LoopAll::matchPhotonToConversion( int lpho) {
 
 }
 
+double LoopAll::get_pho_zposfromconv(TVector3 convvtx, TVector3 superclustervtx, TVector3 beamSpot) {
+  
+  double deltaX1 = superclustervtx.X()-convvtx.X();
+  double deltaY1 = superclustervtx.Y()-convvtx.Y();
+  double deltaZ1 = superclustervtx.Z()-convvtx.Z();
+  double R1 = sqrt(deltaX1*deltaX1+deltaY1*deltaY1);
+  double tantheta = R1/deltaZ1;
+  
+  double deltaX2 = convvtx.X()-beamSpot.X();
+  double deltaY2 = convvtx.Y()-beamSpot.Y();
+  double R2 = sqrt(deltaX2*deltaX2+deltaY2*deltaY2);
+  double deltaZ2 = R2/tantheta;
+  double primaryvertexZ = superclustervtx.Z()-deltaZ1-deltaZ2;
+  return primaryvertexZ;
+
+}
 
 // ---------------------------------------------------------------------------------------------------------------------------------------------
 TLorentzVector LoopAll::get_pho_p4(int ipho, int ivtx, const float * energy) const

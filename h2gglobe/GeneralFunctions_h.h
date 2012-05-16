@@ -12,6 +12,7 @@ Float_t sipCalculator(int);
 // Match the Photon with the merged collection of conversions
 PhotonInfo fillPhotonInfos(int p1, bool useAllConvs, float * energy=0);
 int matchPhotonToConversion(int); 
+double get_pho_zposfromconv(TVector3,TVector3,TVector3); 
 double phiNorm (float &phi);
 double etaTransformation(  float EtaParticle , float Zvertex);
 
