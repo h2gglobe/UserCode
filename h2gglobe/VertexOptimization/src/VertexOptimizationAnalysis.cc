@@ -13,6 +13,8 @@ using namespace std;
 VertexOptimizationAnalysis::VertexOptimizationAnalysis()  
 {
     name_ = "VertexOptimizationAnalysis";
+
+    minBiasRefName = "aux/minBiasRef.root";
 }
 
 // ----------------------------------------------------------------------------------------------------
@@ -26,8 +28,10 @@ void VertexOptimizationAnalysis::Term(LoopAll& l)
     l.outputFile->cd();
     uTree_->Write();
     hMinBiasSpecturm_->Write();
+    hHiggsSpecturm_->Write();
     uTree_->SetDirectory(0);
     hMinBiasSpecturm_->SetDirectory(0);
+    hHiggsSpecturm_->SetDirectory(0);
 }
 
 // ----------------------------------------------------------------------------------------------------
@@ -35,42 +39,51 @@ void VertexOptimizationAnalysis::Init(LoopAll& l)
 {
     doVtxEffSmear = false;
     doTriggerEffSmear = false;
+    doEscaleSmear = false;
+    doPhotonIdEffSmear = false;
+    doR9Smear = false;
+    doTriggerEffSmear = false;
+    
     doSystematics = false;
 
+    TFile * mbRef = TFile::Open(minBiasRefName);
+    hMinBiasRef_ = (TH1*)mbRef->Get("minBiasSpecturm")->Clone("hMinBiasRef");
+    hMinBiasRef_->SetDirectory(0);
+    mbRef->Close();
+    
     StatAnalysis::Init(l);
-
-    /////// TDirectory * pwd = gDirectory;
-    /////// if( l.outputFile != 0 ) {
-    /////// 	uFile_ = l.outputFile;
-    /////// } else {
-    /////// 	uFile_ = TFile::Open(uFileName,"recreate");
-    /////// }
-    /////// uFile_->cd(); 
-    ///////
-    /////// pwd->cd();
 }
 
 void VertexOptimizationAnalysis::ReducedOutputTree(LoopAll &l, TTree * outputTree) 
 {
     // per vertex tree
+    pho1_=0, pho2_=0, dipho_=0;
     TDirectory * pwd = gDirectory;
     outputTree->GetDirectory()->cd();
     uTree_ = new TTree("vtxOptTree","Vertex optimization tree");
     uTree_->Branch("nVert",   &nVert_   );
     uTree_->Branch("nPU",     &nPU_     );
     uTree_->Branch("evWeight",&evWeight_);
+    uTree_->Branch("ksprob",&ksprob_);
     uTree_->Branch("isClosestToGen",&isClosestToGen_);
+    uTree_->Branch("passCiC",&passCiC_);
+    uTree_->Branch("pho1",&pho1_,32000,0);
+    uTree_->Branch("pho2",&pho2_,32000,0);
+    uTree_->Branch("dipho",&dipho_,32000,0);
     
     vtxVarNames_.push_back("ptvtx"), vtxVarNames_.push_back("ptasym"), vtxVarNames_.push_back("ptratio"), 
 	vtxVarNames_.push_back("ptbal"), vtxVarNames_.push_back("logsumpt2"), vtxVarNames_.push_back("ptmax3"), 
 	vtxVarNames_.push_back("ptmax"), vtxVarNames_.push_back("nchthr"), vtxVarNames_.push_back("sumtwd"),
-	vtxVarNames_.push_back("pulltoconv"), vtxVarNames_.push_back("nch"); 
+	vtxVarNames_.push_back("pulltoconv"), vtxVarNames_.push_back("limpulltoconv"), 
+	vtxVarNames_.push_back("nch"), vtxVarNames_.push_back("nconv"), 
+	vtxVarNames_.push_back("mva"); 
     vtxVars_.resize( vtxVarNames_.size() );
     for( size_t iv=0; iv<vtxVarNames_.size(); ++iv ) {
 	uTree_->Branch(vtxVarNames_[iv].c_str(),&vtxVars_[iv]);
     }
 
     hMinBiasSpecturm_ = new TH1F("minBiasSpecturm","minBiasSpecturm;;p_{T} (GeV/c)",200,0,20);
+    hHiggsSpecturm_   = new TH1F("higgsSpecturm","higgsSpecturm;;p_{T} (GeV/c)",200,0,20);
     
     //////////// // per event tree
     //////////// evTree_ = new TTree("evtree","MicroAnalysis per Event Tree");
@@ -135,10 +148,24 @@ bool VertexOptimizationAnalysis::AnalyseEvent(LoopAll& l, Int_t jentry, float we
     diphoton_id = l.DiphotonCiCSelection(l.phoNOCUTS, l.phoNOCUTS, leadEtCut, subleadEtCut, 4,applyPtoverM, &smeared_pho_energy[0] ); 
 
     if (diphoton_id > -1 ) {
+	int closest_id = -1;
+	float minDist = 999.;
+	for(int vi=0; vi<l.vtx_std_n; ++vi) {
+	    float dist =  fabs( ( *((TVector3*)l.vtx_std_xyz->At(vi)) - *((TVector3*)l.gv_pos->At(0)) ).Z() );
+	    if( dist < minDist ) {
+		closest_id = vi;
+		minDist = dist;
+	    }
+	}
+	
 	/// std::cout << diphoton_id << " " << l.dipho_n << std::endl;
         diphoton_index = std::make_pair( l.dipho_leadind[diphoton_id],  l.dipho_subleadind[diphoton_id] );
 	evweight = weight * smeared_pho_weight[diphoton_index.first] * smeared_pho_weight[diphoton_index.second] * genLevWeight;
 
+	std::vector<std::vector<bool> > ph_passcut;
+	passCiC_ = ( l.PhotonCiCSelectionLevel(diphoton_index.first,  closest_id, ph_passcut, 4, 0, &smeared_pho_energy[0] ) >= l.phoSUPERTIGHT && 
+		     l.PhotonCiCSelectionLevel(diphoton_index.second, closest_id, ph_passcut, 4, 1, &smeared_pho_energy[0] ) >= l.phoSUPERTIGHT );
+	
         TLorentzVector lead_p4, sublead_p4, Higgs;
         float lead_r9, sublead_r9;
         TVector3 * vtx;
@@ -159,21 +186,18 @@ bool VertexOptimizationAnalysis::AnalyseEvent(LoopAll& l, Int_t jentry, float we
 	
 	// fill optimization tree
 	vtxAna_.setPairID(diphoton_id);
-	/// std::cout << vtxAna_.pho1() << " " << vtxAna_.pho1() << std::endl;
 	nVert_    = l.vtx_std_n;
 	nPU_      = l.pu_n;
 	evWeight_ = evweight;
-	int closest_id = -1;
-	float minDist = 999.;
+	pho1_ = &lead_p4;
+	pho2_ = &sublead_p4;
+	dipho_ = &Higgs;
+	
 	for(int vi=0; vi<l.vtx_std_n; ++vi) {
-	    float dist =  fabs( ( *((TVector3*)l.vtx_std_xyz->At(vi)) - *((TVector3*)l.gv_pos->At(0)) ).Z() );
-	    if( dist < 1. && dist < minDist ) {
-		closest_id = vi;
-	    }
-	}
-	for(int vi=0; vi<l.vtx_std_n; ++vi) {
+	    TH1 * h = (TH1*)hMinBiasRef_->Clone("h");
+	    h->Reset("ICE");
 	    isClosestToGen_ = (vi == closest_id);
-
+	    
 	    for( size_t ivar=0; ivar<vtxVarNames_.size(); ++ivar ) {
 		vtxVars_[ivar] = (vtxAna_.*(varMeths_[ivar]))(vi);
 	    }
@@ -185,8 +209,14 @@ bool VertexOptimizationAnalysis::AnalyseEvent(LoopAll& l, Int_t jentry, float we
 		TLorentzVector* tkp4 = (TLorentzVector*)l.tk_p4->At(tkind);
 		if( ! isClosestToGen_ ) {
 		    hMinBiasSpecturm_->Fill(tkp4->Pt());
+		} else {
+		    hHiggsSpecturm_->Fill(tkp4->Pt());
 		}
+		h->Fill(tkp4->Pt());
 	    }
+	    
+	    ksprob_ = hMinBiasRef_->KolmogorovTest(h);
+	    delete h;
 	    
 	    uTree_->Fill();
 	}

@@ -38,7 +38,7 @@ class VertexOptimizationAnalysis : public StatAnalysis
 			      float syst_shift=0., bool skipSelection=false,
 			      BaseGenLevelSmearer *genSys=0, BaseSmearer *phoSys=0, BaseDiPhotonSmearer * diPhoSys=0); 
     
-    TString uFileName;
+    TString minBiasRefName;
     
 private:
     std::vector<std::string> vtxVarNames_;
@@ -46,10 +46,13 @@ private:
     
     TFile * uFile_;
     TTree * uTree_;
-    TH1 * hMinBiasSpecturm_;
-    bool isClosestToGen_;
+    TH1 * hMinBiasSpecturm_, *hHiggsSpecturm_, *hMinBiasRef_;
+    bool isClosestToGen_, passCiC_;
     int   nPU_, nVert_;
-    float evWeight_;
+    float evWeight_, ksprob_;
+    TLorentzVector *pho1_;
+    TLorentzVector *pho2_;
+    TLorentzVector *dipho_;
     
 };
 
