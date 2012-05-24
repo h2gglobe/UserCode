@@ -29,45 +29,6 @@ void MvaAnalysis::Term(LoopAll& l)
 {
     // All Final Fits + rebinning are now done in Macros/FullMvaToolkit rather than in Term
     eventListText.close();
-    if (doTraining){
-        for (int i = 0; i<nMasses;i++){
-            cout << " ----------- Writing trees ------------ " << endl;
-            mvaFile_->cd();
-            if (0<signalTrainTree_[i]->GetEntries()    ){
-                signalTrainTree_[i]->Write(("sig_train"+names[i]).c_str());
-                cout << "Wrote " << signalTrainTree_[i]->GetName() << endl;
-            }
-            if (0<signalTestTree_[i]->GetEntries()    ){
-                signalTestTree_[i]->Write(("sig_test"+names[i]).c_str());
-                cout << "Wrote " << signalTestTree_[i]->GetName() << endl;
-            }
-            if (0<backgroundTrainTree_7pt_[i]->GetEntries()    ){
-                backgroundTrainTree_7pt_[i]->Write(("bkg_train_7pt"+names[i]).c_str());
-                cout << "Wrote " << backgroundTrainTree_7pt_[i]->GetName() << endl;
-            }
-            if (0<backgroundTestTree_7pt_[i]->GetEntries()    ){
-                backgroundTestTree_7pt_[i]->Write(("bkg_test_7pt"+names[i]).c_str());
-                cout << "Wrote " << backgroundTestTree_7pt_[i]->GetName() << endl;
-            }
-            if (0<backgroundTrainTree_2pt_[i]->GetEntries()    ){
-                backgroundTrainTree_2pt_[i]->Write(("bkg_train_2pt"+names[i]).c_str());
-                cout << "Wrote " << backgroundTrainTree_2pt_[i]->GetName() << endl;
-            }
-            if (0<backgroundTestTree_2pt_[i]->GetEntries()    ){
-                backgroundTestTree_2pt_[i]->Write(("bkg_test_2pt"+names[i]).c_str());
-                cout << "Wrote " << backgroundTestTree_2pt_[i]->GetName() << endl;
-            }
-        }
-        mvaFile_->Close();
-    }
-
-    else if (makeTrees){
-        treeFile_->cd();
-        dataTree_->Write();
-        bkgTree_->Write();
-        for (int i=0; i<nMasses; i++) sigTree_[i]->Write();
-        treeFile_->Close();
-    }
     PhotonAnalysis::Term(l);
 }
 
@@ -395,41 +356,7 @@ void MvaAnalysis::Init(LoopAll& l)
     l.tmvaReader_dipho_MIT->BookMVA("Gradient"   ,eventLevelMvaMIT.c_str()    );
     // ----------------------------------------------------------------------//
 
-    if (doTraining){
-        TString outfileName( "TMVA_input_" + (std::string) l.histFileName);
-        mvaFile_ = TFile::Open( outfileName, "RECREATE" );
-        mvaFile_->cd();
-        for (int i = 0; i<nMasses;i++){
-            cout << " --------- Creating trees --------- " << endl;
-            signalTrainTree_[i] = new TTree(("sig_train"+names[i]).c_str(),("SignalTrainTree"+names[i]).c_str());
-            SetBDTInputTree(signalTrainTree_[i]);
-            cout << "Made " << signalTrainTree_[i]->GetName() << endl;
-            signalTestTree_[i]  = new TTree(("sig_test"+names[i]).c_str(), ("SignalTestTree"+names[i]).c_str());
-            SetBDTInputTree(signalTestTree_[i]);
-            cout << "Made " << signalTestTree_[i]->GetName() << endl;
-
-            backgroundTrainTree_2pt_[i] = new TTree(("bkg_train_2pt"+names[i]).c_str(),("BackgroundTrainTree_2pt"+names[i]).c_str());
-            SetBDTInputTree(backgroundTrainTree_2pt_[i]);
-            backgroundTestTree_2pt_[i]  = new TTree(("bkg_test_2pt"+names[i]).c_str(), ("BackgroundTestTree_2pt"+names[i]).c_str());
-            SetBDTInputTree(backgroundTestTree_2pt_[i]);
-            backgroundTrainTree_7pt_[i] = new TTree(("bkg_train_7pt"+names[i]).c_str(),("BackgroundTrainTree_7pt"+names[i]).c_str());
-            SetBDTInputTree(backgroundTrainTree_2pt_[i]);
-            backgroundTestTree_7pt_[i]  = new TTree(("bkg_test_7pt"+names[i]).c_str(), ("BackgroundTestTree_7pt"+names[i]).c_str());
-            SetBDTInputTree(backgroundTestTree_2pt_[i]);
-        }
-    }
-    else if (makeTrees){
-        TString dataTreeFileName("Tree_"+(std::string)l.histFileName);
-        treeFile_ = TFile::Open(dataTreeFileName,"RECREATE");
-        treeFile_->cd();
-        dataTree_ = new TTree("dataTree","dataTree");
-        SetTree(dataTree_);
-        bkgTree_ = new TTree("bkgTree","bkgTree");
-        SetTree(bkgTree_);
-        for (int i=0; i<nMasses; i++){
-            sigTree_[i]  = new TTree(Form("sigTree%s",BDTnames[i].c_str()),Form("sigTree%s",BDTnames[i].c_str()));
-            SetTree(sigTree_[i]);
-        }
+    if (doTraining){ // do nothing for now
     }
 
     else{
@@ -764,6 +691,63 @@ void MvaAnalysis::FillRooContainer(LoopAll& l, int cur_type, float mass, float d
 {
 
 
+  if (doTraining){
+            
+        // The event is exclusively in one of these bands for a given mH
+        double mH = 123.
+        
+        l.FillHist("diphotonMVA",diphotonMVA);
+        l.FillHist("mass",mass);
+        l.FillHist("category",category);
+        l.FillHist("weight",weight);
+        l.FillHist("deltaMoverM",);
+
+        // Fill Signal Window
+        float sideband_boundaries[2];
+        sideband_boundaries[0] = mH*(1-sidebandWidth);
+        sideband_boundaries[1] = mH*(1+sidebandWidth);
+        if( mass>sideband_boundaries[0] && mass<sideband_boundaries[1]){//Signal mass window cut
+
+            l.FillHist("diphotonMVA_sig",diphotonMVA);
+            l.FillHist("mass_sig",mass);
+            l.FillHist("category_sig",category);
+            l.FillHist("weight_sig",weight);
+            l.FillHist("deltaMoverM_sig",deltaMoverM);
+        }
+        
+        // Loop over N lower sidebands
+        for (int sideband_i = 1 ; sideband_i <= numberOfSidebands ; sideband_i++){
+            double hypothesisModifier = (1.-sidebandWidth)/(1+sidebandWidth);
+            double mass_hypothesis_low     = (mH*(1.-signalRegionWidth)/(1.+sidebandWidth)-sidebandShift)*(TMath::Power(hypothesisModifier,sideband_i-1));
+            double sideband_boundaries_low = mass_hypothesis_low*(1.-sidebandWidth);
+            double sideband_boundaries_high= mass_hypothesis_low*(1.+sidebandWidth);
+
+            if ( mass>sideband_boundaries_low && mass<sideband_boundaries_high){
+                l.FillHist("diphotonMVA_sb",diphotonMVA);
+                l.FillHist("mass_sb",mass);
+                l.FillHist("category_sb",category);
+                l.FillHist("weight_sb",weight);
+                l.FillHist("deltaMoverM_sb",deltaMoverM);
+            }
+        }
+        // Loop over N higher sidebands
+        for (int sideband_i = 1 ; sideband_i <= numberOfSidebands ; sideband_i++){
+            double hypothesisModifier = (1.+sidebandWidth)/(1-sidebandWidth);
+            double mass_hypothesis_high     = (mH*(1.+signalRegionWidth)/(1.-sidebandWidth)+sidebandShift)*(TMath::Power(hypothesisModifier,sideband_i-1));
+            double sideband_boundaries_low = mass_hypothesis_high*(1.-sidebandWidth);
+            double sideband_boundaries_high= mass_hypothesis_high*(1.+sidebandWidth);
+
+            if ( mass>sideband_boundaries_low && mass<sideband_boundaries_high){
+                l.FillHist("diphotonMVA_sb",diphotonMVA);
+                l.FillHist("mass_sb",mass);
+                l.FillHist("category_sb",category);
+                l.FillHist("weight_sb",weight);
+                l.FillHist("deltaMoverM_sb",deltaMoverM);
+            }
+        }
+
+  } else {
+
     // --- Fill invariant mass spectrum -------
     if (cur_type==0){  // Data
                 l.rooContainer->InputDataPoint("data_mass",category,mass);
@@ -771,7 +755,9 @@ void MvaAnalysis::FillRooContainer(LoopAll& l, int cur_type, float mass, float d
                 l.rooContainer->InputBinnedDataPoint("bkg_mass",category,mass,weight);
     }
 
+
     if (cur_type<0){ // signal MC
+
 
             std::string currentTypeSignalLabel = GetSignalLabel(cur_type);
             float mass_hypothesis = masses[SignalType(cur_type)];
@@ -784,6 +770,7 @@ void MvaAnalysis::FillRooContainer(LoopAll& l, int cur_type, float mass, float d
                    l.rooContainer->InputBinnedDataPoint("sig_BDT_grad_"+currentTypeSignalLabel ,category,bdt_grad,weight);
             
             }
+
      } else {
 
         for (double mH=mHMinimum; mH<=mHMaximum; mH+=mHStep){
@@ -829,6 +816,7 @@ void MvaAnalysis::FillRooContainer(LoopAll& l, int cur_type, float mass, float d
 
         }
     }
+  }
 }
 // ----------------------------------------------------------------------------------------------------
 void MvaAnalysis::AccumulateSyst(int cur_type, float mass, float diphotonMVA, 
