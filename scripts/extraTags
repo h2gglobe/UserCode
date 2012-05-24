@@ -1,8 +1,0 @@
-cvs co -r V00-03-35 RecoEgamma/ElectronIdentification
-#cvs co -r PFDevPatch2  RecoEgamma/EgammaTools
-cvs co -r regressionMay18a RecoEgamma/EgammaTools
-addpkg CommonTools/ParticleFlow  Florian_20Apr2012
-addpkg RecoEcal/EgammaCoreTools V05-08-21
-addpkg RecoParticleFlow/PFProducer  Florian_23Apr2012-2
-cvs co -r V00-02-05 -d CMGTools/External UserCode/CMG/CMGTools/External
-checkdeps -a
