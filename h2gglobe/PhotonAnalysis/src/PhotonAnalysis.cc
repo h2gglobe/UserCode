@@ -1305,7 +1305,7 @@ bool PhotonAnalysis::SkimEvents(LoopAll& l, int jentry)
 	if( !  isel->pass(*(l.hlt_path_names_HLT1),*(l.hlt1_bit)) ) {
 	    return false;
 	}
-	l.countersred[trigCounter_]++;
+	//l.countersred[trigCounter_]++;
     }
     
     if( l.typerun == l.kReduce || l.typerun == l.kFillReduce ) {

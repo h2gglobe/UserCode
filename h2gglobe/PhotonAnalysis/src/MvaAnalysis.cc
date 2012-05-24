@@ -762,6 +762,8 @@ void MvaAnalysis::fillLeeTrees(float mass,float kinematic_bdtout,int category,fl
 void MvaAnalysis::FillRooContainer(LoopAll& l, int cur_type, float mass, float diphotonMVA, 
 				    int category, float weight, bool isCorrectVertex) 
 {
+
+
     // --- Fill invariant mass spectrum -------
     if (cur_type==0){  // Data
                 l.rooContainer->InputDataPoint("data_mass",category,mass);

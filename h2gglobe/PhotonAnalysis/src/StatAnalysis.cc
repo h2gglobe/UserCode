@@ -876,17 +876,22 @@ bool StatAnalysis::AnalyseEvent(LoopAll& l, Int_t jentry, float weight, TLorentz
 void StatAnalysis::FillRooContainer(LoopAll& l, int cur_type, float mass, float diphotonMVA, 
 				    int category, float weight, bool isCorrectVertex) 
 {
-        if (cur_type == 0 ){
+
+    // Fill Some Training Trees
+    l.FillTree("mass",mass);
+    l.FillTree("category",category);
+
+    if (cur_type == 0 ){
             l.rooContainer->InputDataPoint("data_mass",category,mass);
-        }
-        if (cur_type > 0 && cur_type != 3 && cur_type != 4) {
+    }
+    if (cur_type > 0 && cur_type != 3 && cur_type != 4) {
             l.rooContainer->InputDataPoint("bkg_mass",category,mass,weight);
 	}
-        else if (cur_type < 0){
+    else if (cur_type < 0){
             l.rooContainer->InputDataPoint("sig_"+GetSignalLabel(cur_type),category,mass,weight);
             if (isCorrectVertex) l.rooContainer->InputDataPoint("sig_"+GetSignalLabel(cur_type)+"_rv",category,mass,weight);
             else l.rooContainer->InputDataPoint("sig_"+GetSignalLabel(cur_type)+"_wv",category,mass,weight);
-        }
+    }
 }
 
 // ----------------------------------------------------------------------------------------------------
