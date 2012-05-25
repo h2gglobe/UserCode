@@ -16,6 +16,9 @@ MvaAnalysis::MvaAnalysis()  :
 {
 
     nMasses  = 9;
+    doTraining = false;
+    trainingMassHypothesis = 123.0;
+    
 }
 
 // ----------------------------------------------------------------------------------------------------
@@ -356,7 +359,7 @@ void MvaAnalysis::Init(LoopAll& l)
     l.tmvaReader_dipho_MIT->BookMVA("Gradient"   ,eventLevelMvaMIT.c_str()    );
     // ----------------------------------------------------------------------//
 
-    if (doTraining){ // do nothing for now
+    if (doTraining){ // do nothing since Trees are setup inside TreeContainers
     }
 
     else{
@@ -661,29 +664,62 @@ int MvaAnalysis::GetBDTBoundaryCategory(float bdtout, bool isEB, bool VBFevent){
 }
 
 // ----------------------------------------------------------------------------------------------------
+void MvaAnalysis::fillTMVATrees(LoopAll& l,float mass,float diphotonMVA,int category,float evweight, int cur_type){
 
-void MvaAnalysis::SetTree(TTree *tree){
-    treeFile_->cd();
-    TBranch *b_mgg      = tree->Branch("CMS_hgg_mass",&_mgg,"CMS_hgg_mass/F");
-    TBranch *b_bdtouput = tree->Branch("bdtoutput",&_bdtoutput,"bdtoutput/F");
-    TBranch *b_vbf      = tree->Branch("vbf",&_vbf,"vbf/I");
-    TBranch *b_weight   = tree->Branch("weight",&_wt,"weight/F");
-    TBranch *b_cat      = tree->Branch("category",&_cat,"category/I");
-    TBranch *b_cur_type = tree->Branch("cur_type",&_cur_type,"cur_type/I");
-}
-// ----------------------------------------------------------------------------------------------------
-void MvaAnalysis::fillLeeTrees(float mass,float kinematic_bdtout,int category,float evweight,int cur_type){
-            // --- Info for trees ---
-            _mgg = mass;
-            _bdtoutput = kinematic_bdtout;
-            _wt = evweight;
-            if (category==1) _vbf=1;
-            else _vbf=0;
-            _cat = category;
-            _cur_type=cur_type;
-            if (cur_type==0) dataTree_->Fill();
-            else if (cur_type<0) sigTree_[SignalType(cur_type)]->Fill();
-            else if (cur_type>0) bkgTree_->Fill();
+        // The event is exclusively in one of these bands for a given mH
+        float mH = trainingMassHypothesis;
+
+        // Fill Signal Window
+        float sideband_boundaries[2];
+        sideband_boundaries[0] = mH*(1-sidebandWidth);
+        sideband_boundaries[1] = mH*(1+sidebandWidth);
+        if( mass>sideband_boundaries[0] && mass<sideband_boundaries[1]){//Signal mass window cut
+
+            // Signal Region
+            l.FillHist("diphotonMVA",diphotonMVA);
+            l.FillHist("mass",mass);
+            l.FillHist("category",category);
+            l.FillHist("weight",evweight);
+            l.FillHist("deltaMoverM",(float)((mass-mH)/mH));
+            return;
+        }
+
+        if (cur_type>0){ // Dont use signal in sidebands
+
+            // Loop over N lower sidebands
+            for (int sideband_i = 1 ; sideband_i <= numberOfSidebands ; sideband_i++){
+                double hypothesisModifier = (1.-sidebandWidth)/(1+sidebandWidth);
+                double mass_hypothesis_low     = (mH*(1.-signalRegionWidth)/(1.+sidebandWidth)-sidebandShift)*(TMath::Power(hypothesisModifier,sideband_i-1));
+                double sideband_boundaries_low = mass_hypothesis_low*(1.-sidebandWidth);
+                double sideband_boundaries_high= mass_hypothesis_low*(1.+sidebandWidth);
+
+                if ( mass>sideband_boundaries_low && mass<sideband_boundaries_high){
+                    l.FillHist("diphotonMVA",diphotonMVA);
+                    l.FillHist("mass",mass);
+                    l.FillHist("category",category);
+                    l.FillHist("weight",evweight);
+                    l.FillHist("deltaMoverM",(float)((mass-mass_hypothesis_low)/mass_hypothesis_low));
+                    return;
+                }
+            }
+            // Loop over N higher sidebands
+            for (int sideband_i = 1 ; sideband_i <= numberOfSidebands ; sideband_i++){
+                double hypothesisModifier = (1.+sidebandWidth)/(1-sidebandWidth);
+                double mass_hypothesis_high     = (mH*(1.+signalRegionWidth)/(1.-sidebandWidth)+sidebandShift)*(TMath::Power(hypothesisModifier,sideband_i-1));
+                double sideband_boundaries_low = mass_hypothesis_high*(1.-sidebandWidth);
+                double sideband_boundaries_high= mass_hypothesis_high*(1.+sidebandWidth);
+
+                if ( mass>sideband_boundaries_low && mass<sideband_boundaries_high){
+                    l.FillHist("diphotonMVA",diphotonMVA);
+                    l.FillHist("mass",mass);
+                    l.FillHist("category",category);
+                    l.FillHist("weight",evweight);
+                    l.FillHist("deltaMoverM",(float)((mass-mass_hypothesis_high)/mass_hypothesis_high));
+                    return;
+                }
+            }
+        }
+
 }
 // ----------------------------------------------------------------------------------------------------
 void MvaAnalysis::FillRooContainer(LoopAll& l, int cur_type, float mass, float diphotonMVA, 
@@ -692,60 +728,7 @@ void MvaAnalysis::FillRooContainer(LoopAll& l, int cur_type, float mass, float d
 
 
   if (doTraining){
-            
-        // The event is exclusively in one of these bands for a given mH
-        double mH = 123.
-        
-        l.FillHist("diphotonMVA",diphotonMVA);
-        l.FillHist("mass",mass);
-        l.FillHist("category",category);
-        l.FillHist("weight",weight);
-        l.FillHist("deltaMoverM",);
-
-        // Fill Signal Window
-        float sideband_boundaries[2];
-        sideband_boundaries[0] = mH*(1-sidebandWidth);
-        sideband_boundaries[1] = mH*(1+sidebandWidth);
-        if( mass>sideband_boundaries[0] && mass<sideband_boundaries[1]){//Signal mass window cut
-
-            l.FillHist("diphotonMVA_sig",diphotonMVA);
-            l.FillHist("mass_sig",mass);
-            l.FillHist("category_sig",category);
-            l.FillHist("weight_sig",weight);
-            l.FillHist("deltaMoverM_sig",deltaMoverM);
-        }
-        
-        // Loop over N lower sidebands
-        for (int sideband_i = 1 ; sideband_i <= numberOfSidebands ; sideband_i++){
-            double hypothesisModifier = (1.-sidebandWidth)/(1+sidebandWidth);
-            double mass_hypothesis_low     = (mH*(1.-signalRegionWidth)/(1.+sidebandWidth)-sidebandShift)*(TMath::Power(hypothesisModifier,sideband_i-1));
-            double sideband_boundaries_low = mass_hypothesis_low*(1.-sidebandWidth);
-            double sideband_boundaries_high= mass_hypothesis_low*(1.+sidebandWidth);
-
-            if ( mass>sideband_boundaries_low && mass<sideband_boundaries_high){
-                l.FillHist("diphotonMVA_sb",diphotonMVA);
-                l.FillHist("mass_sb",mass);
-                l.FillHist("category_sb",category);
-                l.FillHist("weight_sb",weight);
-                l.FillHist("deltaMoverM_sb",deltaMoverM);
-            }
-        }
-        // Loop over N higher sidebands
-        for (int sideband_i = 1 ; sideband_i <= numberOfSidebands ; sideband_i++){
-            double hypothesisModifier = (1.+sidebandWidth)/(1-sidebandWidth);
-            double mass_hypothesis_high     = (mH*(1.+signalRegionWidth)/(1.-sidebandWidth)+sidebandShift)*(TMath::Power(hypothesisModifier,sideband_i-1));
-            double sideband_boundaries_low = mass_hypothesis_high*(1.-sidebandWidth);
-            double sideband_boundaries_high= mass_hypothesis_high*(1.+sidebandWidth);
-
-            if ( mass>sideband_boundaries_low && mass<sideband_boundaries_high){
-                l.FillHist("diphotonMVA_sb",diphotonMVA);
-                l.FillHist("mass_sb",mass);
-                l.FillHist("category_sb",category);
-                l.FillHist("weight_sb",weight);
-                l.FillHist("deltaMoverM_sb",deltaMoverM);
-            }
-        }
-
+    fillTMVATrees(l,mass,diphotonMVA,category,weight,cur_type);
   } else {
 
     // --- Fill invariant mass spectrum -------
@@ -758,7 +741,6 @@ void MvaAnalysis::FillRooContainer(LoopAll& l, int cur_type, float mass, float d
 
     if (cur_type<0){ // signal MC
 
-
             std::string currentTypeSignalLabel = GetSignalLabel(cur_type);
             float mass_hypothesis = masses[SignalType(cur_type)];
             float sideband_boundaries[2];
@@ -766,7 +748,6 @@ void MvaAnalysis::FillRooContainer(LoopAll& l, int cur_type, float mass, float d
             sideband_boundaries[1] = mass_hypothesis*(1+sidebandWidth);
             if( mass>sideband_boundaries[0] && mass<sideband_boundaries[1]){//Signal mass window cut
                    float bdt_grad =  tmvaGetVal(mass,mass_hypothesis,diphotonMVA);
-                   if (PADEBUG) std::cout <<"Seleced Event mH="<<mass_hypothesis<<" mass="<<mass<<" bdtout="<<diphotonMVA<< " cat="<<category<<" massbdt="<<bdt_grad<<" weight="<<weight<<std::endl;
                    l.rooContainer->InputBinnedDataPoint("sig_BDT_grad_"+currentTypeSignalLabel ,category,bdt_grad,weight);
             
             }
@@ -780,7 +761,6 @@ void MvaAnalysis::FillRooContainer(LoopAll& l, int cur_type, float mass, float d
             sideband_boundaries[1] = mH*(1+sidebandWidth);
             if( mass>sideband_boundaries[0] && mass<sideband_boundaries[1]){//Signal mass window cut
                 float bdt_grad =  tmvaGetVal(mass,mH,diphotonMVA);
-            
                 if (cur_type==0) l.rooContainer->InputBinnedDataPoint(Form("data_BDT_grad_%3.1f",mH),category,bdt_grad,weight);
                 else if (cur_type > 0) l.rooContainer->InputBinnedDataPoint(Form("bkg_BDT_grad_%3.1f",mH) ,category,bdt_grad,weight);
             }
@@ -796,6 +776,7 @@ void MvaAnalysis::FillRooContainer(LoopAll& l, int cur_type, float mass, float d
                    float bdt_grad =  tmvaGetVal(mass,mass_hypothesis_low,diphotonMVA);
                    if (cur_type==0) l.rooContainer->InputBinnedDataPoint(Form("data_%dlow_BDT_grad_%3.1f",sideband_i,mH) ,category,bdt_grad,weight);
                    else if (cur_type > 0) l.rooContainer->InputBinnedDataPoint(Form("bkg_%dlow_BDT_grad_%3.1f",sideband_i,mH) ,category,bdt_grad,weight);
+                   break;
 
                 }
             }
@@ -810,7 +791,7 @@ void MvaAnalysis::FillRooContainer(LoopAll& l, int cur_type, float mass, float d
                    float bdt_grad =  tmvaGetVal(mass,mass_hypothesis_high,diphotonMVA);
                    if (cur_type==0) l.rooContainer->InputBinnedDataPoint(Form("data_%dhigh_BDT_grad_%3.1f",sideband_i,mH) ,category,bdt_grad,weight);
                    else if (cur_type > 0) l.rooContainer->InputBinnedDataPoint(Form("bkg_%dhigh_BDT_grad_%3.1f",sideband_i,mH) ,category,bdt_grad,weight);
-
+                   break;
                 }
             }
 
