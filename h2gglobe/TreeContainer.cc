@@ -21,7 +21,7 @@ void TreeContainer::setTreeVal(int setTo) {
 
 void TreeContainer::setTreeNam(std::string setName) {
   treeNam = setName;
-  tr_ = new TTree(setName.c_str(),setName.c_str());
+  tr_ = new TTree(setName.c_str(),setName.c_str()); tr_->SetDirectory(0);
   if (TCDEBUG) std::cout << "TreeContainer -- Made new Tree Called " << treeNam << std::endl;
 }
 
