@@ -547,7 +547,7 @@ void StatAnalysis::Init(LoopAll& l)
 }
 
 // ----------------------------------------------------------------------------------------------------
-void StatAnalysis::Analysis(LoopAll& l, Int_t jentry) 
+bool StatAnalysis::Analysis(LoopAll& l, Int_t jentry) 
 {
     if(PADEBUG) 
         cout << "Analysis START; cur_type is: " << l.itype[l.current] <<endl;
@@ -689,7 +689,8 @@ void StatAnalysis::Analysis(LoopAll& l, Int_t jentry)
 		FillRooContainerSyst(l, (*si)->name(), cur_type, mass_errors, mva_errors, categories, weights);
 	    }
 	}
-	
+
+    int diphoton_id_syst;	
 	// single photon level systematics: several
 	for(std::vector<BaseSmearer *>::iterator  si=systPhotonSmearers_.begin(); si!= systPhotonSmearers_.end(); ++si ) {
 	    mass_errors.clear(), weights.clear(), categories.clear(), mva_errors.clear();
@@ -699,7 +700,7 @@ void StatAnalysis::Analysis(LoopAll& l, Int_t jentry)
 		syst_mass     =  0., syst_category = -1, syst_weight   =  0.;
 		
 		// re-analyse the event redoing the event selection this time
-		AnalyseEvent(l,jentry, weight, gP4, syst_mass,  syst_weight, syst_category, diphoton_id, isCorrectVertex,zero_,
+		AnalyseEvent(l,jentry, weight, gP4, syst_mass,  syst_weight, syst_category, diphoton_id_syst, isCorrectVertex,zero_,
 			     true, syst_shift, false,  0, *si, 0 );
 		
 		AccumulateSyst( cur_type, syst_mass, syst_diphotonMVA, syst_category, syst_weight,
@@ -712,6 +713,8 @@ void StatAnalysis::Analysis(LoopAll& l, Int_t jentry)
 
     if(PADEBUG) 
         cout<<"myFillHistRed END"<<endl;
+
+    return (diphoton_id > 0);
 }
 
 // ----------------------------------------------------------------------------------------------------

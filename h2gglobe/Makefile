@@ -52,7 +52,7 @@ SubPkgsDict=VertexAnalysis/interface/VertexAlgoParameters.h
 ## 
 ROOFIT_BASE=$(ROOFITSYS)
 LDFLAGS+=-L$(ROOFIT_BASE)/lib $(ROOTLIBS) -lRooFitCore -lRooFit -lTMVA
-LDFLAGS+= $(patsubst %, -L%, $(shell echo ${LD_LIBRARY_PATH} | tr ':' '\n')) -lFWCorePythonParameterSet -lFWCoreParameterSet -lCMGToolsExternal -lCondFormatsJetMETObjects
+LDFLAGS+= $(patsubst %, -L%, $(shell echo ${LD_LIBRARY_PATH} | tr ':' '\n')) -lFWCorePythonParameterSet -lFWCoreParameterSet
 CXXFLAGS+=-I$(ROOFIT_BASE)/include -I$(CMSSW_BASE)/src  -I$(CMSSW_RELEASE_BASE)/src
 CXXFLAGS+=-I$(shell pwd)
 
@@ -88,7 +88,7 @@ Deps = $(patsubst %$(ObjSuf), %$(DepSuf), $(Objs))
 ExtPacks=.extraTags
 
 ## Targets
-all: $(ExtPacks) $(LOOPALLSO)
+all: $(LOOPALLSO)
 
 print:
 	@echo "Subpackages:"
@@ -118,11 +118,6 @@ print:
 	@echo "$(LDFLAGS)" | tr ' ' '\n'
 	@echo
 
-	@echo "Extra tags"
-	@echo "-------------------"
-	@for pack in `awk '/get_tag/ { print $$4 }' extraTags`; do ls -d $$CMSSW_BASE/src/$$pack; done
-	@echo
-
 clean:
 	@rm -fv $(Objs) $(Deps) $(LOOPALL) *[dD]ict.* .extraTags
 
@@ -131,7 +126,7 @@ clean:
 	@bash extraTags
 	@touch .extraTags
 
-$(LOOPALLSO):  $(Objs)
+$(LOOPALLSO):  $(Objs) $(ExtPacks)
 	@echo "Linking"
 	@$(LD) $(SOFLAGS) $(LDFLAGS) $(ROOTLIBS)  $(Objs) $(OutPutOpt) $(LOOPALLSO)
 	@echo "$(LOOPALLSO) done"
@@ -147,7 +142,7 @@ dict.$(SrcSuf): $(LinkDef)
 .$(SrcSuf).$(ObjSuf):
 	@echo "Compiling $<"
 	@$(CXX) $(CXXFLAGS) -M -c $< -o $(patsubst %.$(ObjSuf), %.$(DepSuf), $@)
-	@sed -i "s|.*:|$*.o: Makefile $(ExtPacks)|"  $(patsubst %.$(ObjSuf), %.$(DepSuf), $@)
+	@sed -i 's|.*:|$*.o: Makefile|'  $(patsubst %.$(ObjSuf), %.$(DepSuf), $@)
 	@$(CXX) $(CXXFLAGS) -g -c $< -o $@
 
 -include $(Deps)

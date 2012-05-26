@@ -1061,8 +1061,9 @@ int LoopAll::FillAndReduce(int jentry) {
     }
     // final analysis
     for (size_t i=0; i<analyses.size(); i++) {
-      analyses[i]->Analysis(*this, jentry); 
-      FillTreeContainer();
+      if ( analyses[i]->Analysis(*this, jentry) ) { 
+      	FillTreeContainer();
+      }
     }
   }
   
