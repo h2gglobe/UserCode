@@ -104,6 +104,7 @@ void HggVertexAnalyzer::fillDictionary(HggVertexAnalyzer::dict_t& dictionary)
 	
 	dictionary["vertexz"]   = make_pair(&HggVertexAnalyzer::vertexz,true);
 	dictionary["nconv"]   = make_pair(&HggVertexAnalyzer::nconv,true);
+	dictionary["nlegs"]   = make_pair(&HggVertexAnalyzer::nlegs,true);
 	dictionary["nConv"]   = make_pair(&HggVertexAnalyzer::nconv,true);
 	dictionary["pulltoconv"]   = make_pair(&HggVertexAnalyzer::pulltoconv,true);
 	dictionary["limpulltoconv"]   = make_pair(&HggVertexAnalyzer::limpulltoconv,true);
@@ -153,6 +154,7 @@ HggVertexAnalyzer::HggVertexAnalyzer(AlgoParameters & ap, int nvtx) :
 	prcomb = &rcomb_;
 	pvertexz = &vertexz_;
 	pnconv = &nconv_;
+	pnlegs = &nlegs_;
 	ppulltoconv = &pulltoconv_;
 	plimpulltoconv = &limpulltoconv_;
 	pdiphopt = &diphopt_;
@@ -193,6 +195,7 @@ void HggVertexAnalyzer::branches(TTree * tree, const std::string & pfx)
 	
 	tree->Branch((pfx+"vertexz").c_str(), &vertexz_ );
 	tree->Branch((pfx+"nconv").c_str(), &nconv_ );
+	tree->Branch((pfx+"nlegs").c_str(), &nlegs_ );
 	tree->Branch((pfx+"pulltoconv").c_str(), &pulltoconv_ );
 	tree->Branch((pfx+"limpulltoconv").c_str(), &limpulltoconv_ );
 	tree->Branch((pfx+"diphopt").c_str(), &diphopt_ );
@@ -237,6 +240,7 @@ void HggVertexAnalyzer::setBranchAdresses(TTree * tree, const std::string & pfx)
 	}
 	if( tree->GetBranch((pfx+"nconv").c_str() ) ) {
 		tree->SetBranchAddress((pfx+"nconv").c_str(), &pnconv );
+		tree->SetBranchAddress((pfx+"nlegs").c_str(), &pnlegs );
 		tree->SetBranchAddress((pfx+"pulltoconv").c_str(), &ppulltoconv );
 		tree->SetBranchAddress((pfx+"limpulltoconv").c_str(), &plimpulltoconv );
 	}
@@ -282,6 +286,7 @@ void HggVertexAnalyzer::getBranches(TTree * tree, const std::string & pfx, std::
 	}
 	if( tree->GetBranch((pfx+"nconv").c_str() ) ) {
 		ret.insert(tree->GetBranch((pfx+"nconv").c_str()));
+		ret.insert(tree->GetBranch((pfx+"nlegs").c_str()));
 		ret.insert(tree->GetBranch((pfx+"pulltoconv").c_str()));
 		ret.insert(tree->GetBranch((pfx+"limpulltoconv").c_str()));
 	}
@@ -541,6 +546,7 @@ void HggVertexAnalyzer::clear()
 	pho2_.clear();
 
 	nconv_.clear();
+	nlegs_.clear();
 	pulltoconv_.clear();
 	limpulltoconv_.clear();
 	ptbal_.clear();
@@ -626,6 +632,8 @@ void HggVertexAnalyzer::analyze(const VertexInfoAdapter & e, const PhotonInfo & 
 		// initilise
 		rcomb_.resize(ipair_+1); rcomb_[ipair_].resize(nvtx,0.);
 		mva_.resize(ipair_+1); mva_[ipair_].resize(nvtx,0.);
+		nconv_.resize(ipair_+1,0.);
+		nlegs_.resize(ipair_+1,0.);
 		vertexz_.resize(nvtx,0.);
 		pulltoconv_.resize(ipair_+1); pulltoconv_[ipair_].resize(nvtx,1000.);
 		limpulltoconv_.resize(ipair_+1); limpulltoconv_[ipair_].resize(nvtx,1000.);
@@ -693,6 +701,7 @@ void HggVertexAnalyzer::analyze(const VertexInfoAdapter & e, const PhotonInfo & 
 	// vertex position esitmated with conversions
 	setNConv(0);
 	float zconv=0., szconv=0.;
+	float nlegs1 = 0., nlegs2 = 0.;
 	if ( (p1.isAConversion() || p2.isAConversion() ) )  {
 		setNConv(1);
 		if (p1.isAConversion()  && !p2.isAConversion() ){
@@ -714,10 +723,15 @@ void HggVertexAnalyzer::analyze(const VertexInfoAdapter & e, const PhotonInfo & 
 			
 			zconv  = (z1/sz1/sz1 + z2/sz2/sz2)/(1./sz1/sz1 + 1./sz2/sz2 );  // weighted average
 			szconv = sqrt( 1./(1./sz1/sz1 + 1./sz2/sz2)) ;
-			
+		}
+		if (p1.isAConversion()) {
+			nlegs1 = p1.nTracks();
+		}
+		if (p2.isAConversion()) {
+			nlegs2 = p2.nTracks();
 		}
 	}
-	
+	nlegs_[ipair_] = std::max(nlegs1, nlegs2);
 	
 	// filling loop over vertexes
 	for(int vid=0; vid<e.nvtx(); ++vid) {

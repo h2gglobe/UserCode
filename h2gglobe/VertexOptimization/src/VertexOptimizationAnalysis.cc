@@ -37,13 +37,6 @@ void VertexOptimizationAnalysis::Term(LoopAll& l)
 // ----------------------------------------------------------------------------------------------------
 void VertexOptimizationAnalysis::Init(LoopAll& l) 
 {
-    doVtxEffSmear = false;
-    doTriggerEffSmear = false;
-    doEscaleSmear = false;
-    doPhotonIdEffSmear = false;
-    doR9Smear = false;
-    doTriggerEffSmear = false;
-    
     doSystematics = false;
 
     TFile * mbRef = TFile::Open(minBiasRefName);
@@ -75,7 +68,7 @@ void VertexOptimizationAnalysis::ReducedOutputTree(LoopAll &l, TTree * outputTre
 	vtxVarNames_.push_back("ptbal"), vtxVarNames_.push_back("logsumpt2"), vtxVarNames_.push_back("ptmax3"), 
 	vtxVarNames_.push_back("ptmax"), vtxVarNames_.push_back("nchthr"), vtxVarNames_.push_back("sumtwd"),
 	vtxVarNames_.push_back("pulltoconv"), vtxVarNames_.push_back("limpulltoconv"), 
-	vtxVarNames_.push_back("nch"), vtxVarNames_.push_back("nconv"), 
+	vtxVarNames_.push_back("nch"), vtxVarNames_.push_back("nconv"), vtxVarNames_.push_back("nlegs"), 
 	vtxVarNames_.push_back("mva"); 
     vtxVars_.resize( vtxVarNames_.size() );
     for( size_t iv=0; iv<vtxVarNames_.size(); ++iv ) {
@@ -111,11 +104,13 @@ void VertexOptimizationAnalysis::ReducedOutputTree(LoopAll &l, TTree * outputTre
 }
 
 // ----------------------------------------------------------------------------------------------------
-bool VertexOptimizationAnalysis::AnalyseEvent(LoopAll& l, Int_t jentry, float weight, TLorentzVector & gP4, float & mass, float & evweight, int & category, int & diphoton_id,
-			      bool & isCorrectVertex,
-			      bool isSyst, 
-			      float syst_shift, bool skipSelection,
-			      BaseGenLevelSmearer *genSys, BaseSmearer *phoSys, BaseDiPhotonSmearer * diPhoSys)
+bool VertexOptimizationAnalysis::AnalyseEvent(LoopAll& l, Int_t jentry, float weight, TLorentzVector & gP4, 
+					      float & mass, float & evweight, int & category, int & diphoton_id,
+					      bool & isCorrectVertex, float &kinematic_bdtout,
+					      bool isSyst, 
+					      float syst_shift, bool skipSelection,
+					      BaseGenLevelSmearer *genSys, 
+					      BaseSmearer *phoSys, BaseDiPhotonSmearer * diPhoSys)
 {
     static std::vector<HggVertexAnalyzer::getter_t> varMeths_(0);
     if( varMeths_.empty() ) {
@@ -158,7 +153,6 @@ bool VertexOptimizationAnalysis::AnalyseEvent(LoopAll& l, Int_t jentry, float we
 	    }
 	}
 	
-	/// std::cout << diphoton_id << " " << l.dipho_n << std::endl;
         diphoton_index = std::make_pair( l.dipho_leadind[diphoton_id],  l.dipho_subleadind[diphoton_id] );
 	evweight = weight * smeared_pho_weight[diphoton_index.first] * smeared_pho_weight[diphoton_index.second] * genLevWeight;
 
@@ -180,8 +174,8 @@ bool VertexOptimizationAnalysis::AnalyseEvent(LoopAll& l, Int_t jentry, float we
         if( cur_type != 0 && doMCSmearing ) {
 	    applyDiPhotonSmearings(Higgs, *vtx, selectioncategory, cur_type, *((TVector3*)l.gv_pos->At(0)), evweight, zero_, zero_,
 				   diPhoSys, syst_shift);
-            isCorrectVertex=(*vtx- *((TVector3*)l.gv_pos->At(0))).Mag() < 1.;
         }
+	isCorrectVertex=(*vtx- *((TVector3*)l.gv_pos->At(0))).Mag() < 1.;
         float ptHiggs = Higgs.Pt();
 	
 	// fill optimization tree
