@@ -1,8 +1,0 @@
-DoublePhoton_Run2012B-29Jun2012_sub1    0
-DoublePhoton_Run2012B-29Jun2012_sub2    0
-DoublePhoton_Run2012B-29Jun2012_sub3    0
-Photon_Run2012A-29Jun2012_sub1          0
-Photon_Run2012A-29Jun2012_sub2          0
-Photon_Run2012A-29Jun2012_sub3          0
-Photon_Run2012A-recover-29Jun2012_sub1  0
-Photon_Run2012A-recover-29Jun2012_sub2  0
