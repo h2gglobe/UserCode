@@ -588,6 +588,18 @@ bool MassFactorizedMvaAnalysis::AnalyseEvent(LoopAll& l, Int_t jentry, float wei
                          float syst_shift, bool skipSelection, 
                          BaseGenLevelSmearer *genSys, BaseSmearer *phoSys, BaseDiPhotonSmearer * diPhoSys) 
 {
+    
+    if(l.vtx_std_n > 13.5 && nVtxCategories==31) return false;
+    else if((l.vtx_std_n > 18.5 || l.vtx_std_n<13.5)  && nVtxCategories==32) return false;
+    else if(l.vtx_std_n <19.5 && nVtxCategories==36) return false;
+
+    if(l.vtx_std_n > 9.5 && nVtxCategories==61) return false;
+    else if((l.vtx_std_n > 12.5 || l.vtx_std_n<9.5)  && nVtxCategories==62) return false;
+    else if((l.vtx_std_n > 14.5 || l.vtx_std_n<12.5)  && nVtxCategories==63) return false;
+    else if((l.vtx_std_n > 17.5 || l.vtx_std_n<14.5)  && nVtxCategories==64) return false;
+    else if((l.vtx_std_n > 20.5 || l.vtx_std_n<17.5)  && nVtxCategories==65) return false;
+    else if(l.vtx_std_n <20.5 && nVtxCategories==66) return false;
+
 
     assert( isSyst || ! skipSelection );
 
