@@ -415,7 +415,8 @@ void PhotonAnalysis::fillDiphoton(TLorentzVector & lead_p4, TLorentzVector & sub
                   const LoopAll & l, int leadind, int subleadind, int myvtx)
 {
     int vtx_ind = myvtx;
-
+    TVector3 * Beamspot = (TVector3*) l.bs_xyz->At(0);
+    
     int cur_type = l.itype[l.current];
     bool isCorrectVertex;
     if (cur_type!=0) isCorrectVertex= (*((TVector3*)l.vtx_std_xyz->At(vtx_ind))-*((TVector3*)l.gv_pos->At(0))).Mag() < 1.;
@@ -456,11 +457,13 @@ void PhotonAnalysis::fillDiphoton(TLorentzVector & lead_p4, TLorentzVector & sub
 
     lead_p4 = l.get_pho_p4( leadind, vtx_ind, energy);
     sublead_p4 = l.get_pho_p4( subleadind, vtx_ind, energy);
+    TLorentzVector lead_p4_mass = l.get_pho_p4( leadind, Beamspot, energy);
+    TLorentzVector sublead_p4_mass = l.get_pho_p4( subleadind, Beamspot, energy);
     lead_r9    = l.pho_r9[leadind];
     sublead_r9 = l.pho_r9[subleadind];
-    Higgs = lead_p4 + sublead_p4;
+    Higgs = lead_p4_mass + sublead_p4_mass;
     vtx = (TVector3*)l.vtx_std_xyz->At(vtx_ind);
-
+    
     if (changed && PADEBUG){
         cout << "emBS: " << emulateBeamspot << " rwBS: " << reweighBeamspot << " tS: " << targetsigma << " sS: " << sourcesigma << " bW: " << beamspotWidth << endl;
         cout << "Before (eta1,eta2,mh): " << lead_p4_bef.Eta() << " " << sublead_p4_bef.Eta() << " " << Higgs_bef.M() << endl;

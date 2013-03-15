@@ -791,7 +791,7 @@ bool StatAnalysis::AnalyseEvent(LoopAll& l, Int_t jentry, float weight, TLorentz
 
     if(l.vtx_std_n > 13.5 && nVtxCategories==31) return false;
     else if((l.vtx_std_n > 18.5 || l.vtx_std_n<13.5)  && nVtxCategories==32) return false;
-    else if(l.vtx_std_n <19.5 && nVtxCategories==33) return false;
+    else if(l.vtx_std_n <18.5 && nVtxCategories==33) return false;
 
     if(l.vtx_std_n > 9.5 && nVtxCategories==61) return false;
     else if((l.vtx_std_n > 12.5 || l.vtx_std_n<9.5)  && nVtxCategories==62) return false;
