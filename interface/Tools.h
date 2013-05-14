@@ -32,11 +32,13 @@ public:
   int getTag() {
     int result = 0;
     std::string tag = "None";
-    const char* pattern = "[A-Za-z]V(\\d+)_(\\d+)_(\\d+)";
-    boost::regex re(pattern);
-    boost::cmatch matches;
-    if (boost::regex_search(m_results[0].c_str(), matches, re)) {
-      result = atoi((matches[1]+matches[2]+matches[3]).c_str());
+    if (m_results.size() > 0) {
+      const char* pattern = "[A-Za-z]V(\\d+)_(\\d+)_(\\d+)";
+      boost::regex re(pattern);
+      boost::cmatch matches;
+      if (boost::regex_search(m_results[0].c_str(), matches, re)) {
+	result = atoi((matches[1]+matches[2]+matches[3]).c_str());
+      }
     }
 
     return result;

@@ -756,7 +756,7 @@ void GlobeAnalyzer::defineBranch() {
 void GlobeAnalyzer::fillTree() {
   char cmd[500];
   char* descr = getenv("CMSSW_BASE");
-  sprintf(cmd, "cat %s/src/HiggsAnalysis/HiggsTo2photons/interface/CVS/Tag", descr);
+  sprintf(cmd, "cat %s/src/HiggsAnalysis/HiggsTo2photons/data/CVS/Tag", descr);
   ExecCommand exec(cmd);
   version = exec.getTag();
   type = 0;
