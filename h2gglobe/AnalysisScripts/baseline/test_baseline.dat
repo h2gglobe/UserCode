@@ -1,0 +1,54 @@
+#intL=12176. histfile=/store/group/phys_higgs/cmshgg/analyzed/HCP2012Unblind/%(label)s/CMS-HGG.root output=eventsList.txt
+#intL=12176. histfile=/store/caf/user/micheli/test/%(label)s/CMS-HGG.root output=eventsList.txt
+#to run locally
+intL=12176. histfile=CMS-HGG.root output=eventsList.txt
+
+#
+# Signal
+#
+#typ=-37 ind=1 draw=1   Nam=ggh_m125_8TeV   CaDir=/store/caf/user/micheli/Higgs/dummy/new/GluGluToHToGG_M-125_8TeV-powheg-pythia6_Summer12_DR53X-PU_S10_START53_V7A-v1  red=0 lum=1000000.0   xsec=-1.0   kfac=1.000000   scal=1.000000
+
+split typ=-39 ind=3 draw=1   Nam=tth_m125_8TeV   CaDir=/store/caf/user/micheli/Higgs/dummy/new/TTH_HToGG_M-125_8TeV-pythia6_Summer12_DR53X-PU_S10_START53_V7A-v1     red=0 lum=1000000.0   xsec=-1.0   kfac=1.000000   scal=1.000000
+
+# Run2012B
+#typ=0   ind=0 draw=1   Nam=Data tot=1 red=1 lum=1.0e10   xsec=1. kfac=1.0   scal=1. json=aux/2012-onOct06.json  CaDir=/store/group/phys_higgs/pandolf/test/h2gglobe/reduced/micheli/data/DoublePhoton_Run2012B-13Jul2012-v1
+# Run2012A
+#typ=0   ind=0 draw=1   Nam=Data tot=1 red=1 lum=1.0e10   xsec=1. kfac=1.0   scal=1. json=aux/2012-onOct06.json  CaDir=/store/group/phys_higgs/pandolf/test/h2gglobe/reduced/micheli/data/Photon_Run2012A-13Jul2012-v1
+
+
+
+
+#
+# Branches to use
+#
+inputBranches minimal_analysis_input.dat
+inputBranches minimal_statanalysis_input.dat
+inputBranches minimal_leptmetanalysis_input.dat
+inputBranches TTVH_analysis_input.dat
+plotvariables common/noplots.dat
+#plotvariables common/plotvariables_micheli.dat
+cuts common/cuts_micheli.dat
+
+#treevariables baseline/tree_micheli.dat
+treevariables RadionTree.dat
+#treevariables massfac_mva_binned/unbinned_datacard_trees.dat
+#controllare se e' ok
+#treevariables common/optTree.dat
+
+
+## define analyses to run
+##   a library containing the class dictionary has loaded before parsing the
+##   configuration file
+## syntax:
+##   analyzer <class_name> <config_file>
+##
+## analyzer PhotonAnalysis photonanalysis.dat
+#analyzer StatAnalysis photonanalysis.dat analysis_settings.dat statanalysis.dat saveDatacardTrees_=0 dumpAscii=1 dumpMcAscii=0 scaleR9Only=0 recomputeJetWp=0  jetanalysis/jerCentral.dat 
+#analyzer StatAnalysis photonanalysis.dat analysis_settings.dat statanalysis.dat    doSystematics=0 shiftBtagEff=1
+#analyzer StatAnalysis photonanalysis.dat analysis_settings.dat statanalysis.dat saveDatacardTrees_=0 dumpAscii=1 dumpMcAscii=0 scaleR9Only=0 diffOpt/opt30.dat diffOpt_0tag/opt30.dat
+
+#standard
+# analyzer StatAnalysis photonanalysis.dat statanalysis.dat saveDatacardTrees_=0 dumpAscii=1 dumpMcAscii=0 scaleR9Only=0 diffOpt/opt30.dat analysis_settings.dat diffOpt/opt_vs_bkg20.dat fillOptTree=1
+
+#loose
+analyzer StatAnalysis photonanalysis.dat statanalysis.dat saveDatacardTrees_=0 dumpAscii=1 dumpMcAscii=0 scaleR9Only=0 diffOpt/loose_opt.dat analysis_settings.dat fillOptTree=1

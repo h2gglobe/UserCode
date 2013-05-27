@@ -1,0 +1,20 @@
+##
+##variables for VH
+##
+jet_algoPF1_csvBtag
+#gsf_tk_n
+el_std_p4
+mu_glo_p4
+#gsf_tk_p4
+#mu_glo_charge
+#el_std_charge
+
+
+## 
+## MC truth
+gp_n:1
+gp_p4:1
+gp_status:1
+gp_pdgid:1
+gp_mother:1
+

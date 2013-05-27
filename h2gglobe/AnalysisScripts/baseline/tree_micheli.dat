@@ -1,0 +1,14 @@
+dir=VHhad
+type=2 name=mgg
+type=2 name=pho1_pt
+type=2 name=pho2_pt
+type=2 name=pho1_eta
+type=2 name=pho2_eta
+type=2 name=dipho_pt
+type=2 name=dipho_eta
+type=2 name=costhetaStar
+type=2 name=n_jets
+type=2 name=n_bjets
+type=2 name=jet1_pt
+type=2 name=jet2_pt
+type=2 name=mjj

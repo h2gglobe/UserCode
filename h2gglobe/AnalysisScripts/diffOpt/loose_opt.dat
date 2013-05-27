@@ -1,0 +1,6 @@
+ptgg_btag_cut=20.
+costhetastar_btag_cut=1.
+ptjet_btag_cut=20.
+ptgg_0tag_cut=20.
+costhetastar_0tag_cut=1.
+ptjet_0tag_cut=20.

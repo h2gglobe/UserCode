@@ -21,16 +21,34 @@ subleadEtVBFCut=30
 mvaVbfCatBoundaries=1.,0.985,0.93 
 
 ## Singal mass points to book
-sigPointsToBook=105,110,115,120,125,130,135,140,145,150,124
+sigPointsToBook=105,110,115,120,125,130,135,140,145,150
 
+## Hadronic TTH tag
+includeTTHhad=0
+leadEtTTHhadCut=60
+subleadEtTTHhadCut=25
+
+## Leptonic TTH tag
+includeTTHlep=0
+leadEtTTHlepCut=60
+subleadEtTTHlepCut=25
+
+	
 ## Hadronic V tag
-includeVHhad=0
+includeVHhad=1
 nVHhadEtaCategories=1
 leadEtVHhadCut=60
 subleadEtVHhadCut=25
 
+## Hadronic V tag + btag
+includeVHhadBtag=1
+leadEtVHhadCut=60
+subleadEtVHhadCut=25
+ptjet_loosecut=20
+
 ## Lepton tag
 includeVHlep=1
+includeVHlepB=0
 leadEtVHlepCut=45
 #subleadEtVHlepCut=30
 nElectronCategories=1 
@@ -90,3 +108,24 @@ rematchConversions=0
 
 doInterferenceSmear=1
 
+deltaRPholep_cut=0
+doMinvCut=0
+ptJets_ttH_thresh=25.
+njets_tthHad_thresh=5
+doDrGsfTrackCut=1
+drSC_lep=0.5
+drGsf_lep=1.
+#doApplyEleVeto=0 
+#doDrGsfTrackCut=0 
+#drSC_lep=0.   
+#drGsf_lep=0.	   
+#doApplyEleVeto=1   
+removeBtagtth=0
+applyLeptonSF=0
+useDefaultVertex=1
+applyBtagSF=1
+shiftBtagEffUp_bc=0
+shiftBtagEffDown_bc=0
+shiftBtagEffUp_l=0
+shiftBtagEffDown_l=0
+createCS=0
