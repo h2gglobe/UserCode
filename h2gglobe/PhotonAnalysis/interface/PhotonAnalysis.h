@@ -72,10 +72,16 @@ class PhotonAnalysis : public BaseAnalysis
     bool dataIs2011;
     bool includeVBF;
     bool includeVHhad;
+    bool includeVHhadBtag;
+    bool includeTTHlep;
+    bool includeTTHhad;
     bool includeVHlep;
+    bool includeVHlepB;
     int nElectronCategories;
     int nMuonCategories;
     bool includeVHmet;  //met at analysis step
+    bool includetHqLeptonic;
+
     int nMetCategories;
 
     bool reRunCiCForData;
@@ -85,13 +91,21 @@ class PhotonAnalysis : public BaseAnalysis
     float leadEtCut;
     float leadEtVBFCut;
     float leadEtVHhadCut;
+    float leadEtVHhadBtagCut;
+    float leadEtTTHlepCut;
+    float leadEtTTHhadCut;
     float leadEtVHlepCut;
+    float leadEttHqLeptonicCut;
     float leadEtVHmetCut;  //met at analysis step
     float subleadEtCut;
     float subleadEtVBFCut;
     float subleadEtVHhadCut;
+    float subleadEtVHhadBtagCut;
     float subleadEtVHlepCut;
     float subleadEtVHmetCut;  //met at analysis step
+    float subleadEtTTHhadCut;
+    float subleadEtTTHlepCut;
+    float subleadEttHqLeptonicCut;
     int nVBFEtaCategories;
     int nVHhadEtaCategories;
     int nVBFDijetJetCategories;
@@ -109,6 +123,28 @@ class PhotonAnalysis : public BaseAnalysis
     bool saveDatacardTrees_;
     bool saveSpinTrees_;
     bool saveVBFTrees_;
+
+    //vhhadronic cuts
+    float ptgg_btag_cut,costhetastar_btag_cut,ptjet_btag_cut;
+    float ptgg_0tag_cut,costhetastar_0tag_cut,ptjet_0tag_cut;
+    float ptjet_loosecut;
+
+    float deltaRPholep_cut;
+    bool doMinvCut;
+
+    float ptJets_ttH_thresh;
+    int njets_tthHad_thresh;
+    bool doDrGsfTrackCut;
+
+    float drSC_lep;
+    float    drGsf_lep;
+    int isLep_ele,isLep_mu;
+    int eleIndex,muIndex;
+
+    bool doApplyEleVeto;
+    bool removeBtagtth;
+
+    bool createCS;
 
     // Preselection indexes
     float presel_scet1, presel_scet2, presel_maxeta;
@@ -337,6 +373,12 @@ class PhotonAnalysis : public BaseAnalysis
     float jerShift, jecShift;
     float jetResponseLumiStep;
     std::string jetHandlerCfg;
+    bool applyBtagSF;
+    bool  shiftBtagEffUp_bc;
+    bool shiftBtagEffDown_bc;
+    bool  shiftBtagEffUp_l;
+    bool shiftBtagEffDown_l;
+    bool applyLeptonSF;
 
     // progress
     int lastRun;
@@ -346,6 +388,8 @@ class PhotonAnalysis : public BaseAnalysis
     // genLevels for calculating pdf errors post ws production (until PdfWeightSmearer works)
     float generatorPt_;
     float generatorY_;
+
+    void switchJetIdVertex(LoopAll &l, int ivtx);
 
  protected:
     void PreselectPhotons(LoopAll& l, int jentry);
@@ -366,7 +410,29 @@ class PhotonAnalysis : public BaseAnalysis
     // Moriond 2012
     bool VBFTag2011(LoopAll& l, int diphoton_id, float* smeared_pho_energy=0, bool nm1=false, float eventweight=1, float myweight=1);
     // For 2011 data - never used
-    bool VHhadronicTag2011(LoopAll& l, int diphoton_id, float* smeared_pho_energy=0, bool nm1=false, float eventweight=1, float myweight=1);
+    bool VHhadronicTag2011(LoopAll& l, int diphoton_id, float* smeared_pho_energy=0, bool nm1=false, float eventweight=1, float myweight=1,bool * jetid_flags=0);
+    // VH category w btag
+    bool VHhadronicBtag2012(LoopAll& l, int diphoton_id, float* smeared_pho_energy=0, bool nm1=false, float eventweight=1, float myweight=1,bool *jetid_flags=0);
+    //TTH leptonic category
+    bool TTHleptonicTag2012(LoopAll& l, int diphoton_id, float* smeared_pho_energy=0, bool nm1=false, float eventweight=1, float myweight=1,bool *jetid_flags=0);
+    //TTH leptonic category
+    bool TTHhadronicTag2012(LoopAll& l, int diphoton_id, float* smeared_pho_energy=0, bool nm1=false, float eventweight=1, float myweight=1,bool *jetid_flags=0);
+    //tHqLeptonic category
+    bool tHqLeptonicTag(LoopAll& l, int diphoton_id, float* smeared_pho_energy=0, bool nm1=false, float eventweight=1, float myweight=1,bool *jetid_flags=0);
+
+    //btag syst
+    float BtagReweight(LoopAll& l, bool shiftBtagEffUp_bc, bool shiftBtagEffDown_bc, bool shiftBtagEffUp_l, bool shiftBtagEffDown_l);
+
+    //electrons-muons SF
+    float ElectronSFReweight(LoopAll& l);
+    float MuonSFReweight(LoopAll& l);
+
+    int nBMC,nCMC,nLMC;
+    int nBtagB,nBtagC,nBtagL;
+    void computeBtagEff(LoopAll& l);
+
+
+
     // VBF Spin studies
     TMVA::Reader *tmvaVbfSpinReader_;
 
@@ -427,7 +493,6 @@ class PhotonAnalysis : public BaseAnalysis
     void saveDatCardTree(LoopAll& l, int cur_type, int category, int inc_cat, float evweight, int ipho1, int ipho2, int ivtx, TLorentzVector lead_p4, TLorentzVector sublead_p4, bool isCutBased=true, double sigmaMrv=0., double sigmaMwv=0., double sigmaMeonly=0., float vtxProb=0., string trainPhi="", float lead_id_mva=0., float sublead_id_mva=0.);
     
     // Save spin trees
-    void saveSpinTree(LoopAll &l, int category, float evweight, TLorentzVector Higgs, TLorentzVector lead_p4, TLorentzVector sublead_p4, int ipho1, int ipho2, int diphoton_id, float vtxProb);
     void saveSpinTree(LoopAll& l, int category, float evweight, TLorentzVector Higgs, TLorentzVector lead_p4, TLorentzVector sublead_p4, int ipho1, int ipho2, float diphobdt, double sigmaMrv, double sigmaMwv, double lead_sigmaE, double lead_sigmaE_nosmear, double sublead_sigmaE, double sublead_sigmaE_nosmear, float vtxProb, float lead_id_mva, float sublead_id_mva);
 
     // Save VBF trees
@@ -442,7 +507,7 @@ class PhotonAnalysis : public BaseAnalysis
     // Jets
     JetHandler * jetHandler_;
     void postProcessJets(LoopAll & l, int vtx=-1);
-    void switchJetIdVertex(LoopAll &l, int ivtx);
+
 
     std::map<int, vector<double> > weights;
     int trigCounter_;

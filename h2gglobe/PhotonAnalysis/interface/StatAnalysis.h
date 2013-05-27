@@ -63,18 +63,20 @@ class StatAnalysis : public PhotonAnalysis
     bool doMcOptimization;
     bool fillOptTree;
     bool doFullMvaFinalTree;
-    
-    bool doSpinAnalysis;
-    int nCosThetaCategories;
-    std::string cosThetaDef;
-    std::vector<float> cosThetaCatBoundaries;
 
     bool splitwzh;
-    void fillOpTree(LoopAll& l, const TLorentzVector & lead_p4, const TLorentzVector & sublead_p4, Float_t vtxProb,
+
+    void fillOpTree(LoopAll& l, const TLorentzVector & lead_p4, const TLorentzVector & sublead_p4, float *smeared_pho_energy, Float_t vtxProb,
 		     std::pair<int, int> diphoton_index, Int_t diphoton_id, Float_t phoid_mvaout_lead, Float_t phoid_mvaout_sublead,
-		     Float_t weight, Float_t mass, Float_t sigmaMrv, Float_t sigmaMwv,
+		     Float_t weight, Float_t evweight, Float_t mass, Float_t sigmaMrv, Float_t sigmaMwv,
 		     const TLorentzVector & Higgs, Float_t diphobdt_output, Int_t category, bool VBFevent, Float_t myVBF_Mjj, Float_t myVBFLeadJPt, 
 		     Float_t myVBFSubJPt, Int_t nVBFDijetJetCategories, bool isSyst, std::string name1);
+
+    void fillOpTree(LoopAll& l, const TLorentzVector & lead_p4, const TLorentzVector & sublead_p4, Float_t vtxProb,
+		    std::pair<int, int> diphoton_index, Int_t diphoton_id, Float_t phoid_mvaout_lead, Float_t phoid_mvaout_sublead,
+		    Float_t weight, Float_t mass, Float_t sigmaMrv, Float_t sigmaMwv,
+		    const TLorentzVector & Higgs, Float_t diphobdt_output, Int_t category, bool VBFevent, Float_t myVBF_Mjj, Float_t myVBFLeadJPt, 
+		    Float_t myVBFSubJPt, Int_t nVBFDijetJetCategories, bool isSyst, std::string name1);
 
     int nDataBins;  
     bool scaleClusterShapes, scaleR9Only;
@@ -108,9 +110,10 @@ class StatAnalysis : public PhotonAnalysis
 				      std::vector<double> & mass_errors, std::vector<double> & mva_errors,
 				      std::vector<int>    & categories, std::vector<double> & weights, int diphoton_id=-1);
     
-    bool VHmuevent, VHelevent, VBFevent, VHhadevent, VHmetevent;  //met at analysis step
+    bool VHmuevent, VHelevent, VBFevent, VHhadevent,VHhadBtagevent, VHmetevent,TTHhadevent,TTHlepevent,tHqLeptonicevent;  //met at analysis step
+    bool VHlep1event, VHlep2event;
     int VHelevent_cat;
-	int VHmuevent_cat;
+    int VHmuevent_cat;
     int VHmetevent_cat;
     double genLevWeight; 
     float sigmaMrv, sigmaMwv;
@@ -122,8 +125,7 @@ class StatAnalysis : public PhotonAnalysis
     std::vector<float> smeared_pho_r9;
     std::vector<float> smeared_pho_weight;
 
-    void  computeExclusiveCategory(LoopAll & l, int & category, std::pair<int,int> diphoton_index, float pt, float diphoBDT=1. );
-    void computeSpinCategory(LoopAll &l, int &category, TLorentzVector lead_p4, TLorentzVector sublead_p4);
+    void  computeExclusiveCategory(LoopAll & l, int & category, std::pair<int,int> diphoton_index, float pt, float diphoBDT=1. );	
     int  categoryFromBoundaries(std::vector<float> & v, float val);
     int  categoryFromBoundaries2D(std::vector<float> & v1, std::vector<float> & v2, std::vector<float> & v3, float val1, float val2, float val3);
 
@@ -152,9 +154,13 @@ class StatAnalysis : public PhotonAnalysis
     int diPhoCounter_;
     int nVBFCategories  ; 
     int nVHhadCategories; 
+    int nVHhadBtagCategories; 
+    int nTTHhadCategories; 
+    int nTTHlepCategories; 
     int nVHlepCategories; 
-    int nVHmetCategories;
-
+    int nVHmetCategories; 
+    int ntHqLeptonicCategories;
+    
     // RooStuff
     RooContainer *rooContainer;
 
