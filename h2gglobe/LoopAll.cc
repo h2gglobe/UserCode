@@ -567,6 +567,9 @@ void LoopAll::Init(Int_t typerunpass, TTree *tree) {
   }
   SetBranchAddresses(inputBranchNames);
   
+  el_ind=-1;
+  mu_ind=-1;
+
   Notify();
 }
 
@@ -616,6 +619,8 @@ void LoopAll::Loop(Int_t a) {
   Int_t nentries = 0;
   if(fChain) 
     nentries = Int_t(fChain->GetEntriesFast());
+  Entries_=nentries;
+
 
   Int_t nbytes = 0, nb = 0;
 
